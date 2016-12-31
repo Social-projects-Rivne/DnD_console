@@ -9,9 +9,10 @@ This server consists of the following:
  - More possibilities and functionality are comming
  - If you want to test or try it:
    1. build it
-   2. run it (create folder `Root` in the same directory where the exe file is placed)
-   3. type in your Internet browser following "127.0.0.1:27015" - the browser will probably receive "bad request responce" (it is indendeed to be), while the server will inform about succesfull client connection, its request and other information.
-   4. you may also use simple GET requests (in terminal or your application) to communicate with the server, in the following format:
+   2. create folder `Root` in the same directory where the exe file is placed
+   3. run it
+   4. type in your Internet browser following "127.0.0.1:27015" - the browser will probably receive "bad request responce" (it is indendeed to be), while the server will inform about succesfull client connection, its request and other information.
+   5. you may also use simple GET requests (in terminal or your application) to communicate with the server, in the following format:
    `GET URI HTTP version CRLFCRLF`
     e.g.:
    `GET /some/url/to.file HTTP/1.1\r\n\r\n`
