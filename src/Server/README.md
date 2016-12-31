@@ -15,3 +15,6 @@ This server consists of the following:
    `GET URI HTTP version CRLFCRLF`
     e.g.:
    `GET /some/url/to.file HTTP/1.1\r\n\r\n`
+
+#### Change log:
+ - (31.12.2016) The server is CROSS-PLATFORM, it still does not use any third party libraries, native sockets only!!!
