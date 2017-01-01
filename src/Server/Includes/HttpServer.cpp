@@ -203,6 +203,7 @@ void HttpServer::fRun()
                 continue;
             }
             request_header = request.substr(0, newline_pos); // extract request's request-line header // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
+            // request_header = "GET /favicon.ico HTTP/1.1"; / for test purpose only
             // validate request-header
             int sp_loc = request_header.find(' ');
             int nsp_loc = request_header.find(' ', sp_loc+1);
@@ -264,19 +265,19 @@ void HttpServer::fRun()
 			state_info += "REQUESTED FILE MIME TYPE: "+requested_file_mime_type+"\n";
 			state_info += "REQUEST VERSION: "+request_version+"\n";
 
-            if (access(requested_path.data(), F_OK) == -1) // ensure path exists
+            if (access((root+requested_path).data(), F_OK) == -1) // ensure path exists
             {
                 fError(404); // Not Found
                 continue;
             }
-            if (access(requested_path.data(), R_OK) == -1) // ensure path is readable
+            if (access((root+requested_path).data(), R_OK) == -1) // ensure path is readable
             {
                 fError(403); // Forbidden
                 continue;
             }
 
 
-            pFile = fopen(requested_path.data(), "r");
+            pFile = fopen((root+requested_path).data(), "rb");
 			ssize_t length = 0;
             if (pFile == NULL)
             {
@@ -302,7 +303,7 @@ void HttpServer::fRun()
 				cout<<"request_line: "<<request_line<<endl;
 				newline_pos = i+2;
 			}*/
-
+			
             // respond to client
 			#ifdef _WIN32
 				string response_str = "HTTP/1.1 200 OK\r\n";
@@ -323,6 +324,13 @@ void HttpServer::fRun()
 
 				if (send(cfd, response_body, length, 0) == -1)
 					continue;
+				response_str = "\r\n\r\n";
+				if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+				{
+					cout<<"noway"<<endl;
+					continue;
+				}
+				
 			#else
 				string response_str = "HTTP/1.1 200 OK\r\n";
 				if (_write(cfd, response_str.data(), response_str.length()) == -1)
@@ -522,6 +530,7 @@ ssize_t HttpServer::fParse(void)
 		{
 			delete [] request_portion_buffer;
 			delete [] full_request;
+			state_info += "CONNECTION IS CLOSED\n";
             return -6;
 		}
 
@@ -587,20 +596,21 @@ ssize_t HttpServer::fLoad(void)
         return -1;
 
 	fseek(pFile, 0, SEEK_END);
-	int file_size = ftell(pFile);
-	char * tmp_bufer = new char[file_size];		memset((void *)tmp_bufer, 0, sizeof(char)*file_size);
-	response_body = new char[file_size];		memset((void *)response_body, 0, sizeof(char)*file_size);
-	
-	fseek(pFile, 0, 0); // return carret back to the file beginning
-	ssize_t read_amount = 0;
+	size_t file_size = ftell(pFile);
+	fseek(pFile, 0, SEEK_SET); // return carret back to the file beginning
+
+	response_body = new char[file_size];//		memset((void *)response_body, 0, sizeof(char)*file_size);
+	size_t read_amount = 0;
 	while (read_amount < file_size)
 	{
-		ssize_t bytes_read = fread(tmp_bufer, 1, file_size-read_amount, pFile);
-		memcpy(response_body + read_amount, tmp_bufer, bytes_read);
+		size_t bytes_read = fread(response_body+read_amount, 1, file_size, pFile);
 		read_amount += bytes_read;
+		if (feof(pFile) && read_amount != file_size)
+		{
+			state_info += "file read error";
+			break;
+		}
 	}
-	delete [] tmp_bufer ;
-
 	return read_amount;
 }
 
