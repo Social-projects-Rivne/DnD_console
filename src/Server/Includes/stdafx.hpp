@@ -39,7 +39,6 @@
 #else
 	//define it for a UNIX machine
 	#include <arpa/inet.h>
-	//#include <strings.h>
 	#include <unistd.h>
 #endif
 

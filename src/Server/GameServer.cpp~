@@ -8,8 +8,8 @@
 // fbt.ksnv@gmail.com
 //
 
-#include "Includes/stdafx.hpp"
-#include "Includes/HttpServer.hpp"
+#include "Includes\stdafx.hpp"
+#include "Includes\HttpServer.hpp"
 
 using namespace std;
 
@@ -20,7 +20,7 @@ void * pGlobalServing = nullptr;
 
 int main(int argc, char* argv[])
 {
-    // TODO: read setting from  Stas IniParser
+    // TODO: read setting from parsed *.ini file, i.e., from STL map
 	
     HttpServer * pHttp_server = new HttpServer(27015, "Root");
     pGlobalServing = (void*)pHttp_server;

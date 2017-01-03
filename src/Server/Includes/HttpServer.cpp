@@ -208,7 +208,6 @@ void HttpServer::fRun()
             int sp_loc = request_header.find(' ');
             int nsp_loc = request_header.find(' ', sp_loc+1);
             int qm_loc = request_header.find('?', nsp_loc+1);
-            int pnt_loc = request_header.find('.', qm_loc+1);
             int version_loc = request_header.find("HTTP/1.1");
 			
 			string request_method;
@@ -232,7 +231,7 @@ void HttpServer::fRun()
 				continue;
 			}
 
-			request_uri = request_header.substr(sp_loc+1, nsp_loc-sp_loc);
+			request_uri = request_header.substr(sp_loc+1, nsp_loc-sp_loc-1);
             if (!request_uri.length())
             {
                 fError(400); // Bad Request
@@ -258,15 +257,16 @@ void HttpServer::fRun()
 
 			state_info += "REQUEST METHOD: "+request_method+"\n";
 			state_info += "REQUEST URI: "+request_uri+"\n";
-			state_info += "REQUESTED PATH: "+requested_path+"\n";
+			state_info += "REQUESTED PATH: \""+requested_path+"\"\n";
 			state_info += "REQUEST QUERY: "+request_query+"\n";
 			state_info += "REQUEST VERSION: "+request_version+"\n";
 			state_info += "REQUESTED FILE EXTENSION: "+requested_file_extension+"\n";
 			state_info += "REQUESTED FILE MIME TYPE: "+requested_file_mime_type+"\n";
 			state_info += "REQUEST VERSION: "+request_version+"\n";
 
-            if (access((root+requested_path).data(), F_OK) == -1) // ensure path exists
+            if (access((root+requested_path).data(), F_OK) == -1 && requested_path.length()>1) // ensure path exists
             {
+            	cout<<"trying access to:\""<<(root+requested_path)<<"\""<<endl;
                 fError(404); // Not Found
                 continue;
             }
@@ -305,52 +305,30 @@ void HttpServer::fRun()
 			}*/
 			
             // respond to client
-			#ifdef _WIN32
-				string response_str = "HTTP/1.1 200 OK\r\n";
-				if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-					continue;
-					
-				response_str = "Connection: close\r\n";
-				if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-					continue;
-					
-				response_str = "Content-Length: "+to_string(length)+"\r\n";
-				if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-					continue;
-					
-				response_str = "Content-Type: "+requested_file_mime_type+"\r\n\r\n";
-				if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-					continue;
+			string response_str = "HTTP/1.1 200 OK\r\n";
+			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+				continue;
 
-				if (send(cfd, response_body, length, 0) == -1)
-					continue;
-				response_str = "\r\n\r\n";
-				if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-				{
-					cout<<"noway"<<endl;
-					continue;
-				}
-				
-			#else
-				string response_str = "HTTP/1.1 200 OK\r\n";
-				if (_write(cfd, response_str.data(), response_str.length()) == -1)
-					continue;
-					
-				response_str = "Connection: close\r\n";
-				if (_write(cfd, response_str.data(), response_str.length()) == -1)
-					continue;
-					
-				response_str = "Content-Length: "+to_string(length)+"\r\n";
-				if (_write(cfd, response_str.data(), response_str.length()) == -1)
-					continue;
-					
-				response_str = "Content-Type: "+type+"\r\n\r\n";
-				if (_write(cfd, response_str.data(), response_str.length()) == -1)
-					continue;
+			response_str = "Connection: close\r\n";
+			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+				continue;
 
-				if (_write(cfd, response_body, length) == -1)
-					continue;
-			#endif
+			response_str = "Content-Length: "+to_string(length)+"\r\n";
+			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+				continue;
+
+			response_str = "Content-Type: "+requested_file_mime_type+"\r\n\r\n";
+			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+				continue;
+
+			if (send(cfd, response_body, length, 0) == -1)
+				continue;
+			response_str = "\r\n\r\n";
+			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+			{
+				cout<<"noway"<<endl;
+				continue;
+			}
 
             // announce OK
             state_info += "HTTP/1.1 200 OK\n";
@@ -465,21 +443,21 @@ bool HttpServer::fError(unsigned short code, int condition)
 			return false;
 	#else
 		string tmp = "HTTP/1.1 "+to_string(code)+" "+phrase+"\r\n";
-		if (_write(cfd, tmp.data(), tmp.length()) < 0) // respond with Status-Line
+		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Status-Line
 			return false;
 		tmp = "Connection: close\r\n";
-		if (_write(cfd, tmp.data(), tmp.length()) < 0) // respond with Connection header
+		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Connection header
 			return false;
-		tmp = "Content-Length: "+to_string(length)+"\r\n";
-		if (_write(cfd, tmp.data(), tmp.length()) < 0) // respond with Content-Length header
+		tmp = "Content-Length: "+to_string(error_response.length())+"\r\n";
+		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Content-Length header
 			return false;
 		tmp = "Content-Type: text/html\r\n";
-		if (_write(cfd, tmp.data(), tmp.length()) < 0) // respond with Content-Type header
+		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Content-Type header
 			return false;
 		tmp = "\r\n";
-		if (_write(cfd, tmp.data(), tmp.length()) < 0) // respond with CRLF
+		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with CRLF
 			return false;
-		if (_write(cfd, content, length) == -1) // respond with message-body
+		if (write(cfd, error_response.data(), error_response.length()) == -1) // respond with message-body
 			return false;
 	#endif
 
@@ -506,8 +484,12 @@ ssize_t HttpServer::fParse(void)
 	request = "";
     while (true) // parse request
     {
-        //ssize_t bytes_read = read(cfd, request_portion_buffer, sizeof(char) * OCTETS); // read from socket in UNIX
-        ssize_t bytes_read = recv(cfd, request_portion_buffer, sizeof(char) * OCTETS, 0); // read from socket in Windows
+		#ifdef _WIN32
+        	ssize_t bytes_read = recv(cfd, request_portion_buffer, sizeof(char) * OCTETS, 0);
+		#else
+        	ssize_t bytes_read = read(cfd, request_portion_buffer, sizeof(char) * OCTETS);
+		#endif
+
         if (bytes_read == -1) // socket read error
         {
         	fError(500);
@@ -535,7 +517,7 @@ ssize_t HttpServer::fParse(void)
 		}
 
 		request = full_request;
-		if (request.find("\r\n\r\n") != -1) // search for CRLF CRLF
+		if (request.find("\r\n\r\n") != string::npos) // search for CRLF CRLF
 		{
 			request = request.substr(0,request.length()-2); // trim to one CRLF
             if (!request.length())
