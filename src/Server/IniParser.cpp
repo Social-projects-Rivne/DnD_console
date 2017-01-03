@@ -1,6 +1,6 @@
 #include "Includes/IniParser.hpp"
 
-IniParser::IniParser(std::string path) : 
+IniParser::IniParser(std::string path) :
 	                            _path(path)
 {
 }
@@ -33,7 +33,7 @@ std::map<std::string, std::string> IniParser::fGetParams()
 			}
 
 			insert = category_name + buff;
-			key = "";                         // reset key 
+			key = "";                         // reset key
 			value = "";                       // reset value
 
 			for (int j = 0; j < insert.length(); j++)
@@ -56,7 +56,10 @@ std::map<std::string, std::string> IniParser::fGetParams()
 		file.close();
 	}
 	else
-		throw "FileOpenException";
+	{
+		_params.clear();
+		_params.insert({"Error","#1 File not found"});
+	}
 	return _params;
 }
 
@@ -106,7 +109,10 @@ void IniParser::fSetParams(std::map<std::string, std::string> new_params)
 		file.close();
 	}
 	else
-		throw "FileOpenException";
+	{
+		_params.clear();
+		_params.insert({"Error","#1 File not found"});
+	}
 }
 
 
