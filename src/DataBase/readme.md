@@ -13,6 +13,7 @@ CREATE TABLE Users (
 SHOW TABLES;
 DESCRIBE Users;
 INSERT INTO Users VALUE (1, 'root', 'root', NULL, 1);
+INSERT INTO Users VALUE (2, 'user', 'test', NULL, 0);
 SELECT * FROM Users;
 
 CREATE TABLE Characters (
