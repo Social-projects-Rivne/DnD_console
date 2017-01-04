@@ -40,6 +40,7 @@
 	//define it for a UNIX machine
 	#include <arpa/inet.h>
 	#include <unistd.h>
+	#include <dirent.h>
 #endif
 
 

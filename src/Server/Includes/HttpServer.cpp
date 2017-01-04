@@ -27,7 +27,6 @@ HttpServer::HttpServer(int server_port, string path_to_root)
     errno			= 0; // reset errors
 	state_error		= 0;
 
-
     if (port < 0 || port > 65535) // ensure port is a non-negative short integer
     {
         state_error =  2;
@@ -190,7 +189,7 @@ void HttpServer::fRun()
 				state_info += "CLIENT REQUEST FAILED. Error code:"+to_string(request_size)+"\n";
                 continue;
 			}
-			
+
             int newline_pos = request.find("\r\n");
             if (newline_pos == -1)
             {
@@ -202,6 +201,7 @@ void HttpServer::fRun()
             	fError(414); // Request-URI Too Long
                 continue;
             }
+
             request_header = request.substr(0, newline_pos); // extract request's request-line header // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
             // request_header = "GET /favicon.ico HTTP/1.1"; / for test purpose only
             // validate request-header
@@ -246,6 +246,7 @@ void HttpServer::fRun()
 			else
 				requested_path = request_uri.substr(0, nsp_loc);
 
+
             requested_file_extension = requested_path.substr(requested_path.find('.') + 1);
             requested_file_mime_type = fLookup(requested_file_extension);
             /*if (!requested_file_mime_type.length())
@@ -255,9 +256,10 @@ void HttpServer::fRun()
             }*/
 
 
+
 			state_info += "REQUEST METHOD: "+request_method+"\n";
 			state_info += "REQUEST URI: "+request_uri+"\n";
-			state_info += "REQUESTED PATH: \""+requested_path+"\"\n";
+			state_info += "REQUESTED PATH: "+requested_path+"\n";
 			state_info += "REQUEST QUERY: "+request_query+"\n";
 			state_info += "REQUEST VERSION: "+request_version+"\n";
 			state_info += "REQUESTED FILE EXTENSION: "+requested_file_extension+"\n";
@@ -277,7 +279,31 @@ void HttpServer::fRun()
             }
 
 
+            int path_is_file = 1;
+			#ifdef _WIN32
+				// define if it is file or directory
+			#else
+            	DIR* directory = opendir((root+requested_path).data());
+                if(directory != NULL)
+                {
+				    closedir(directory);
+				    path_is_file = 0;
+                }
+                else if(errno == ENOTDIR)
+                {
+                	path_is_file = 1;
+                }
+			#endif
+            if (!path_is_file)
+            {
+    			state_info += "ERROR: 422\n";
+                fError(422); // Unprocessable Entity
+                continue;
+            }
+
+
             pFile = fopen((root+requested_path).data(), "rb");
+			cout<<pFile<<endl;
 			ssize_t length = 0;
             if (pFile == NULL)
             {
@@ -287,14 +313,17 @@ void HttpServer::fRun()
             }
 			else
 			{
+				cout<<"pFile = "<<*((int*)(&pFile))<<endl;
 				length = fLoad(); // load file
+				cout<<3<<endl;
 				if (length == -1)
 				{
 					fError(500); // Internal Server Error
 					continue;
 				}
 			}
-			
+
+			cout<<7<<endl;
 			/*int i = newline_pos+2;
 			while (i < (int)request.length()-2)
 			{
@@ -330,6 +359,7 @@ void HttpServer::fRun()
 				continue;
 			}
 
+			cout<<8<<endl;
             // announce OK
             state_info += "HTTP/1.1 200 OK\n";
         }
