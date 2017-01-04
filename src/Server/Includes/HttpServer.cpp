@@ -423,43 +423,23 @@ bool HttpServer::fError(unsigned short code, int condition)
 	
 	state_info += "HTTP/1.1 "+to_string(code)+" "+phrase+"\r\n";
 	
-	#ifdef _WIN32
-		string tmp = "HTTP/1.1 "+to_string(code)+" "+phrase+"\r\n";
-		if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Status-Line
-			return false;
-		tmp = "Connection: close\r\n";
-		if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Connection header
-			return false;
-		tmp = "Content-Length: "+to_string(error_response.length())+"\r\n";
-		if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Content-Length header
-			return false;
-		tmp = "Content-Type: text/html\r\n";
-		if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Content-Type header
-			return false;
-		tmp = "\r\n";
-		if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with CRLF
-			return false;
-		if (send(cfd, error_response.data(), error_response.length(), 0) == -1) // respond with message-body
-			return false;
-	#else
-		string tmp = "HTTP/1.1 "+to_string(code)+" "+phrase+"\r\n";
-		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Status-Line
-			return false;
-		tmp = "Connection: close\r\n";
-		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Connection header
-			return false;
-		tmp = "Content-Length: "+to_string(error_response.length())+"\r\n";
-		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Content-Length header
-			return false;
-		tmp = "Content-Type: text/html\r\n";
-		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with Content-Type header
-			return false;
-		tmp = "\r\n";
-		if (write(cfd, tmp.data(), tmp.length()) < 0) // respond with CRLF
-			return false;
-		if (write(cfd, error_response.data(), error_response.length()) == -1) // respond with message-body
-			return false;
-	#endif
+	string tmp = "HTTP/1.1 "+to_string(code)+" "+phrase+"\r\n";
+	if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Status-Line
+		return false;
+	tmp = "Connection: close\r\n";
+	if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Connection header
+		return false;
+	tmp = "Content-Length: "+to_string(error_response.length())+"\r\n";
+	if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Content-Length header
+		return false;
+	tmp = "Content-Type: text/html\r\n";
+	if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with Content-Type header
+		return false;
+	tmp = "\r\n";
+	if (send(cfd, tmp.data(), tmp.length(), 0) < 0) // respond with CRLF
+		return false;
+	if (send(cfd, error_response.data(), error_response.length(), 0) == -1) // respond with message-body
+		return false;
 
     // announce Response-Line
 
@@ -484,11 +464,7 @@ ssize_t HttpServer::fParse(void)
 	request = "";
     while (true) // parse request
     {
-		#ifdef _WIN32
-        	ssize_t bytes_read = recv(cfd, request_portion_buffer, sizeof(char) * OCTETS, 0);
-		#else
-        	ssize_t bytes_read = read(cfd, request_portion_buffer, sizeof(char) * OCTETS);
-		#endif
+        ssize_t bytes_read = recv(cfd, request_portion_buffer, sizeof(char) * OCTETS, 0);
 
         if (bytes_read == -1) // socket read error
         {
