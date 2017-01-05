@@ -61,3 +61,6 @@
 
 
 using namespace std;
+
+
+string fTrimString(string str);

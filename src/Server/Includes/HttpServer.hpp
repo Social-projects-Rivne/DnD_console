@@ -20,27 +20,30 @@
 class HttpServer
 {
 private:
-	int		port;			// port for listening
-	string	root;			// path to server's root
-	int		cfd;			// file descriptor for sockets // connection file descriptor
-	int		sfd;			// file descriptor for sockets // socket file descriptor
-	string	request;		// buffer for request
-	string	request_header;	// buffer for request_header
-	byte*	response_body;	// buffer for response-body
-	FILE*	pFile;			// FILE pointer for requested file
-	int		state_error;	// server's state. 0 - running; !0 - some errors
-	string	state_info;		// informs on state condition
+	int		port;						// port for listening
+	string	root;						// path to server's root
+	int		cfd;						// file descriptor for sockets // connection file descriptor
+	int		sfd;						// file descriptor for sockets // socket file descriptor
+	string	request;					// buffer for client request
+	string	request_line;				// buffer for first line of user request
+	map <string, string> request_headers;
+	byte*	response_body;				// buffer for response-body
+	int		response_body_length;		// size of response-body
+	string	response_body_content_type;	// response-body content type
+	FILE*	pFile;						// FILE pointer for requested file
+	int		state_error;				// server's state. 0 - running; !0 - some errors
+	string	state_info;					// informs on state condition
 
-public:
-	void	fRun(void);
 private:
 	void	fReset(void);
+	bool	fRespond(void);
 	bool	fConnected(void);
 	bool	fError(unsigned short code, int condition = -1);
-	ssize_t	fLoad(void);
+	bool	fLoad(void);
 	string	fLookup(string extension);
 	ssize_t	fParse(void);
 public:
+	void	fRun(void);
 	HttpServer(int server_port, string path_to_root);
 	~HttpServer(void);
 };

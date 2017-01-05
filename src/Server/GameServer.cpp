@@ -22,14 +22,14 @@ void * pGlobalServing = nullptr;
 int main(int argc, char* argv[])
 {
 	// read data from config.in file
-		IniParser* pIni_parser = new IniParser("config.ini");
-		auto params = pIni_parser->fGetParams();
+	//	IniParser* pIni_parser = new IniParser("config.ini");
+	//	auto params = pIni_parser->fGetParams();
 
 
 
 	// start HTTP server with correct termination
 		//HttpServer * pHttp_server = new HttpServer(stoi(params["server.port"]), params["server.root"]);
-		HttpServer * pHttp_server = new HttpServer(33000, "Root/");
+		HttpServer* pHttp_server = new HttpServer(33000, "Root/");
 		pGlobalServing = (void*)pHttp_server; // fHandler used the pointer for correct program termination
 		signal(SIGINT, fHandler); // listen for SIGINT (aka control-c), if it comes call function named fHandler
 
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
     // clear memory // sclose socets (in destructors, etc)
 		delete pHttp_server;
-		delete pIni_parser;
+	//	delete pIni_parser;
 }
 
 
