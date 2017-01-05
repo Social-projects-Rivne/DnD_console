@@ -41,14 +41,8 @@ void Database::ConnectionOpening()
         cout << "The connection is open." << endl;
 }
 
-void Database::GetUserData(string user_name, string password)
+void Database::GetUserData(string sql_statement)
 {
-    string sql_statement = "SELECT username, password FROM Users WHERE username = '";
-    sql_statement += user_name;
-    sql_statement += "' AND password = '";
-    sql_statement += password;
-    sql_statement += "';";
-    
     //Execute SQL-query
     if (mysql_query(CONNECTION, sql_statement.c_str()) != 0)
         cout << "Error: can't execute SQL-query\n";
@@ -75,28 +69,8 @@ void Database::GetUserData(string user_name, string password)
     mysql_free_result(RESULT);
 }
 
-void Database::PutUserData(string user_name, string password, string email)
+void Database::PutUserData(string sql_statement)
 {
-    string sql_statement;
-    if (email == "")
-    {
-        sql_statement = "INSERT INTO Users (username, password, is_active) VALUES ('";
-        sql_statement += user_name;
-        sql_statement += "', '";
-        sql_statement += password;
-        sql_statement += "', 0);";
-    }
-    else
-    {
-        sql_statement = "INSERT INTO Users (username, password, email, is_active) VALUES ('";
-        sql_statement += user_name;
-        sql_statement += "', '";
-        sql_statement += password;
-        sql_statement += "', '";
-        sql_statement += email;
-        sql_statement += "', 0);";
-    }
-    
     //Execute SQL-query
     if (mysql_query(CONNECTION, sql_statement.c_str()) != 0)
         cout << "Error: can't execute SQL-query\n";

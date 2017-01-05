@@ -20,9 +20,9 @@ public:
     
     void ConnectionOpening();
     
-    void GetUserData(std::string user_name, std::string password);
+    void GetUserData(std::string sql_statement);
     
-    void PutUserData(std::string user_name, std::string password, std::string email);
+    void PutUserData(std::string sql_statement);
     
     ~Database();
 }; // class Database
