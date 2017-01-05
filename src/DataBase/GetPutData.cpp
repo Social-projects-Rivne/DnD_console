@@ -9,14 +9,18 @@ MYSQL_RES *RESULT; // Resulting Table Handle
 MYSQL_ROW ROW; // Rows Handle
 
 void fConnectionOpening();
-void fGetData(string user_name, string password);
+void fGetUserData(string user_name, string password);
+void fPutUserData(string user_name, string password, string email);
 
 int main()
 {
     fConnectionOpening();
-    string user_name = "user1";
-    string password = "test";
-    fGetData(user_name, password);
+    string user_name = "new_user";
+    string password = "new_password";
+    string email;
+    
+    fGetUserData(user_name, password);
+    fPutUserData(user_name, password, email);
     
     // Closing the connection
     mysql_close(CONNECTION);
@@ -46,7 +50,7 @@ void fConnectionOpening()
     
 }
 
-void fGetData(string user_name, string password)
+void fGetUserData(string user_name, string password)
 {
     string sql_statement = "SELECT username, password FROM Users WHERE username = '";
     sql_statement += user_name;
@@ -76,4 +80,33 @@ void fGetData(string user_name, string password)
     
     // Free up the memory used by the result table
     mysql_free_result(RESULT);
+}
+
+void fPutUserData(string user_name, string password, string email)
+{
+    string sql_statement;
+    if (email == "")
+    {
+        sql_statement = "INSERT INTO Users (username, password, is_active) VALUES ('";
+        sql_statement += user_name;
+        sql_statement += "', '";
+        sql_statement += password;
+        sql_statement += "', 0);";
+    }
+    else
+    {
+        sql_statement = "INSERT INTO Users (username, password, email, is_active) VALUES ('";
+        sql_statement += user_name;
+        sql_statement += "', '";
+        sql_statement += password;
+        sql_statement += "', '";
+        sql_statement += email;
+        sql_statement += "', 0);";
+    }
+    
+    //Execute SQL-query
+    if (mysql_query(CONNECTION, sql_statement.c_str()) != 0)
+        cout << "Error: can't execute SQL-query\n";
+    else
+        cout << "The user is added.\n";
 }
