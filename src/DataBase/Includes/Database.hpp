@@ -13,7 +13,7 @@
 
 class Database
 {
-    MYSQL* CONNECTION; // Database Connection Handle/Decryptor
+    MYSQL* connection; // Database Connection Handle/Decryptor
     
 public:
     Database();
