@@ -24,6 +24,7 @@ private:
 	string	root;						// path to server's root
 	int		cfd;						// file descriptor for sockets // connection file descriptor
 	int		sfd;						// file descriptor for sockets // socket file descriptor
+	vector <string> path_exceptions;	//
 	string	request;					// buffer for client request
 	string	request_line;				// buffer for first line of user request
 	map <string, string> request_headers;
@@ -34,7 +35,7 @@ private:
 	int		state_error;				// server's state. 0 - running; !0 - some errors
 	string	state_info;					// informs on state condition
 
-private:
+private: /* see cpp file for the below functions descriptions*/
 	void	fReset(void);
 	bool	fRespond(void);
 	bool	fConnected(void);
@@ -44,6 +45,7 @@ private:
 	ssize_t	fParse(void);
 public:
 	void	fRun(void);
+	void	(*fCallBack)(string, map <string, string>);	// pointer to user function that is called in case of exception
 	HttpServer(int server_port, string path_to_root);
 	~HttpServer(void);
 };

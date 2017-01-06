@@ -22,12 +22,13 @@ HttpServer::HttpServer(int server_port, string path_to_root)
 	root						= path_to_root;
 	cfd							= -1; // set file descriptor for sockets uninitialized
 	sfd							= -1; // set file descriptor for sockets uninitialized
-	pFile						= NULL;
-	response_body				= NULL;
+	pFile						= nullptr;
+	response_body				= nullptr;
 	response_body_length		= 0;
 	response_body_content_type	= "";
     errno						= 0; // reset errors
 	state_error					= 0;
+	fCallBack					= nullptr;
 
     if (port < 0 || port > 65535) // ensure port is a non-negative short integer
     {
@@ -41,11 +42,11 @@ HttpServer::HttpServer(int server_port, string path_to_root)
 	#ifdef _WIN32
 		unsigned long root_path_length = 0;
 		char  buffer[4096]; buffer[0] = 0; // set null terminating character in case of pull path retrieving fail
-		char** lppPart={NULL};
+		char** lppPart={nullptr};
 		GetFullPathNameA(root.data(), 4096, buffer, lppPart);
 		root = buffer;
 	#else
-		root = realpath(root.data(), NULL); // full path to server's root on UNIX
+		root = realpath(root.data(), nullptr); // full path to server's root on UNIX
 	#endif
 
     if (!root.length()) // endusre path to server's root is specified
@@ -286,7 +287,7 @@ void HttpServer::fRun()
 				// define if it is file or directory
 			#else
             	DIR* directory = opendir((root+requested_path).data());
-                if(directory != NULL)
+                if(directory != nullptr)
                 {
 				    closedir(directory);
 				    path_is_file = 0;
@@ -305,7 +306,7 @@ void HttpServer::fRun()
 
 
             pFile = fopen((root+requested_path).data(), "rb");
-            if (pFile == NULL)
+            if (pFile == nullptr)
 				state_info += "nothing to load\n";
 			else
 			{
@@ -385,18 +386,18 @@ void HttpServer::fReset(void)
 {
 	request_headers.clear();
 
-    if (response_body != NULL) // free response's body
+    if (response_body != nullptr) // free response's body
     {
         delete [] response_body;
-        response_body = NULL;
+        response_body = nullptr;
     }
 	response_body_length = 0;
 	response_body_content_type = "";
 
-    if (pFile != NULL) // close file
+    if (pFile != nullptr) // close file
     {
         fclose(pFile);
-        pFile = NULL;
+        pFile = nullptr;
     }
 
     request = "";
@@ -559,7 +560,7 @@ ssize_t HttpServer::fParse(void)
 }
 
 /*
-* Returns MIME type for supported extensions, else NULL.
+* Returns MIME type for supported extensions, else empty string.
 */
 string HttpServer::fLookup(string extension)
 {
