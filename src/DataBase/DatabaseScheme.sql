@@ -3,11 +3,12 @@ USE DnD;
 
 CREATE TABLE Users (
     id INT NOT NULL AUTO_INCREMENT,
-    username VARCHAR(20) NOT NULL,
-    password VARCHAR(20) NOT NULL,
+    username VARCHAR(30) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     email VARCHAR(30),
     is_active TINYINT(1) NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (username, password)
     );
 
 CREATE TABLE Characters (
