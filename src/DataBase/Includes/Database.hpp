@@ -10,19 +10,23 @@
 #define Database_hpp
 
 #include <stdio.h>
+#include "Includes/json.hpp"
+#include "Includes/sha256.hpp"
+
+using json = nlohmann::json;
 
 class Database
 {
-    MYSQL* CONNECTION; // Database Connection Handle/Decryptor
+    MYSQL* connection; // Database Connection Handle/Decryptor
     
 public:
     Database();
     
-    void ConnectionOpening();
+    json ConnectionOpening();
     
-    void GetUserData(std::string sql_statement);
+    json GetUserData(std::string sql_statement);
     
-    void PutUserData(std::string sql_statement);
+    json PutUserData(std::string sql_statement);
     
     ~Database();
 }; // class Database
