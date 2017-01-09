@@ -4,8 +4,8 @@
 
 int main()
 {
-	GameClient client;
-	client.Menu();
+	GameClient client;   // create game client object
+	client.Menu();       // call Menu function
 
 	return 0;
 }
