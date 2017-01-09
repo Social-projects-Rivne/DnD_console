@@ -3,6 +3,7 @@
 #define __USER_ACTIONS_HPP__
 
 #include <iostream>
+#include <regex>
 #include "Includes/json.hpp"
 #include "Includes/sha256.hpp"
 
