@@ -5,7 +5,7 @@
 int main()
 {
 	GameClient client;   // create game client object
-	client.Menu();       // call Menu function
+	client.fMenu();       // call Menu function
 
 	return 0;
 }
