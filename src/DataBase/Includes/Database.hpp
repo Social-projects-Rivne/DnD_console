@@ -10,8 +10,8 @@
 #define Database_hpp
 
 #include <stdio.h>
-#include "Includes/json.hpp"
-#include "Includes/sha256.hpp"
+#include "json.hpp"
+#include <string>
 
 using json = nlohmann::json;
 
@@ -22,11 +22,13 @@ class Database
 public:
     Database();
     
-    json ConnectionOpening();
+    json fConnectionOpening();
     
-    json GetUserData(std::string sql_statement);
+    json fExecuteQuery(std::string sql_statement);
     
-    json PutUserData(std::string sql_statement);
+    json fGetData(std::string sql_statement);
+    
+    json fPutData(std::string sql_statement);
     
     ~Database();
 }; // class Database

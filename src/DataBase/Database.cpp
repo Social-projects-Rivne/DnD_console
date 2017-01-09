@@ -9,8 +9,9 @@
 #include <my_global.h>
 #include <mysql.h>
 #include <iostream>
-#include "Includes\Database.hpp"
+#include "Database.hpp"
 #include <vector>
+#include <string.h>
 
 using namespace std;
 
@@ -19,7 +20,38 @@ Database::Database()
     connection = NULL;
 }
 
-json Database::ConnectionOpening()
+json Database::fExecuteQuery(std::string sql_statement)
+{
+    fConnectionOpening();
+    
+    int wordsFound = 0;
+    string select = "SELECT";
+    for(string::iterator it = sql_statement.begin(); it != sql_statement.end(); ++it) // finding substring in a string
+    {
+        if(wordsFound >= select.size())
+            return fGetData(sql_statement); // method of getting data
+        
+        if(*it == select[wordsFound])
+            ++wordsFound;
+    }
+    
+    string insert = "INSERT";
+    string update = "UPDATE";
+    for(string::iterator it = sql_statement.begin(); it != sql_statement.end(); ++it) // finding substring in a string
+    {
+        if(wordsFound >= insert.size() || wordsFound >= update.size() )
+            return fPutData(sql_statement); // method of putting data
+        
+        if(*it == insert[wordsFound] || *it == update[wordsFound])
+            ++wordsFound;
+    }
+    
+    json error;
+    error["Error"] = "Unknown MySQL Query"; // if unknown MySQL query
+    return error;
+}
+
+json Database::fConnectionOpening()
 {
     json connection_result;
     // Get the Database Connection Handle
@@ -45,7 +77,7 @@ json Database::ConnectionOpening()
     return connection_result;
 }
 
-json Database::GetUserData(string sql_statement)
+json Database::fGetData(string sql_statement)
 {
     json get_data_result;  // json result
     
@@ -108,7 +140,7 @@ json Database::GetUserData(string sql_statement)
     return get_data_result;
 }
 
-json Database::PutUserData(string sql_statement)
+json Database::fPutData(string sql_statement)
 {
     json put_data_result;
     
@@ -116,7 +148,7 @@ json Database::PutUserData(string sql_statement)
     if (mysql_query(connection, sql_statement.c_str()) != 0)
         put_data_result["Error"] = mysql_error(connection); // insert "Error" as the json key and message as its value
     else
-        put_data_result["Result"] = "Added"; // insert "Error" as the json key and message as its value
+        put_data_result["Result"] = "Done"; // insert "Result" as the json key and message as its value
     
     return put_data_result;
 }
