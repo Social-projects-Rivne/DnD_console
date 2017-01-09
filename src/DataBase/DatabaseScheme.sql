@@ -70,3 +70,12 @@ CREATE TABLE Abilities (
     PRIMARY KEY (id),
     FOREIGN KEY (id_character) REFERENCES Characters (id)
     );
+
+CREATE TABLE Sessions (
+    id INT NOT NULL AUTO_INCREMENT,
+    session_id VARCHAR(255) NOT NULL,
+    id_user INT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (id_user) REFERENCES Users (id),
+    UNIQUE (session_id)
+    );
