@@ -24,29 +24,39 @@ json UserActions::fLogin()
 	return user_login_data;
 }
 
-json fRegistration()
+json UserActions::fRegistration()
 {
 	json user_registration_data;   // json registration resualt
 	
 	std::string user_username;    //  user input login  
 	std::string user_password;    //  user input password
 	std::string user_email;       //  user input e-mail;
+	std::string repeat_password;  
 	SHA256      sha256;			  // sha256 obj
 
-	std::cout << "Enter username: ";
-	std::getline(std::cin, user_username);  // get user username
+	std::cout << "Enter username: (Username field must not be empty)" << std::endl;;
+	std::getline(std::cin, user_username);       // get user username
+		
+	std::cout << "Enter email: (field may be empty)" << std::endl;;
+	std::getline(std::cin, user_email);          // get user email
+
+	std::cout << "Enter password: (Password must be longer than 6 characters and not be empty)" << std::endl;
+	std::getline(std::cin, user_password);       // get user password
 	
-	std::cout << "Enter password: ";
-	std::getline(std::cin, user_password);  // get user password
-	
-	std::cout << "Enter email: ";
-	std::getline(std::cin, user_email);     // get user email
-	
+	std::cout << "Please enter password again: " << std::endl; 
+	std::cin >> repeat_password;
+
 	user_password = sha256(user_password);       // hash user pass
+	repeat_password = sha256(repeat_password);
 
-	user_registration_data["action"]   = "registration";
-	user_registration_data["username"] = user_username;
-	user_registration_data["password"] = user_password;
+	if (user_password == repeat_password)        // check user passwords
+	{
 
-	return user_registration_data;
+		user_registration_data["action"] = "registration";
+		user_registration_data["username"] = user_username;
+		user_registration_data["password"] = user_password;
+
+		return user_registration_data;
+	}
+
 }
