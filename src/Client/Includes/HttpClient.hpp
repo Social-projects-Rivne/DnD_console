@@ -40,4 +40,5 @@ private:
 		void PostData(std::string path, std::string data);
 		void GetData(std::string path);
 		std::string fGetSession();
+		void fSetSession(std::string session);
 };
