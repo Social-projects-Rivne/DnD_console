@@ -28,7 +28,9 @@ HttpServer::HttpServer(int server_port, string path_to_root)
 	response_body_content_type	= "";
     errno						= 0; // reset errors
 	state_error					= 0;
-	fCallBack					= nullptr;
+	fGenerateResponse			= nullptr;
+
+	path_exceptions.push_back("api/");
 
     if (port < 0 || port > 65535) // ensure port is a non-negative short integer
     {
@@ -179,7 +181,7 @@ HttpServer::~HttpServer(void)
 /*
 * Main server's loop, that waits and serves client connection.
 */
-void HttpServer::fRun()
+void HttpServer::fRun(void)
 {
 	while (!state_error)
     {
@@ -268,56 +270,7 @@ void HttpServer::fRun()
 			state_info += "REQUESTED FILE EXTENSION: "+requested_file_extension+"\n";
 			state_info += "REQUESTED FILE MIME TYPE: "+response_body_content_type+"\n";
 			state_info += "REQUEST VERSION: "+request_version+"\n";
-
-            if (access((root+requested_path).data(), F_OK) == -1 && requested_path.length()>1) // ensure path exists
-            {
-            	state_info += "trying access to:\""+(root+requested_path)+"\n";
-                fError(404); // Not Found
-                continue;
-            }
-            if (access((root+requested_path).data(), R_OK) == -1) // ensure path is readable
-            {
-                fError(403); // Forbidden
-                continue;
-            }
-
-
-            int path_is_file = 1;
-			#ifdef _WIN32
-				// define if it is file or directory
-			#else
-            	DIR* directory = opendir((root+requested_path).data());
-                if(directory != nullptr)
-                {
-				    closedir(directory);
-				    path_is_file = 0;
-                }
-                else if(errno == ENOTDIR)
-                {
-                	path_is_file = 1;
-                }
-			#endif
-            if (!path_is_file)
-            {
-    			state_info += "ERROR: 422\n";
-                fError(422); // Unprocessable Entity
-                continue;
-            }
-
-
-            pFile = fopen((root+requested_path).data(), "rb");
-            if (pFile == nullptr)
-				state_info += "nothing to load\n";
-			else
-			{
-				if (!fLoad()) // load requested file
-				{
-					fError(500); // Internal Server Error
-					continue;
-				}
-			}
-
-
+			
 			newline_pos += 2;
 			int i = newline_pos;
 			while (i < (int)request.length()-2)
@@ -328,7 +281,7 @@ void HttpServer::fRun()
 				if (dp_pos < 1)
 					state_info += "incorrect request header was met: \""+request_header+"\"\n";
 				else
-					request_headers.insert ( pair<string, string>(fTrimString(request_header.substr(0, dp_pos)), fTrimString(request_header.substr(dp_pos+1))) );
+					request_headers.insert ( pair<std::string, std::string>(fTrimString(request_header.substr(0, dp_pos)), fTrimString(request_header.substr(dp_pos+1))) );
 				newline_pos = i+2;
 			}
 			state_info += "REQUEST LINES:\n";
@@ -338,6 +291,61 @@ void HttpServer::fRun()
 			}
 			state_info += "\n";
 
+
+			if (requested_path.find(path_exceptions[0]) == 1)
+			{
+				fGenerateResponse(requested_path, request_headers);
+			}
+			else
+			{
+				if (access((root+requested_path).data(), F_OK) == -1 && requested_path.length()>1) // ensure path exists
+				{
+            		state_info += "trying access to:\""+(root+requested_path)+"\n";
+					fError(404); // Not Found
+					continue;
+				}
+				if (access((root+requested_path).data(), R_OK) == -1) // ensure path is readable
+				{
+					fError(403); // Forbidden
+					continue;
+				}
+
+
+				int path_is_file = 1;
+				#ifdef _WIN32
+					// define if it is file or directory
+				#else
+            		DIR* directory = opendir((root+requested_path).data());
+					if(directory != nullptr)
+					{
+						closedir(directory);
+						path_is_file = 0;
+					}
+					else if(errno == ENOTDIR)
+					{
+                		path_is_file = 1;
+					}
+				#endif
+				if (!path_is_file)
+				{
+    				state_info += "ERROR: 422\n";
+					fError(422); // Unprocessable Entity
+					continue;
+				}
+
+
+				pFile = fopen((root+requested_path).data(), "rb");
+				if (pFile == nullptr)
+					state_info += "nothing to load\n";
+				else
+				{
+					if (!fLoad()) // load requested file
+					{
+						fError(500); // Internal Server Error
+						continue;
+					}
+				}
+			}
 			if (!fRespond())
 				continue;
 
@@ -615,6 +623,25 @@ bool HttpServer::fLoad(void)
 			state_info += "file read error";
 			break;
 		}
+	}
+	return 1;
+}
+
+
+/**
+ * Loads [game]server's responce into message-body.
+ */
+bool HttpServer::fSetResponse(const char* body, const unsigned int length, const std::string content_type)
+{
+	if (length < 0)
+        return 0;
+	
+	response_body_length = length;
+	response_body_content_type = content_type;
+	if (length)
+	{
+		response_body = new char[length];
+		memcpy(response_body, body, length);
 	}
 	return 1;
 }

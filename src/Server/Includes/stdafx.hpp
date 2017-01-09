@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
-#include <malloc.h>
+//#include <malloc.h>
 #include <memory.h>
 #include <string>
 #include <map>
