@@ -1,4 +1,4 @@
-#include "Includes/UserActions.hpp"
+#include "Includes\UserActions.hpp"
 
 UserActions::UserActions()
 {
@@ -15,7 +15,8 @@ json UserActions::fLogin()
 	std::getline(std::cin, user_login);                  // get user login
 	while(user_login.find(' ')  != std::string::npos ||  // check for invalid symbols
 		  user_login.find('\'') != std::string::npos ||
-		  user_login.find('"')  != std::string::npos)
+		  user_login.find('"')  != std::string::npos ||
+		  user_login.length()   ==  0)
 	{
 		std::cout << "Invalid login! Empty spaces, ' or \" finded!\nEnter login: ";
 		std::getline(std::cin, user_login);
@@ -52,7 +53,8 @@ json UserActions::fRegistration()
 	std::getline(std::cin, user_username);                   // get user username
 	while (user_username.find(' ')  != std::string::npos ||  // check for invalid symbols
 		   user_username.find('\'') != std::string::npos ||
-	       user_username.find('"')  != std::string::npos)
+	       user_username.find('"')  != std::string::npos ||
+		   user_username.length()   ==  0)
 	{
 		std::cout << "Invalid username! Empty spaces, ' or \" finded! Enter username: \n";
 		std::getline(std::cin, user_username);
