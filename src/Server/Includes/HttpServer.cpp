@@ -18,15 +18,19 @@
 */
 HttpServer::HttpServer(int server_port, string path_to_root)
 {
-	port			= server_port;
-	root			= path_to_root;
-	cfd				= -1; // set file descriptor for sockets uninitialized
-	sfd				= -1; // set file descriptor for sockets uninitialized
-	pFile			= NULL;
-	response_body	= NULL;
-    errno			= 0; // reset errors
-	state_error		= 0;
+	port						= server_port;
+	root						= path_to_root;
+	cfd							= -1; // set file descriptor for sockets uninitialized
+	sfd							= -1; // set file descriptor for sockets uninitialized
+	pFile						= nullptr;
+	response_body				= nullptr;
+	response_body_length		= 0;
+	response_body_content_type	= "";
+    errno						= 0; // reset errors
+	state_error					= 0;
+	fGenerateResponse			= nullptr;
 
+	path_exceptions.push_back("api/");
 
     if (port < 0 || port > 65535) // ensure port is a non-negative short integer
     {
@@ -40,11 +44,11 @@ HttpServer::HttpServer(int server_port, string path_to_root)
 	#ifdef _WIN32
 		unsigned long root_path_length = 0;
 		char  buffer[4096]; buffer[0] = 0; // set null terminating character in case of pull path retrieving fail
-		char** lppPart={NULL};
+		char** lppPart={nullptr};
 		GetFullPathNameA(root.data(), 4096, buffer, lppPart);
 		root = buffer;
 	#else
-		root = realpath(root.data(), NULL); // full path to server's root on UNIX
+		root = realpath(root.data(), nullptr); // full path to server's root on UNIX
 	#endif
 
     if (!root.length()) // endusre path to server's root is specified
@@ -158,6 +162,7 @@ HttpServer::~HttpServer(void)
 	port = 0;
     root = ""; // free root, which was allocated by realpath
 	state_error = -1;
+	request_headers.clear();
 
     if (sfd != -1) // close server socket
 	{
@@ -176,7 +181,7 @@ HttpServer::~HttpServer(void)
 /*
 * Main server's loop, that waits and serves client connection.
 */
-void HttpServer::fRun()
+void HttpServer::fRun(void)
 {
 	while (!state_error)
     {
@@ -190,7 +195,7 @@ void HttpServer::fRun()
 				state_info += "CLIENT REQUEST FAILED. Error code:"+to_string(request_size)+"\n";
                 continue;
 			}
-			
+
             int newline_pos = request.find("\r\n");
             if (newline_pos == -1)
             {
@@ -202,19 +207,19 @@ void HttpServer::fRun()
             	fError(414); // Request-URI Too Long
                 continue;
             }
-            request_header = request.substr(0, newline_pos); // extract request's request-line header // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
-            // request_header = "GET /favicon.ico HTTP/1.1"; / for test purpose only
+
+            request_line = request.substr(0, newline_pos); // extract request's request-line header // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
+
             // validate request-header
-            int sp_loc = request_header.find(' ');
-            int nsp_loc = request_header.find(' ', sp_loc+1);
-            int qm_loc = request_header.find('?', nsp_loc+1);
-            int version_loc = request_header.find("HTTP/1.1");
+            int sp_loc = request_line.find(' ');
+            int nsp_loc = request_line.find(' ', sp_loc+1);
+            int qm_loc = request_line.find('?', nsp_loc+1);
+            int version_loc = request_line.find("HTTP/1.1");
 			
 			string request_method;
 			string request_uri;
 			string requested_path;
 			string requested_file_extension;
-			string requested_file_mime_type;
 			string request_query;
 			string request_version = "HTTP/1.1";
 
@@ -224,14 +229,14 @@ void HttpServer::fRun()
                 continue;
             }
 
-			request_method = request_header.substr(0, sp_loc);
+			request_method = request_line.substr(0, sp_loc);
 			if (request_method.compare("GET") && request_method.compare("POST") && request_method.compare("PUT") && request_method.compare("DELETE"))
 			{
 				fError(405); // Method Not Allowed
 				continue;
 			}
 
-			request_uri = request_header.substr(sp_loc+1, nsp_loc-sp_loc-1);
+			request_uri = request_line.substr(sp_loc+1, nsp_loc-sp_loc-1);
             if (!request_uri.length())
             {
                 fError(400); // Bad Request
@@ -246,89 +251,103 @@ void HttpServer::fRun()
 			else
 				requested_path = request_uri.substr(0, nsp_loc);
 
+
             requested_file_extension = requested_path.substr(requested_path.find('.') + 1);
-            requested_file_mime_type = fLookup(requested_file_extension);
-            /*if (!requested_file_mime_type.length())
+            response_body_content_type = fLookup(requested_file_extension);
+            /*if (!response_body_content_type.length())
             {
                 fError(501); // Not Implemented
                 continue;
             }*/
 
 
+
 			state_info += "REQUEST METHOD: "+request_method+"\n";
 			state_info += "REQUEST URI: "+request_uri+"\n";
-			state_info += "REQUESTED PATH: \""+requested_path+"\"\n";
+			state_info += "REQUESTED PATH: "+requested_path+"\n";
 			state_info += "REQUEST QUERY: "+request_query+"\n";
 			state_info += "REQUEST VERSION: "+request_version+"\n";
 			state_info += "REQUESTED FILE EXTENSION: "+requested_file_extension+"\n";
-			state_info += "REQUESTED FILE MIME TYPE: "+requested_file_mime_type+"\n";
+			state_info += "REQUESTED FILE MIME TYPE: "+response_body_content_type+"\n";
 			state_info += "REQUEST VERSION: "+request_version+"\n";
-
-            if (access((root+requested_path).data(), F_OK) == -1 && requested_path.length()>1) // ensure path exists
-            {
-            	cout<<"trying access to:\""<<(root+requested_path)<<"\""<<endl;
-                fError(404); // Not Found
-                continue;
-            }
-            if (access((root+requested_path).data(), R_OK) == -1) // ensure path is readable
-            {
-                fError(403); // Forbidden
-                continue;
-            }
-
-
-            pFile = fopen((root+requested_path).data(), "rb");
-			ssize_t length = 0;
-            if (pFile == NULL)
-            {
-				length = 0;
-				state_info += "nothing to load\n";
-
-            }
-			else
-			{
-				length = fLoad(); // load file
-				if (length == -1)
-				{
-					fError(500); // Internal Server Error
-					continue;
-				}
-			}
 			
-			/*int i = newline_pos+2;
+			newline_pos += 2;
+			int i = newline_pos;
 			while (i < (int)request.length()-2)
 			{
 				i = request.find("\r\n", newline_pos);
-				string request_line = request.substr(newline_pos, i-newline_pos); // extract request's request-line // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
-				cout<<"request_line: "<<request_line<<endl;
+				string request_header = request.substr(newline_pos, i-newline_pos);
+				int dp_pos = request_header.find(':');
+				if (dp_pos < 1)
+					state_info += "incorrect request header was met: \""+request_header+"\"\n";
+				else
+					request_headers.insert ( pair<std::string, std::string>(fTrimString(request_header.substr(0, dp_pos)), fTrimString(request_header.substr(dp_pos+1))) );
 				newline_pos = i+2;
-			}*/
-			
-            // respond to client
-			string response_str = "HTTP/1.1 200 OK\r\n";
-			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-				continue;
-
-			response_str = "Connection: close\r\n";
-			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-				continue;
-
-			response_str = "Content-Length: "+to_string(length)+"\r\n";
-			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-				continue;
-
-			response_str = "Content-Type: "+requested_file_mime_type+"\r\n\r\n";
-			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-				continue;
-
-			if (send(cfd, response_body, length, 0) == -1)
-				continue;
-			response_str = "\r\n\r\n";
-			if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
-			{
-				cout<<"noway"<<endl;
-				continue;
 			}
+			state_info += "REQUEST LINES:\n";
+			for (auto it = request_headers.begin(); it != request_headers.end(); ++it)
+			{
+				state_info += "\t"+(*it).first + ":" + (*it).second + "\n";
+			}
+			state_info += "\n";
+
+
+			if (requested_path.find(path_exceptions[0]) == 1)
+			{
+				fGenerateResponse(requested_path, request_headers);
+			}
+			else
+			{
+				if (access((root+requested_path).data(), F_OK) == -1 && requested_path.length()>1) // ensure path exists
+				{
+            		state_info += "trying access to:\""+(root+requested_path)+"\n";
+					fError(404); // Not Found
+					continue;
+				}
+				if (access((root+requested_path).data(), R_OK) == -1) // ensure path is readable
+				{
+					fError(403); // Forbidden
+					continue;
+				}
+
+
+				int path_is_file = 1;
+				#ifdef _WIN32
+					// define if it is file or directory
+				#else
+            		DIR* directory = opendir((root+requested_path).data());
+					if(directory != nullptr)
+					{
+						closedir(directory);
+						path_is_file = 0;
+					}
+					else if(errno == ENOTDIR)
+					{
+                		path_is_file = 1;
+					}
+				#endif
+				if (!path_is_file)
+				{
+    				state_info += "ERROR: 422\n";
+					fError(422); // Unprocessable Entity
+					continue;
+				}
+
+
+				pFile = fopen((root+requested_path).data(), "rb");
+				if (pFile == nullptr)
+					state_info += "nothing to load\n";
+				else
+				{
+					if (!fLoad()) // load requested file
+					{
+						fError(500); // Internal Server Error
+						continue;
+					}
+				}
+			}
+			if (!fRespond())
+				continue;
 
             // announce OK
             state_info += "HTTP/1.1 200 OK\n";
@@ -337,20 +356,56 @@ void HttpServer::fRun()
 }
 
 /*
+* Sends response to client.
+*/
+bool HttpServer::fRespond(void)
+{
+	string response_str = "HTTP/1.1 200 OK\r\n";
+	if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+		return 0;
+
+	response_str = "Connection: close\r\n";
+	if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+		return 0;
+
+	response_str = "Content-Length: "+to_string(response_body_length)+"\r\n";
+	if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+		return 0;
+
+	response_str = "Content-Type: "+response_body_content_type+"\r\n\r\n";
+	if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+		return 0;
+
+	if (send(cfd, response_body, response_body_length, 0) == -1)
+		return 0;
+	response_str = "\r\n\r\n";
+	if (send( cfd, response_str.data(), response_str.length(), 0 ) == -1)
+	{
+		state_info += "Failed to close keep-alive connection\n";
+		return 0;
+	}
+	return 1;
+}
+
+/*
 * Resets server's state, deallocating any resources.
 */
 void HttpServer::fReset(void)
 {
-    if (response_body != NULL) // free response's body
+	request_headers.clear();
+
+    if (response_body != nullptr) // free response's body
     {
         delete [] response_body;
-        response_body = NULL;
+        response_body = nullptr;
     }
+	response_body_length = 0;
+	response_body_content_type = "";
 
-    if (pFile != NULL) // close file
+    if (pFile != nullptr) // close file
     {
         fclose(pFile);
-        pFile = NULL;
+        pFile = nullptr;
     }
 
     request = "";
@@ -513,7 +568,7 @@ ssize_t HttpServer::fParse(void)
 }
 
 /*
-* Returns MIME type for supported extensions, else NULL.
+* Returns MIME type for supported extensions, else empty string.
 */
 string HttpServer::fLookup(string extension)
 {
@@ -545,31 +600,50 @@ string HttpServer::fLookup(string extension)
 /**
  * Loads file into message-body.
  */
-ssize_t HttpServer::fLoad(void)
+bool HttpServer::fLoad(void)
 {
     if (!pFile) // ensure file is open
-        return -1;
+        return 0;
 
     if (response_body) // ensure body isn't already loaded
-        return -1;
+        return 0;
 
 	fseek(pFile, 0, SEEK_END);
 	size_t file_size = ftell(pFile);
 	fseek(pFile, 0, SEEK_SET); // return carret back to the file beginning
 
 	response_body = new char[file_size];//		memset((void *)response_body, 0, sizeof(char)*file_size);
-	size_t read_amount = 0;
-	while (read_amount < file_size)
+	response_body_length = 0;
+	while (response_body_length < file_size)
 	{
-		size_t bytes_read = fread(response_body+read_amount, 1, file_size, pFile);
-		read_amount += bytes_read;
-		if (feof(pFile) && read_amount != file_size)
+		size_t bytes_read = fread(response_body + response_body_length, 1, file_size, pFile);
+		response_body_length += bytes_read;
+		if (feof(pFile) && response_body_length != file_size)
 		{
 			state_info += "file read error";
 			break;
 		}
 	}
-	return read_amount;
+	return 1;
+}
+
+
+/**
+ * Loads [game]server's responce into message-body.
+ */
+bool HttpServer::fSetResponse(const char* body, const unsigned int length, const std::string content_type)
+{
+	if (length < 0)
+        return 0;
+	
+	response_body_length = length;
+	response_body_content_type = content_type;
+	if (length)
+	{
+		response_body = new char[length];
+		memcpy(response_body, body, length);
+	}
+	return 1;
 }
 
 

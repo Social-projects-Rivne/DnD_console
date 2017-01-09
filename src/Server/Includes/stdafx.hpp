@@ -11,10 +11,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
-#include <malloc.h>
+//#include <malloc.h>
 #include <memory.h>
 #include <string>
 #include <map>
+#include <vector>
 #include <math.h>
 #include <cmath>
 #include <time.h>
@@ -40,6 +41,7 @@
 	//define it for a UNIX machine
 	#include <arpa/inet.h>
 	#include <unistd.h>
+	#include <dirent.h>
 #endif
 
 
@@ -60,3 +62,6 @@
 
 
 using namespace std;
+
+
+string fTrimString(string str);
