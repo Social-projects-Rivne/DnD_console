@@ -18,5 +18,6 @@ public:
 	// { "Login": "username", "Password": "SHA256_hashed_password" }
 	static json fLogin();
 	static json fRegistration();
+	static std::string fLogout(std::string session);
 };
 #endif // !__USER_ACTIONS_HPP__

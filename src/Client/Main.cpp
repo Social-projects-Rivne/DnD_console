@@ -1,21 +1,11 @@
-#include "HttpClient.hpp"
+#include "Includes\GameClient.hpp"
 
 
 
 int main()
 {
-	try
-	{
-		
+	GameClient client;
+	client.Menu();
 
-		boost::asio::io_service io_service;
-		HttpClient c(io_service, "localhost","33000");//you can write number of port or write port name
-		c.GetData("/test.txt");
-		io_service.run();
-	}
-	catch (std::exception& e)
-	{
-		std::cout << "Exception: " << e.what() << "\n";
-	}
 	return 0;
 }

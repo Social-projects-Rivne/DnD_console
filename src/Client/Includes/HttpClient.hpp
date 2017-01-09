@@ -4,8 +4,9 @@
 #include <istream>
 #include <ostream>
 #include <string>
-#include "Includes\asio.hpp"
-#include "Includes\bind.hpp"
+#include <asio.hpp>
+#include <bind.hpp>
+
 using boost::asio::ip::tcp;
 
 class HttpClient
@@ -31,12 +32,12 @@ private:
 	void fHandleReadHeaders(const boost::system::error_code &err);
 
 	void fHandleReadContent(const boost::system::error_code &err);
-
+	
 	public:
 
 		HttpClient(boost::asio::io_service& io_service, const std::string &server, const std::string &port);
 		
 		void PostData(std::string path, std::string data);
 		void GetData(std::string path);
-
+		std::string fGetSession();
 };

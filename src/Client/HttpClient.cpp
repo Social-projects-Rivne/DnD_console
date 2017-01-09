@@ -1,6 +1,6 @@
 // HttpClient.cpp
 
-#include "HttpClient.hpp"
+#include "Includes\HttpClient.hpp"
 
 
 
@@ -128,7 +128,8 @@ void HttpClient:: fHandleReadHeaders(const boost::system::error_code& err)
 		// Write whatever content we already have to output.
 		if (response.size() > 0)
 			std::cout << &response;
-
+		
+		
 		// Start reading remaining data until EOF.
 		boost::asio::async_read(socket, response, boost::asio::transfer_at_least(1), boost::bind(&HttpClient::fHandleReadContent, this, boost::asio::placeholders::error));
 	}
@@ -147,7 +148,7 @@ void HttpClient:: fHandleReadContent(const boost::system::error_code& err)
 	{
 		// Write all of the data that has been read so far.
 		std::cout << &response;
-
+	
 		// Continue reading remaining data until EOF.
 		boost::asio::async_read(socket, response, boost::asio::transfer_at_least(1), boost::bind(&HttpClient::fHandleReadContent, this, boost::asio::placeholders::error));
 	}
@@ -156,6 +157,7 @@ void HttpClient:: fHandleReadContent(const boost::system::error_code& err)
 		std::cout << "Error: " << err << "\n";
 	}
 }
+
 
 /*
     Method for getting data from server.
@@ -181,7 +183,12 @@ void HttpClient::PostData(std::string path, std::string data)
 	request_stream << "Host: " << server << " \r\n";		                // Host "localhost" for example
 	request_stream << "Accept: */*\r\n";
 	request_stream << "Content-Type: " << "application/json" << " \r\n";    
-	request_stream << data << " \r\n";                                      // JSON data
+	request_stream << "Content: "<< data << " \r\n";                          // JSON data
+	request_stream << "Content-Length: " << data.length() << " \r\n";
 	request_stream << "Connection: close\r\n\r\n";
 
+}
+std::string HttpClient::fGetSession()
+{
+	return this->session;
 }
