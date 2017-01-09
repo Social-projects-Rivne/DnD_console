@@ -5,6 +5,14 @@
 - First off you need to download the relevant server package: http://dev.mysql.com/downloads/mysql/.
 - If MySQL is already installed you should download MySQL Connector/C++. You can find it here: https://dev.mysql.com/downloads/connector/cpp/1.1.html
 
+#### How add MySQL Connector/C++ libraries to Eclipse
+- In Properties >> C/C++ Build >> Settings >> GCC C++ Compiler >> Includes you must add the include path for the external library:  **/usr/local/mysql/include/**.
+This information is needed by the Eclipse indexer (code completion etc.) and the compiler
+- In Properties >> C/C++ Build >> Settings >> GCC C++ Linker >> Libraries you must add the library search path (option -L): **/usr/local/mysql/lib/**
+and the library you want to link against (option -l): **-lmysqlclient -lm -lz** This info is needed for the linker.
+- Then you just need to include the header file:
+```c++ #include <mysql.h> ```
+
 #### How add MySQL Connector/C++ libraries to Xcode
 - First you need to add the following search paths in your xcode project.
 In the build settings [**Project -> Edit Project Settings -> Build**] add the following locations to the search paths settings:
