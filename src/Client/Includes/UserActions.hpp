@@ -3,6 +3,7 @@
 #define __USER_ACTIONS_HPP__
 
 #include <iostream>
+#include <regex>
 #include "Includes/json.hpp"
 #include "Includes/sha256.hpp"
 
@@ -16,5 +17,6 @@ public:
 	// Login method returns json result of user input Login and Password
 	// { "Login": "username", "Password": "SHA256_hashed_password" }
 	static json fLogin();
+	static json fRegistration();
 };
 #endif // !__USER_ACTIONS_HPP__
