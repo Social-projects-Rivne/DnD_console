@@ -118,7 +118,9 @@ json UserActions::fRegistration()
 	return user_registration_data;
 
 }
-
+/*
+	Method clear session string
+*/
 std::string UserActions::fLogout(std::string session)
 {
 	session.clear();
