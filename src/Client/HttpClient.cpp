@@ -126,9 +126,14 @@ void HttpClient:: fHandleReadHeaders(const boost::system::error_code& err)
 		std::cout << "\n";
 
 		// Write whatever content we already have to output.
-		if (response.size() > 0)
-			std::cout << &response;
 		
+		if (response.size() > 0)
+		{
+			std::istream istream(&response);
+			std::getline(istream, session);
+			std::cout << &response;
+			
+		}
 		
 		// Start reading remaining data until EOF.
 		boost::asio::async_read(socket, response, boost::asio::transfer_at_least(1), boost::bind(&HttpClient::fHandleReadContent, this, boost::asio::placeholders::error));
@@ -148,7 +153,6 @@ void HttpClient:: fHandleReadContent(const boost::system::error_code& err)
 	{
 		// Write all of the data that has been read so far.
 		std::cout << &response;
-	
 		// Continue reading remaining data until EOF.
 		boost::asio::async_read(socket, response, boost::asio::transfer_at_least(1), boost::bind(&HttpClient::fHandleReadContent, this, boost::asio::placeholders::error));
 	}
@@ -188,7 +192,19 @@ void HttpClient::PostData(std::string path, std::string data)
 	request_stream << "Connection: close\r\n\r\n";
 
 }
+
+/*
+	Method for getting user session.
+*/
 std::string HttpClient::fGetSession()
 {
 	return this->session;
+}
+
+/*
+	Method for reset user session.
+*/
+void HttpClient::fSetSession(std::string session)
+{
+	this->session = session;
 }
