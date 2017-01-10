@@ -22,7 +22,7 @@ class Database
 public:
     Database();
     
-    json fConnection(std::string host, std::string user_name, std::string password, std::string database_name);
+    json fConnection();
     
     json fExecuteQuery(std::string sql_statement);
     
