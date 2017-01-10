@@ -6,7 +6,6 @@
 #pragma once
 
 // C RunTime Header Files
-#include <stdlib.h>
 #include <cstdlib>
 #include <stdio.h>
 #include <iostream>
@@ -60,8 +59,11 @@
 #pragma warning( disable : 4996 ) /*VS does not like fopen, but fopen_s is not standard C so unusable here*/
 #endif /*_MSC_VER */
 
+#include <mysql.h>
 
 using namespace std;
 
 
 string fTrimString(string str);
+
+#include "json.hpp"
