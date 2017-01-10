@@ -81,6 +81,41 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
  */
 void fUserLogIn(std::string &json_response)
 {
-	json_response = "{\"status\":\"success\", \"session\": \"abcdefj12345notyetimplemented\"}";
+	JSON json_request = http_headers[(string)"Content"];
+
+	Database pData_base;
+	data_base.fConnect("localhost", "user", "password", "database");
+	string query = "SELECT id, username, password FROM Users WHERE username="+json_request["username"]+" password="+json_request["password"]+";";
+
+	JSON json_result = data_base.fExecuteQuery(query);
+	string query_result = json_result["Result"];
+	if (query_result == "Success")
+	{
+		if (stoi(json_result["Rows"]) > 0)
+		{
+			string user_id = json_result["data"][0]["id"];
+			query = "SELECT user_id FROM Sessions WHERE user_id="+user_id+";";
+			json_result = data_base.fExecuteQuery(query);
+			if (query_result == "Success")
+			{
+				if (stoi(json_result["Rows"]) > 0) // get current active session
+					json_response = "{\"status\":\"already logged in\", \"session_id\": \""+json_result["data"][0]["id"]+"\"}";
+				else // create new session
+				{
+					query = "INSERT INTO Sessions (user_id) VALUES ("+user_id+");";
+					json_result = data_base.fExecuteQuery(query);
+					query = "SELECT LAST_INSERT_ID() AS id FROM Sessions";
+					json_result = data_base.fExecuteQuery(query);
+					json_response = "{\"status\":\"success\", \"session_id\": \""+json_result["data"][0]["id"]+"\"}";
+				}
+			}
+			else
+				json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+		}
+		else
+			json_response = "{\"status\":\"fail\", \"message\": \"no such user or provided password is incorrect\"}";
+	}
+	else
+		json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
 }
 
