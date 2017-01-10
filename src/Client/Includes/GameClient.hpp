@@ -6,12 +6,12 @@
 
 class GameClient
 {
-	HttpClient *http_client;
-	std::string session;
+	HttpClient *http_client;    // http-client object
+	std::string game_session;   // game session
 public:
 	GameClient();
 
-	void Menu();
+	void fMenu();
 
 	~GameClient();
 
