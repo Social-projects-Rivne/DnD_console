@@ -1,10 +1,7 @@
 //
 //  Database.hpp
-//  DBConnection
 //
-//  Created by Olha Leskovska on 1/5/17.
-//  Copyright © 2017 Olha Leskovska. All rights reserved.
-//
+
 
 #ifndef Database_hpp
 #define Database_hpp
@@ -22,7 +19,7 @@ class Database
 public:
     Database();
     
-    json fConnection();
+    json fConnection(std::string host, std::string user_name, std::string password, std::string database_name);
     
     json fExecuteQuery(std::string sql_statement);
     
