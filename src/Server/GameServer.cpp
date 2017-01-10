@@ -11,12 +11,13 @@
 #include "Includes/stdafx.hpp"
 #include "Includes/HttpServer.hpp"
 #include "Includes/IniParser.hpp"
+#include "Includes/Database.hpp"
 
 using namespace std;
 
 void fHandler(int signal);
 void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers);
-void fUserLogIn(std::string &json_response);
+void fUserLogIn(std::string &json_response, nlohmann::json &json_request);
 HttpServer* pHttp_server;
 
 
@@ -61,6 +62,7 @@ void fHandler(int signal)
  */
 void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers)
 {
+	nlohmann::json json_request = http_headers[(string)"Content"];
 	string response = "";
     if (path.find("/api/")) // if it is not found or if it is not in the beginning
 	{
@@ -69,7 +71,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
 	else
 	{
 		if (path.find("/api/userlogin") != string::npos)
-			fUserLogIn(response);
+			fUserLogIn(response, json_request);
 		else
 			response = "{\"error\": \"script is not implemented\"}";
 	}
@@ -79,34 +81,41 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
 /**
  * parses request string 
  */
-void fUserLogIn(std::string &json_response)
+void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
 {
-	JSON json_request = http_headers[(string)"Content"];
 
-	Database pData_base;
-	data_base.fConnect("localhost", "user", "password", "database");
-	string query = "SELECT id, username, password FROM Users WHERE username="+json_request["username"]+" password="+json_request["password"]+";";
+	Database data_base;
+	data_base.fConnection("localhost", "user", "password", "database");
+	string username = json_request["username"];
+	string password = json_request["password"];
+	string query = "SELECT id, username, password FROM Users WHERE username='" + username + "' AND password='" + password + "';";
 
-	JSON json_result = data_base.fExecuteQuery(query);
+	nlohmann::json json_result = data_base.fExecuteQuery(query);
 	string query_result = json_result["Result"];
 	if (query_result == "Success")
 	{
-		if (stoi(json_result["Rows"]) > 0)
+		string rows = json_result["Rows"];
+		if (stoi(rows) > 0)
 		{
 			string user_id = json_result["data"][0]["id"];
-			query = "SELECT user_id FROM Sessions WHERE user_id="+user_id+";";
+			query = "SELECT user_id FROM Sessions WHERE user_id=" + user_id + ";";
 			json_result = data_base.fExecuteQuery(query);
 			if (query_result == "Success")
 			{
-				if (stoi(json_result["Rows"]) > 0) // get current active session
-					json_response = "{\"status\":\"already logged in\", \"session_id\": \""+json_result["data"][0]["id"]+"\"}";
+				string rows = json_result["Rows"];
+				if (stoi(rows) > 0) // get current active session]
+				{
+					string session_id = json_result["data"][0]["id"];
+					json_response = "{\"status\":\"already logged in\", \"session_id\": \"" + session_id + "\"}";
+				}
 				else // create new session
 				{
 					query = "INSERT INTO Sessions (user_id) VALUES ("+user_id+");";
 					json_result = data_base.fExecuteQuery(query);
 					query = "SELECT LAST_INSERT_ID() AS id FROM Sessions";
 					json_result = data_base.fExecuteQuery(query);
-					json_response = "{\"status\":\"success\", \"session_id\": \""+json_result["data"][0]["id"]+"\"}";
+					string session_id = json_result["data"][0]["id"];
+					json_response = "{\"status\":\"success\", \"session_id\": \"" + session_id + "\"}";
 				}
 			}
 			else
