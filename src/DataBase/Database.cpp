@@ -6,11 +6,9 @@
 //  Copyright © 2017 Olha Leskovska. All rights reserved.
 //
 
-#include <my_global.h>
 #include <mysql.h>
 #include <iostream>
 #include "Database.hpp"
-#include <vector>
 #include <string.h>
 
 using namespace std;
@@ -22,8 +20,6 @@ Database::Database()
 
 json Database::fExecuteQuery(std::string sql_statement)
 {
-    fConnection();
-    
     int wordsFound = 0;
     string select = "SELECT";
     for(string::iterator it = sql_statement.begin(); it != sql_statement.end(); ++it) // finding substring in a string
@@ -52,7 +48,7 @@ json Database::fExecuteQuery(std::string sql_statement)
     return error;
 }
 
-json Database::fConnection()
+json Database::fConnection(string host, string user_name, string password, string database_name)
 {
     json connection_result;
     // Get the Database Connection Handle
@@ -65,10 +61,10 @@ json Database::fConnection()
     }
     // Connecting to a Database Server
     else if(!mysql_real_connect(connection, // address of an existing MYSQL structure.
-                                "localhost", // host name or an IP address
-                                "DnD_db", // user's MySQL login ID
-                                "root", // password for user
-                                "DnD", // database name
+                                host.data(), // host name or an IP address
+                                user_name.data(), // user's MySQL login ID
+                                password.data(), // password for user
+                                database_name.data(), // database name
                                 NULL, // port number for the TCP/IP connection
                                 NULL, //  socket or named pipe to use
                                 0 // client flag
