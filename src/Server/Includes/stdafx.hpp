@@ -7,6 +7,7 @@
 
 // C RunTime Header Files
 #include <cstdlib>
+#include <cstdio>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -29,7 +30,7 @@
 #ifdef _WIN32
 	//define something for Windows
 	#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-	//#include <windows.h>
+	#include <windows.h>
 	#include <winsock2.h>
 	#include <WS2tcpip.h>
 	//#include <Wdbgexts.h>
