@@ -11,18 +11,21 @@
 #include "Includes/stdafx.hpp"
 #include "Includes/HttpServer.hpp"
 #include "Includes/IniParser.hpp"
-#include "Includes/Database.hpp"
+#include "Includes/DataBase.hpp"
 
 using namespace std;
 
 void fHandler(int signal);
 void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers);
 void fUserLogIn(std::string &json_response, nlohmann::json &json_request);
+void fUserRegistration(std::string &json_response, nlohmann::json &json_request);
 HttpServer* pHttp_server;
 
 
 int main(int argc, char* argv[])
 {
+    //fUserLogIn1();
+    
 	// read data from config.in file
 		//IniParser* pIni_parser = new IniParser("config.ini");
 		//auto params = pIni_parser->fGetParams();
@@ -31,7 +34,7 @@ int main(int argc, char* argv[])
 
 	// start HTTP server with correct termination
 		//pHttp_server = new HttpServer(stoi(params["server.port"]), params["server.root"]);
-		pHttp_server = new HttpServer(33000, "Root/");
+		pHttp_server = new HttpServer(15000, "Root/");
 
 		pHttp_server->fGenerateResponse = &fParseRequest;
 		signal(SIGINT, fHandler); // listen for SIGINT (aka control-c), if it comes call function named fHandler
@@ -62,9 +65,9 @@ void fHandler(int signal)
  */
 void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers)
 {
-	nlohmann::json json_request = http_headers[(string)"Content"];
+	nlohmann::json json_request = json::parse(http_headers[(string)"Content"]);
 	string response = "";
-    if (path.find("/api/")) // if it is not found or if it is not in the beginning
+	if (path.find("/api/")) // if it is not found or if it is not in the beginning
 	{
 		response = "{\"error\": \"incorrect api call\"}";
 	}
@@ -72,6 +75,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
 	{
 		if (path.find("/api/userlogin") != string::npos)
 			fUserLogIn(response, json_request);
+		else if (path.find("/api/userregister") != string::npos)
+			fUserRegistration(response, json_request);
 		else
 			response = "{\"error\": \"script is not implemented\"}";
 	}
@@ -83,18 +88,18 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
  */
 void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
 {
-
-	Database data_base;
-	data_base.fConnection("localhost", "user", "password", "database");
+	DataBase data_base;
+	data_base.fConnection("localhost", "DnD_db", "dbpass", "DnD");
 	string username = json_request["username"];
 	string password = json_request["password"];
 	string query = "SELECT id, username, password FROM Users WHERE username='" + username + "' AND password='" + password + "';";
 
 	nlohmann::json json_result = data_base.fExecuteQuery(query);
-	string query_result = json_result["Result"];
+	cout << json_result << endl;
+	string query_result = json_result["result"];
 	if (query_result == "Success")
 	{
-		string rows = json_result["Rows"];
+		string rows = json_result["rows"];
 		if (stoi(rows) > 0)
 		{
 			string user_id = json_result["data"][0]["id"];
@@ -102,7 +107,7 @@ void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
 			json_result = data_base.fExecuteQuery(query);
 			if (query_result == "Success")
 			{
-				string rows = json_result["Rows"];
+				string rows = json_result["rows"];
 				if (stoi(rows) > 0) // get current active session]
 				{
 					string session_id = json_result["data"][0]["id"];
@@ -127,4 +132,5 @@ void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
 	else
 		json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
 }
+
 
