@@ -1,23 +1,20 @@
 //
-//  Database.hpp
+//  DataBase.hpp
+//  Olha Leskovs'ka
 //
 
 
-#ifndef Database_hpp
-#define Database_hpp
-
-#include <stdio.h>
-#include "json.hpp"
-#include <string>
+#ifndef DataBase_hpp
+#define DataBase_hpp
 
 using json = nlohmann::json;
 
-class Database
+class DataBase
 {
     MYSQL* connection; // Database Connection Handle/Decryptor
     
 public:
-    Database();
+    DataBase();
     
     json fConnection(std::string host, std::string user_name, std::string password, std::string database_name);
     
@@ -27,7 +24,7 @@ public:
     
     json fPutData(std::string sql_statement);
     
-    ~Database();
-}; // class Database
+    ~DataBase();
+}; // class DataBase
 
-#endif /* Database_hpp */
+#endif /* DataBase_hpp */
