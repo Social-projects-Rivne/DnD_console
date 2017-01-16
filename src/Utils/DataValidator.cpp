@@ -15,6 +15,7 @@ bool DataValidator::fValidateEmail(const std::string & email)
 		return false;
 	}
 
+	// regex email pattern
 	const std::regex  validate_email("(\\w+)(\\.|_)?(\\w*)@(\\w+)(\\.(\\w+))+");
 	if (!std::regex_match(email, validate_email))
 	{
@@ -54,7 +55,7 @@ bool DataValidator::fValidateAbility(const std::string & ability)
 	{
 		_ability = std::stoi(ability);
 	}
-	catch (std::exception e)
+	catch (std::exception & e) // if can't convert
 	{
 		return false;
 	}
@@ -70,24 +71,23 @@ bool DataValidator::fValidateAbilities(const std::string & abilities)
 	json validate = json::parse(abilities);
 	int sum = 0;
 
+	// iterate through every ability
 	for (auto & el : validate)
 	{
-		if (!fValidateAbility(el))
+		if (!fValidateAbility(el)) // checking every ability
 			return false;
 		try
 		{
 			std::string sum_str = el;
-			sum+=std::stoi(sum_str);
+			sum+=std::stoi(sum_str); // adding every ability
 		}
-		catch (std::exception e)
+		catch (std::exception & e)
 		{
 			return false;
 		}
 	}
 
-	if (sum > 80 || sum < 0)
-		return false;
-	return true;
+	return sum <= 80 && sum >= 0;
 }
 
 bool DataValidator::fValidateLength(const std::string & length)
@@ -97,7 +97,7 @@ bool DataValidator::fValidateLength(const std::string & length)
 	{
 		len = std::stoi(length);
 	}
-	catch (std::exception e)
+	catch (std::exception & e)
 	{
 		return false;
 	}
@@ -152,6 +152,7 @@ bool DataValidator::fValidate(const std::string & to_validate, const type & t)
 json DataValidator::fValidate(const json & to_validate)
 {
 	json result;
+	// loop for iterating over json
 	for (auto it = to_validate.begin(); it != to_validate.end(); ++it)
 	{
 		if (it.key() == "email")
