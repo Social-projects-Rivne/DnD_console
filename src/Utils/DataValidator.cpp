@@ -159,7 +159,11 @@ json DataValidator::fValidate(const json & to_validate)
 			bool res = fValidateEmail(to_validate[it.key()]);
 			result[it.key()] = res ? "Validated" : "Failed";
 		}
-		else if (it.key() == "name" || it.key() == "username")
+		else if (it.key() == "name"     ||
+				 it.key() == "username" ||
+				 it.key() == "terrain"  ||
+				 it.key() == "npc"      ||
+				 it.key() == "character")
 		{
 			bool res = fValidateName(to_validate[it.key()]);
 			result[it.key()] = res ? "Validated" : "Failed";
@@ -172,6 +176,16 @@ json DataValidator::fValidate(const json & to_validate)
 		else if (it.key() == "abilities")
 		{
 			bool res = fValidateAbilities(to_validate[it.key()].dump());
+			result[it.key()] = res ? "Validated" : "Failed";
+		}
+		else if (it.key() == "width" || it.key() == "height")
+		{
+			bool res = fValidateLength(to_validate[it.key()]);
+			result[it.key()] = res ? "Validated" : "Failed";
+		}
+		else if (it.key() == "description")
+		{
+			bool res = fValidateSqlInjection(to_validate[it.key()]);
 			result[it.key()] = res ? "Validated" : "Failed";
 		}
 		else
