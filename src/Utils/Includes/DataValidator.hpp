@@ -15,7 +15,7 @@ private:
 
 	static bool fValidateEmail(const std::string & email);
 
-	static bool fValidateUsername(const std::string & username);
+	static bool fValidateName(const std::string & name);
 
 	static bool fValidatePassword(const std::string & password);
 
@@ -23,13 +23,19 @@ private:
 
 	static bool fValidateAbilities(const std::string & abilities);
 
+	static bool fValidateLength(const std::string & length);
+
+	static bool fValidateSqlInjection(const std::string & msg);
+
 public:
 	enum type {
 		EMAIL,
-		USERNAME,
+		NAME,
 		PASSWORD,
 		ABILITY,
 		ABILITIES,
+		LENGTH,
+		SQL_INJECTION
 	};
 
 	static bool fValidate(const std::string & to_validate, const type & t);

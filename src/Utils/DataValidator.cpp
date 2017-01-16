@@ -9,8 +9,7 @@ DataValidator::DataValidator()
 bool DataValidator::fValidateEmail(const std::string & email)
 {
 	if (email.find(' ')  != std::string::npos  ||  // check for invalid symbols
-		email.find('\'') != std::string::npos ||
-		email.find('"')  != std::string::npos  ||
+		!fValidateSqlInjection(email)          ||
 		email.length()   == 0)
 	{
 		return false;
@@ -25,13 +24,11 @@ bool DataValidator::fValidateEmail(const std::string & email)
 	return true;
 }
 
-bool DataValidator::fValidateUsername(const std::string & username)
+bool DataValidator::fValidateName(const std::string & name)
 {
-	if (username.find(' ')  != std::string::npos ||  // check for invalid symbols
-		username.find('\'') != std::string::npos ||
-		username.find('"')  != std::string::npos ||
-		username.find('*')  != std::string::npos ||
-		username.length()   == 0)
+	if (name.find(' ')  != std::string::npos ||  // check for invalid symbols
+		!fValidateSqlInjection(name)         ||
+		name.length()    < 4 )
 	{
 		return false;
 	}
@@ -41,9 +38,7 @@ bool DataValidator::fValidateUsername(const std::string & username)
 bool DataValidator::fValidatePassword(const std::string & password)
 {
 	if (password.find(' ')  != std::string::npos ||  // check for invalid symbols
-		password.find('\'') != std::string::npos ||
-		password.find('"')  != std::string::npos ||
-		password.find('*')  != std::string::npos ||
+		!fValidateSqlInjection(password)         ||
 		password.length()   != 64)
 	{
 		return false;
@@ -95,6 +90,33 @@ bool DataValidator::fValidateAbilities(const std::string & abilities)
 	return true;
 }
 
+bool DataValidator::fValidateLength(const std::string & length)
+{
+	int len;
+	try
+	{
+		len = std::stoi(length);
+	}
+	catch (std::exception e)
+	{
+		return false;
+	}
+
+	return len >= 4 && len < 32;
+}
+
+
+bool DataValidator::fValidateSqlInjection(const std::string & msg)
+{
+	if (msg.find('\'') != std::string::npos ||
+		msg.find('"')  != std::string::npos ||
+		msg.find('*')  != std::string::npos)
+		return false;
+	return true;
+}
+
+
+
 
 bool DataValidator::fValidate(const std::string & to_validate, const type & t)
 {
@@ -104,8 +126,8 @@ bool DataValidator::fValidate(const std::string & to_validate, const type & t)
 	case DataValidator::EMAIL:
 		return fValidateEmail(to_validate);
 		break;
-	case DataValidator::USERNAME:
-		return fValidateUsername(to_validate);
+	case DataValidator::NAME:
+		return fValidateName(to_validate);
 		break;
 	case DataValidator::PASSWORD:
 		return fValidatePassword(to_validate);
@@ -116,8 +138,14 @@ bool DataValidator::fValidate(const std::string & to_validate, const type & t)
 	case DataValidator::ABILITIES:
 		return fValidateAbilities(to_validate);
 		break;
+	case DataValidator::LENGTH:
+		return fValidateLength(to_validate);
+		break;
+	case DataValidator::SQL_INJECTION:
+		return fValidateSqlInjection(to_validate);
+		break;
 	default:
-		return true;
+		return false;
 	}
 }
 
@@ -131,9 +159,9 @@ json DataValidator::fValidate(const json & to_validate)
 			bool res = fValidateEmail(to_validate[it.key()]);
 			result[it.key()] = res ? "Validated" : "Failed";
 		}
-		else if (it.key() == "username")
+		else if (it.key() == "name" || it.key() == "username")
 		{
-			bool res = fValidateUsername(to_validate[it.key()]);
+			bool res = fValidateName(to_validate[it.key()]);
 			result[it.key()] = res ? "Validated" : "Failed";
 		}
 		else if (it.key() == "password")
