@@ -1,5 +1,5 @@
 //
-//  DataBase.cpp
+//  Database.cpp
 //  Olha Leskovs'ka
 //
 
@@ -9,7 +9,7 @@
 
 DataBase::DataBase()
 {
-    connection = NULL;
+    _connection = NULL;
 }
 
 json DataBase::fExecuteQuery(std::string sql_statement)
@@ -36,8 +36,8 @@ json DataBase::fExecuteQuery(std::string sql_statement)
             ++wordsFound;
     }
     json error;
-    error["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-    error["message"] = "Unknown MySQL Query"; // insert "Message" as the json key and message as its value
+    error["result"] = "Error"; // inserts "Result" as the json key and "Error" as its value
+    error["message"] = "Unknown MySQL Query"; // inserts "Message" as the json key and message as its value
     return error;
 }
 
@@ -45,15 +45,15 @@ json DataBase::fConnection(string host, string user_name, string password, strin
 {
     json connection_result;
     // Get the Database Connection Handle
-    connection = mysql_init(NULL);
-    if (connection == NULL)
+    _connection = mysql_init(NULL);
+    if (_connection == NULL)
     {
         // If we can't create the Database Connection Handle
-        connection_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-        connection_result["message"] = "Can't create a MySQL Connection Handle"; // insert "Message" as the json key and message as its value
+        connection_result["result"] = "Error"; // inserts "Result" as the json key and "Error" as its value
+        connection_result["message"] = "Can't create a MySQL Connection Handle"; // inserts "Message" as the json key and message as its value
     }
     // Connecting to a Database Server
-    else if(!mysql_real_connect(connection, // address of an existing MYSQL structure.
+    else if(!mysql_real_connect(_connection, // address of an existing MYSQL structure.
                                 host.data(), // host name or an IP address
                                 user_name.data(), // user's MySQL login ID
                                 password.data(), // password for user
@@ -63,13 +63,13 @@ json DataBase::fConnection(string host, string user_name, string password, strin
                                 0 // client flag
                                 ))
     {
-        connection_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-        connection_result["message"] = mysql_error(connection); // insert "Message" as the json key and message as its value
+        connection_result["result"] = "Error"; // inserts "Result" as the json key and "Error" as its value
+        connection_result["message"] = mysql_error(_connection); // inserts "Message" as the json key and message as its value
     }
     else
     {
-        connection_result["result"] = "Success"; // insert "Result" as the json key and "Success" as its value
-        connection_result["message"] = "Open connection"; // insert "Message" as the json key and message as its value
+        connection_result["result"] = "Success"; // inserts "Result" as the json key and "Success" as its value
+        connection_result["message"] = "Open connection"; // inserts "Message" as the json key and message as its value
     }
     return connection_result;
 }
@@ -79,10 +79,10 @@ json DataBase::fGetData(string sql_statement)
     json get_data_result;  // json result
     
     //Execute SQL-query
-    if (mysql_query(connection, sql_statement.c_str()) != 0)
+    if (mysql_query(_connection, sql_statement.c_str()) != 0)
     {
-        get_data_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-        get_data_result["message"] = mysql_error(connection); // insert "Message" as the json key and message as its value
+        get_data_result["result"] = "Error"; // inserts "Result" as the json key and "Error" as its value
+        get_data_result["message"] = mysql_error(_connection); // inserts "Message" as the json key and message as its value
         return get_data_result;
     }
     
@@ -90,11 +90,11 @@ json DataBase::fGetData(string sql_statement)
     MYSQL_ROW          row; // Rows Handle
     
     // Get a handle to the resulting table
-    result = mysql_store_result(connection);
+    result = mysql_store_result(_connection);
     if (result == NULL)
     {
-        get_data_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-        get_data_result["message"] = "Can't get the result description"; // insert "Message" as the json key and message as its value
+        get_data_result["result"] = "Error"; // inserts "Result" as the json key and "Error" as its value
+        get_data_result["message"] = "Can't get the result description"; // inserts "Message" as the json key and message as its value
         return get_data_result;
     }
     else
@@ -103,7 +103,7 @@ json DataBase::fGetData(string sql_statement)
         {
             int values_number = mysql_num_fields(result); // Number of values in a row
             json final_json; // json for final data
-            json jarr; //json array
+            json jarr; // json array
             
             //fields = mysql_num_fields(result); // Number of fields
             while ((row = mysql_fetch_row(result)) != NULL)
@@ -115,20 +115,20 @@ json DataBase::fGetData(string sql_statement)
                 {
                     field = mysql_fetch_field(result);
                     name = field->name;
-                    get_data_result[name] = row[value_number]; // insert field_name as the json key and table fields data as its value
+                    get_data_result[name] = row[value_number]; // inserts field_name as the json key and table fields data as its value
                 }
-                jarr.push_back(get_data_result); // push json into json_array
+                jarr.push_back(get_data_result); // pushes json into json_array
             }
             mysql_free_result(result);
             final_json["rows"] = mysql_num_rows(result); // insert "Rows" as the json key and rows_number as its value
-            final_json["result"] = "Success"; // insert "Result" as the json key and "Success" as its value
-            final_json["data"] = jarr; // insert "Data" as the json key and json_array as its value
+            final_json["result"] = "Success"; // inserts "Result" as the json key and "Success" as its value
+            final_json["data"] = jarr; // inserts "Data" as the json key and json_array as its value
             return final_json;
         }
         else if (mysql_num_rows(result) == 0)
         {
-            get_data_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-            get_data_result["message"] = "No fields with these data"; // insert "Message" as the json key and message as its value
+            get_data_result["result"] = "Error"; // inserts "Result" as the json key and "Error" as its value
+            get_data_result["message"] = "No fields with these data"; // inserts "Message" as the json key and message as its value
         }
     }
     
@@ -142,15 +142,15 @@ json DataBase::fPutData(string sql_statement)
     json put_data_result;
     
     //Execute SQL-query
-    if (mysql_query(connection, sql_statement.c_str()) != 0)
+    if (mysql_query(_connection, sql_statement.c_str()) != 0)
     {
-        put_data_result["message"] = mysql_error(connection); // insert "Message" as the json key and message as its value
-        put_data_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
+        put_data_result["message"] = mysql_error(_connection); // inserts "Message" as the json key and message as its value
+        put_data_result["result"] = "Error"; // inserts "Result" as the json key and "Error" as its value
     }
     else
     {
-        put_data_result["result"] = "Success"; // insert "Result" as the json key and "Success" as its value
-        put_data_result["data"] = "New user"; // insert "Data" as the json key and message as its value
+        put_data_result["result"] = "Success"; // inserts "Result" as the json key and "Success" as its value
+        put_data_result["data"] = "New user"; // inserts "Data" as the json key and message as its value
     }
     
     return put_data_result;
@@ -159,5 +159,5 @@ json DataBase::fPutData(string sql_statement)
 DataBase::~DataBase()
 {
     // Closing the connection
-    mysql_close(connection);
+    mysql_close(_connection);
 }

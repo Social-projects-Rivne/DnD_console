@@ -17,9 +17,9 @@ private:
 public:
     DataBase();
     
-    json fConnection(std::string host, std::string user_name, std::string password, std::string database_name); // for connection with database
+    json fConnection(std::string host, std::string user_name, std::string password, std::string database_name); // for connection with Database
     
-    json fExecuteQuery(std::string sql_statement); // for executing a quety
+    json fExecuteQuery(std::string sql_statement); // for executing a query
     
     json fGetData(std::string sql_statement); // for getting Data from Database
     
