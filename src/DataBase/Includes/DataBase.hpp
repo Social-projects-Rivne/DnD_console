@@ -11,7 +11,8 @@ using json = nlohmann::json;
 
 class DataBase
 {
-    MYSQL* connection; // Database Connection Handle/Decryptor
+private:
+    MYSQL* _connection; // Database Connection Handle/Decryptor
     
 public:
     DataBase();

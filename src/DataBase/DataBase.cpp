@@ -1,5 +1,5 @@
 //
-//  DataBase.cpp
+//  Database.cpp
 //  Olha Leskovs'ka
 //
 
@@ -9,7 +9,7 @@
 
 DataBase::DataBase()
 {
-    connection = NULL;
+    _connection = NULL;
 }
 
 json DataBase::fExecuteQuery(std::string sql_statement)
@@ -45,15 +45,15 @@ json DataBase::fConnection(string host, string user_name, string password, strin
 {
     json connection_result;
     // Get the Database Connection Handle
-    connection = mysql_init(NULL);
-    if (connection == NULL)
+    _connection = mysql_init(NULL);
+    if (_connection == NULL)
     {
         // If we can't create the Database Connection Handle
         connection_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
         connection_result["message"] = "Can't create a MySQL Connection Handle"; // insert "Message" as the json key and message as its value
     }
     // Connecting to a Database Server
-    else if(!mysql_real_connect(connection, // address of an existing MYSQL structure.
+    else if(!mysql_real_connect(_connection, // address of an existing MYSQL structure.
                                 host.data(), // host name or an IP address
                                 user_name.data(), // user's MySQL login ID
                                 password.data(), // password for user
@@ -64,7 +64,7 @@ json DataBase::fConnection(string host, string user_name, string password, strin
                                 ))
     {
         connection_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-        connection_result["message"] = mysql_error(connection); // insert "Message" as the json key and message as its value
+        connection_result["message"] = mysql_error(_connection); // insert "Message" as the json key and message as its value
     }
     else
     {
@@ -79,10 +79,10 @@ json DataBase::fGetData(string sql_statement)
     json get_data_result;  // json result
     
     //Execute SQL-query
-    if (mysql_query(connection, sql_statement.c_str()) != 0)
+    if (mysql_query(_connection, sql_statement.c_str()) != 0)
     {
         get_data_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
-        get_data_result["message"] = mysql_error(connection); // insert "Message" as the json key and message as its value
+        get_data_result["message"] = mysql_error(_connection); // insert "Message" as the json key and message as its value
         return get_data_result;
     }
     
@@ -90,7 +90,7 @@ json DataBase::fGetData(string sql_statement)
     MYSQL_ROW          row; // Rows Handle
     
     // Get a handle to the resulting table
-    result = mysql_store_result(connection);
+    result = mysql_store_result(_connection);
     if (result == NULL)
     {
         get_data_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
@@ -142,9 +142,9 @@ json DataBase::fPutData(string sql_statement)
     json put_data_result;
     
     //Execute SQL-query
-    if (mysql_query(connection, sql_statement.c_str()) != 0)
+    if (mysql_query(_connection, sql_statement.c_str()) != 0)
     {
-        put_data_result["message"] = mysql_error(connection); // insert "Message" as the json key and message as its value
+        put_data_result["message"] = mysql_error(_connection); // insert "Message" as the json key and message as its value
         put_data_result["result"] = "Error"; // insert "Result" as the json key and "Error" as its value
     }
     else
@@ -159,5 +159,5 @@ json DataBase::fPutData(string sql_statement)
 DataBase::~DataBase()
 {
     // Closing the connection
-    mysql_close(connection);
+    mysql_close(_connection);
 }
