@@ -32,9 +32,11 @@ public:
 		ABILITIES,
 	};
 
-	static bool fValidate(const std::string & to_validate, type t);
+	static bool fValidate(const std::string & to_validate, const type & t);
 
-	static json fValidateJson(const json & to_validate);
+	static json fValidate(const json & to_validate);
+
+	static bool fValidate(const std::string & password, const std::string & retry_password);
 
 };
 

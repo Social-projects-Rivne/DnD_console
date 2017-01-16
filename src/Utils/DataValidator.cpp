@@ -30,6 +30,7 @@ bool DataValidator::fValidateUsername(const std::string & username)
 	if (username.find(' ')  != std::string::npos ||  // check for invalid symbols
 		username.find('\'') != std::string::npos ||
 		username.find('"')  != std::string::npos ||
+		username.find('*')  != std::string::npos ||
 		username.length()   == 0)
 	{
 		return false;
@@ -42,6 +43,7 @@ bool DataValidator::fValidatePassword(const std::string & password)
 	if (password.find(' ')  != std::string::npos ||  // check for invalid symbols
 		password.find('\'') != std::string::npos ||
 		password.find('"')  != std::string::npos ||
+		password.find('*')  != std::string::npos ||
 		password.length()   != 64)
 	{
 		return false;
@@ -62,7 +64,7 @@ bool DataValidator::fValidateAbility(const std::string & ability)
 		return false;
 	}
 
-	if (_ability > 20)
+	if (_ability > 20 || _ability < 0)
 		return false;
 
 	return true;
@@ -70,24 +72,31 @@ bool DataValidator::fValidateAbility(const std::string & ability)
 
 bool DataValidator::fValidateAbilities(const std::string & abilities)
 {
-	int _abilities;
-	try
+	json validate = json::parse(abilities);
+	int sum = 0;
+
+	for (auto & el : validate)
 	{
-		_abilities = std::stoi(abilities);
-	}
-	catch (std::exception e)
-	{
-		return false;
+		if (!fValidateAbility(el))
+			return false;
+		try
+		{
+			std::string sum_str = el;
+			sum+=std::stoi(sum_str);
+		}
+		catch (std::exception e)
+		{
+			return false;
+		}
 	}
 
-	if (_abilities > 80)
+	if (sum > 80 || sum < 0)
 		return false;
-
 	return true;
 }
 
 
-bool DataValidator::fValidate(const std::string & to_validate, type t)
+bool DataValidator::fValidate(const std::string & to_validate, const type & t)
 {
 	
 	switch (t)
@@ -112,7 +121,7 @@ bool DataValidator::fValidate(const std::string & to_validate, type t)
 	}
 }
 
-json DataValidator::fValidateJson(const json & to_validate)
+json DataValidator::fValidate(const json & to_validate)
 {
 	json result;
 	for (auto it = to_validate.begin(); it != to_validate.end(); ++it)
@@ -134,7 +143,7 @@ json DataValidator::fValidateJson(const json & to_validate)
 		}
 		else if (it.key() == "abilities")
 		{
-			bool res = fValidateAbilities(to_validate[it.key()]);
+			bool res = fValidateAbilities(to_validate[it.key()].dump());
 			result[it.key()] = res ? "Validated" : "Failed";
 		}
 		else
@@ -145,3 +154,12 @@ json DataValidator::fValidateJson(const json & to_validate)
 	}
 	return result;
 }
+
+bool DataValidator::fValidate(const std::string & password, const std::string & retry_password)
+{
+	return password == retry_password;
+}
+
+
+
+
