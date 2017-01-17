@@ -9,3 +9,4 @@ Debug/
 *.vcxproj
 *.dll
 *.db
+*.opendb
