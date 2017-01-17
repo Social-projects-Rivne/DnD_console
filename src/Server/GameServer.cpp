@@ -16,10 +16,11 @@
 using namespace std;
 
 void fHandler(int signal);
-void fParseRequest(DataBase& data_base, std::string &path, std::map <std::string, std::string> &http_headers);
-void fUserLogIn(DataBase& data_base, std::string &json_response, nlohmann::json &json_request);
-void fUserRegistration(DataBase& data_base, std::string &json_response, nlohmann::json &json_request);
+void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers);
+void fUserLogIn(std::string &json_response, nlohmann::json &json_request);
+void fUserRegistration(std::string &json_response, nlohmann::json &json_request);
 HttpServer* pHttp_server;
+DataBase data_base;
 
 
 int main(int argc, char* argv[])
@@ -29,7 +30,6 @@ int main(int argc, char* argv[])
     auto params = pIni_parser.fGetParams();
 
     // connect to database
-    DataBase data_base;
     data_base.fConnection(params["database.host"], params["database.username"], params["database.password"], params["database.name"]);
 
     // start HTTP server with correct termination
@@ -42,7 +42,6 @@ int main(int argc, char* argv[])
 
     // clear memory and sclose socets (in destructors, etc)
     delete pHttp_server;
-    delete pIni_parser;
 }
 
 
@@ -63,20 +62,28 @@ void fHandler(int signal)
 /**
  * parses request string 
  */
-void fParseRequest(DataBase &database, std::string &path, std::map <std::string, std::string> &http_headers)
+void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers)
 {
-    nlohmann::json json_request = json::parse(http_headers[(string)"Content"]);
     string response = "";
     if (path.find("/api/")) // if it is not found or if it is not in the beginning
         response = "{\"error\": \"incorrect api call\"}";
     else
     {
-        if (path.find("/api/userlogin") != string::npos)
-            fUserLogIn(data_base, response, json_request);
-        else if (path.find("/api/userregister") != string::npos)
-            fUserRegistration(data_base, response, json_request);
+        string request_data_content = http_headers[(string)"Content"];
+        if (!request_data_content.length())
+        {
+            response = "{\"error\": \"request data content is empty\"}";
+        }
         else
-            response = "{\"error\": \"script is not implemented\"}";
+        {
+            nlohmann::json json_request = json::parse(request_data_content);
+            if (path.find("/api/userlogin") != string::npos)
+                fUserLogIn(response, json_request);
+            else if (path.find("/api/userregister") != string::npos)
+                fUserRegistration(response, json_request);
+            else
+                response = "{\"error\": \"script is not implemented\"}";
+        }
     }
     pHttp_server->fSetResponse(response.data(), response.length(), "JSON");
 }
@@ -84,7 +91,7 @@ void fParseRequest(DataBase &database, std::string &path, std::map <std::string,
 /**
  * parses request string 
  */
-void fUserLogIn(DataBase &database, std::string &json_response, nlohmann::json &json_request)
+void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
 {
     string username = json_request["username"];
     string password = json_request["password"];
