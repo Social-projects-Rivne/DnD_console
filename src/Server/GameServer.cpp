@@ -4,8 +4,8 @@
 // for 
 // SoftServe ITA
 //
-// Nicholas Tsaruk
-// fbt.ksnv@gmail.com
+// Nicholas Tsaruk and Olha Leskovska
+// fbt.ksnv@gmail.com, olhalesk@gmail.com
 //
 
 #include "Includes/stdafx.hpp"
@@ -22,7 +22,7 @@ bool fRetrieveUserId(std::string &user_id, std::string &session_id);
 void fSaveTerrain(std::string &json_response, nlohmann::json &json_request);
 void fSendTerrain(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_request);
-//void fUserRegistration(std::string &json_response, nlohmann::json &json_request);
+void fUserRegistration(std::string &json_response, nlohmann::json &json_request);
 HttpServer* pHttp_server;
 DataBase data_base;
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     signal(SIGINT, fHandler); // listen for SIGINT (aka control-c), if it comes call function named fHandler
     pHttp_server->fRun(); // server's loop waiting for user connections
 
-                          // clear memory and sclose socets (in destructors, etc)
+    // clear memory and sclose socets (in destructors, etc)
     delete pHttp_server;
 }
 
@@ -83,8 +83,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
             nlohmann::json json_request = json::parse(request_data_content);
             if (path.find("/api/userlogin") != string::npos)
                 fUserLogIn(response, json_request);
-            /*else if (path.find("/api/userregister") != string::npos)
-            fUserRegistration(response, json_request);*/
+            else if (path.find("/api/userregister") != string::npos)
+                fUserRegistration(response, json_request);
             else if (path.find("/api/addterrain") != string::npos)
                 fSaveTerrain(response, json_request);
             else if (path.find("/api/loadterrain") != string::npos)
@@ -147,6 +147,30 @@ void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+}
+
+void fUserRegistration(std::string &json_response, nlohmann::json &json_request)
+{
+    data_base.fConnection("localhost", "DnD_db", "dbpass", "DnD");
+    string username = json_request["username"];
+    string password = json_request["password"];
+    string email = json_request["email"];
+    
+    if (DataValidator::fValidate(username, DataValidator::NAME) &&
+        DataValidator::fValidate(password, DataValidator::PASSWORD) &&
+        DataValidator::fValidate(email, DataValidator::EMAIL)) // checks data
+    {
+        string query = "INSERT INTO Users (username, password, email, is_active) VALUES ('" + username + "', '" + password + "', '" + email + "', 0);"; // creates query
+        nlohmann::json json_result = data_base.fExecuteQuery(query); // executes query
+        cout << json_result << endl;
+        string query_result = json_result["result"];
+        if (query_result == "Success")
+            json_response = "{\"status\":\"success\", \"message\": \"registered\"}";
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"invalid data\"}";
 }
 
 bool fRetrieveUserId(std::string &user_id, std::string &session_id)
