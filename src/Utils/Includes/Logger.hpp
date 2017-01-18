@@ -30,8 +30,7 @@ public:
 	};
 
 	// Log message into log file
-	static void fLog(std::string msg,
-		             type t);
+	static void fLog(const std::string & msg, const type & t);
 };
 
 #endif // !_DND_LOGGER_HPP_
