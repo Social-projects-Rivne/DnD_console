@@ -85,12 +85,14 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                 fUserLogIn(response, json_request);
             /*else if (path.find("/api/userregister") != string::npos)
             fUserRegistration(response, json_request);*/
-            else if (path.find("/api/newterrain") != string::npos)
+            else if (path.find("/api/addterrain") != string::npos)
                 fSaveTerrain(response, json_request);
             else if (path.find("/api/loadterrain") != string::npos)
                 fSendTerrain(response, json_request);
-            else if (path.find("/api/loadmyterrainlist") != string::npos)
+            else if (path.find("/api/loadmyterrainslist") != string::npos)
                 fSendOwnTerrainsList(response, json_request);
+            /*else if (path.find("/api/addnpc") != string::npos)
+                f_____(response, json_request);*/
             else
                 response = "{\"error\": \"script is not implemented\"}";
         }
