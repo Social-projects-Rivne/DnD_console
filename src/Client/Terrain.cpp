@@ -1,6 +1,9 @@
 #include "Includes\Terrain.hpp"
 
-Terrain::Terrain(std::string owner, std::string name, std::string width, std::string height, std::string description)
+
+Terrain::Terrain() {}
+
+Terrain::Terrain(const std::string &owner, const std::string &name, const std::string &width, const std::string &height, const std::string &description)
 {
 	this->_owner = owner;
 	this->_name = name;
@@ -17,6 +20,30 @@ void Terrain:: fShowTerrain()
 	std::cout << "Description:" << _description << std::endl;
 
 }
+
+
+void Terrain::SetName(const std::string name)
+{
+	this->_name = name;
+}
+void Terrain::SetHeight(const std::string height)
+{
+	this->_height = height;
+}
+void Terrain::SetWidth(const std::string width)
+{
+	this->_width = width;
+}
+void Terrain::SetDescription(const std::string description)
+{
+	this->_description = description;
+}
+
+void Terrain::SetOwner(const std::string owner)
+{
+	this->_owner = owner;
+}
+
 json Terrain:: fTerrain_To_Json()
 {
 	json resualt;
@@ -29,3 +56,4 @@ json Terrain:: fTerrain_To_Json()
 
 	return resualt;
 }
+Terrain::~Terrain(){}

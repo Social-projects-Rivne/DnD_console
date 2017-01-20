@@ -1,6 +1,6 @@
 #pragma once
 
-#include <json.hpp>
+#include "json.hpp"
 #include <iostream>
 #include <string>
 
@@ -15,33 +15,15 @@ class Terrain
 	std::string _description;
 
 public:
-	Terrain(std::string owner, std::string name, std::string width, std::string height, std::string description)
-	{
-		this->_owner = owner;
-		this->_name = name;
-		this->_height = height;
-		this->_width = width;
-		this->_description = description;
-	}
+	Terrain();
+	Terrain(const std::string &owner, const std::string &name, const std::string &width, const std::string &height, const std::string &description);
 
-	void fShowTerrain()
-	{
-		std::cout << "Name:" << _name << std::endl;
-		std::cout << "Width:" << _width << std::endl;
-		std::cout << "Height:" << _height << std::endl;
-		std::cout << "Description:" << _description << std::endl;
-
-	}
-	json fTerrain_To_Json()
-	{
-		json resualt;
-
-		resualt["session_id"] = _owner;
-		resualt["name"] = _name;
-		resualt["width"] = _width;
-		resualt["height"] = _height;
-		resualt["description"] = _description;
-
-		return resualt;
-	}
+	void fShowTerrain();
+	json fTerrain_To_Json();
+	void Terrain::SetName(const std::string name);
+	void Terrain::SetHeight(const std::string height);
+	void Terrain::SetWidth(const std::string width);
+	void Terrain::SetDescription(const std::string description);
+	void Terrain::SetOwner(const std::string owner);
+	~Terrain();
 };
