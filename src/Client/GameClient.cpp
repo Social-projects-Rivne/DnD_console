@@ -7,7 +7,7 @@ boost::asio::io_service io_service;  // io_service represents your program's lin
 
 GameClient::GameClient()
 {
-	_http_client = new HttpClient(io_service, "localhost", "15000"); //create http-client with options: host="localhost", port="33000"
+	_http_client = new HttpClient(io_service, "10.1.58.152", "15000"); //create http-client with options: host="localhost", port="33000"
 
 }
 
@@ -32,21 +32,27 @@ void GameClient::fMenu()
 			switch (choice)
 			{
 			case 1:
+			{
 				_http_client->PostData("/api/userregister", UserActions::fRegistration().dump()); //send POST request for registration
 				io_service.run(); // run io_service
-
+			}
 				break;
 			case 2:
+			{
 				_http_client->PostData("/api/userlogin", UserActions::fLogin().dump()); // send POST request for logining
-				
+
 				io_service.run();
-				_game_session = _http_client->fGetSession();
+				
+				
+			}
 				break;
 			case 3:
+			{
 				_http_client->PostData("/api/userlogout", _game_session); // drop user session
 				io_service.run();
 				_game_session = UserActions::fLogout(_game_session);
-				_http_client->fSetSession(_game_session);
+				//_http_client->fSetSession(_game_session);
+			}
 				break;
 
 			}
