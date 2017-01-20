@@ -53,11 +53,17 @@ public:
         string wisdom,
         string charisma);
     
+    NPC(const NPC &npc); // copy constructor
+    
+    NPC &operator = (const NPC& npc); // assignment operator =
+
     void fRandomizeAbilities(); // fills the character abilities by rolling dices
     
     void fSetAbilities(); // asks user for defining abilities points
     
     void fAddNPC(); // creates NPC
+    
+    void fShowNPC(); // shows NPC in console window
     
     json fToJson(); // converts NPC data into json
     

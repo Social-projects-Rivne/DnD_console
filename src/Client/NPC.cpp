@@ -10,16 +10,6 @@
 
 NPC::NPC()
 {
-    _name = "";
-    _type_NPC = "";
-    _hitpoints = "";
-    _level = "";
-    _strength = "";
-    _dexterity = "";
-    _constitution = "";
-    _intelligence = "";
-    _wisdom = "";
-    _charisma = "";
 }
 
 NPC::NPC(string name,
@@ -43,6 +33,38 @@ NPC::NPC(string name,
     _intelligence = intelligence;
     _wisdom = wisdom;
     _charisma = charisma;
+}
+
+NPC::NPC(const NPC &npc)
+{
+    _name = npc._name;
+    _type_NPC = npc._type_NPC;
+    _hitpoints = npc._hitpoints;
+    _level = npc._level;
+    _strength = npc._strength;
+    _dexterity = npc._dexterity;
+    _constitution = npc._constitution;
+    _intelligence = npc._intelligence;
+    _wisdom = npc._wisdom;
+    _charisma = npc._charisma;
+}
+
+NPC &NPC::operator = (const NPC &npc)
+{
+    if (this == & npc)
+        return * this;
+    
+    _name = npc._name;
+    _type_NPC = npc._type_NPC;
+    _hitpoints = npc._hitpoints;
+    _level = npc._level;
+    _strength = npc._strength;
+    _dexterity = npc._dexterity;
+    _constitution = npc._constitution;
+    _intelligence = npc._intelligence;
+    _wisdom = npc._wisdom;
+    _charisma = npc._charisma;
+    return * this;
 }
 
 void NPC::fRandomizeAbilities() // fills the character abilities by rolling dices
@@ -292,6 +314,20 @@ void NPC::fAddNPC() // creates NPC
             cout << "Unexpected operation." << endl;
             break;
     }
+}
+
+void NPC::fShowNPC()
+{
+    cout << "Name: " << _name << endl;
+    cout << "Type: " << _type_NPC << endl;
+    cout << "Level: " << _level << endl;
+    cout << "Hitpoints: " << _hitpoints << endl;
+    cout << "Strength: " << _strength << endl;
+    cout << "Dexterity: " << _dexterity << endl;
+    cout << "Constitution: " << _constitution << endl;
+    cout << "Intelligence: " << _intelligence << endl;
+    cout << "Wisdom: " << _wisdom << endl;
+    cout << "Charisma: " << _charisma << endl;
 }
 
 json NPC::fToJson()
