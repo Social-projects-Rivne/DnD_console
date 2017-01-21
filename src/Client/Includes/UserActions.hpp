@@ -21,6 +21,7 @@ public:
 	static json fLogin();
 	static json fRegistration();
 	static json fCreateTerrain(const std::string &session);
+	static json fShowFullListOfTerrains();
 	static std::string fLogout(std::string &session); //drop user session
 };
 #endif // !__USER_ACTIONS_HPP__

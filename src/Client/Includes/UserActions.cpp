@@ -136,6 +136,9 @@ json UserActions::fCreateTerrain(const std::string &session)
 		std::cout << "Enter terrain name:" << std::endl;
 		std::getline(std::cin, terrain_name);
 
+		std::cin.ignore();
+
+
 		if (!DataValidator::fValidate(terrain_name, DataValidator::SQL_INJECTION))
 		{
 			std::cout << "You have entered invalid data, this value is prohibited signs !!!" << std::endl;
@@ -193,7 +196,7 @@ json UserActions::fCreateTerrain(const std::string &session)
 			std::getline(std::cin, description);
 
 			if (!DataValidator::fValidate(description, DataValidator::SQL_INJECTION))
-				std::cout << "This datum should consist of letters!\n";
+				std::cout << "You have entered invalid data, this value is prohibited signs !!!" << std::endl;
 			else
 				terrain.SetDescription(description);
 		} while (!DataValidator::fValidate(description, DataValidator::SQL_INJECTION));
@@ -203,9 +206,44 @@ json UserActions::fCreateTerrain(const std::string &session)
 		return terrain.fTerrain_To_Json();
 	}
 
-	terrain.fShowTerrain();
 
 	return terrain.fTerrain_To_Json();
+}
+
+json UserActions::fShowFullListOfTerrains()
+{
+	std::string type, count;
+
+	json request;
+	
+	std::cin.ignore();
+
+	do
+	{
+	std::cout << "Enter type of terrain which you want load: " << std::endl;
+	std::getline(std::cin, type);
+
+
+	if (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION))
+		std::cout << "You have entered invalid data, this value is prohibited signs !!!" << std::endl;
+	else
+		request["type"] = type;
+
+	} while (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION));
+
+	do
+	{
+	std::cout << "Enter count of terrain which you want load: " << std::endl;
+	std::getline(std::cin, count);
+	if (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION))
+		std::cout << "You have entered invalid data, this value is prohibited signs !!!" << std::endl;
+	else
+		request["count"] = count;
+
+	} while (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION));
+	
+
+	return request;
 }
 
 /*
