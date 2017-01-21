@@ -127,8 +127,8 @@ json DataBase::fGetData(string sql_statement)
         }
         else if (mysql_num_rows(result) == 0)
         {
-            get_data_result["result"] = "error"; // insert "Result" as the json key and "Error" as its value
-            get_data_result["message"] = "no fields with these data"; // insert "Message" as the json key and message as its value
+            get_data_result["rows"] = "0"; // insert "Rows" as the json key and rows_number as its value
+            get_data_result["result"] = "success"; // insert "Result" as the json key and "success" as its value
         }
     }
     
