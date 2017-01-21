@@ -120,7 +120,7 @@ json DataBase::fGetData(string sql_statement)
                 jarr.push_back(get_data_result); // push json into json_array
             }
             mysql_free_result(result);
-            final_json["rows"] = mysql_num_rows(result); // insert "Rows" as the json key and rows_number as its value
+            final_json["rows"] = to_string(mysql_num_rows(result)); // insert "Rows" as the json key and rows_number as its value
             final_json["result"] = "success"; // insert "Result" as the json key and "Success" as its value
             final_json["data"] = jarr; // insert "Data" as the json key and json_array as its value
             return final_json;
