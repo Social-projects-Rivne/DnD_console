@@ -37,6 +37,8 @@ private:
 		HttpClient(boost::asio::io_service& io_service, const std::string &server, const std::string &port);
 		
 		void fPostData(const std::string &path, std::string &data);
+		
 		void fGetData(std::string &path);
+		
 		std::string fGetResponse();
 };

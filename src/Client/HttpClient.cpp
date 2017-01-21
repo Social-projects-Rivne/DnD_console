@@ -194,17 +194,10 @@ void HttpClient::fPostData(const std::string &path, std::string &data)
 }
 
 /*
-	Method for getting user session.
+	Method for getting response from server.
 */
 std::string HttpClient::fGetResponse()
 {
 	return this->_response_string;
 }
 
-/*
-	Method for reset user session.
-*/
-//void HttpClient::fSetSession(std::string &session)
-//{
-//	this->_session = session;
-//}
