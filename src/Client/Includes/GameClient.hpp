@@ -13,7 +13,11 @@ public:
 	GameClient();
 
 	void fMenu();
-
 	~GameClient();
-
+private:
+	int fGetInput();
+	void fDisplayMainMenu();
+	void fDisplayDmMenu(const std::string &user_session);
+	void fDisplayPlayerMenu(const std::string &user_session);
+	void fSwitchMode(const std::string &user_session);
 };
