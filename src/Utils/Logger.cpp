@@ -4,7 +4,7 @@
 Logger::Logger()
 { }
 
-void Logger::fLog(std::string m, Logger::type t)
+void Logger::fLog(const std::string & m, const Logger::type & t)
 {
 	std::string file_name;
 	

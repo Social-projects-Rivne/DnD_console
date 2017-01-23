@@ -4,9 +4,11 @@
 
 #include <iostream>
 #include <regex>
-#include "Includes/json.hpp"
-#include "Includes/sha256.hpp"
+#include "json.hpp"
+#include "sha256.hpp"
+#include "DataValidator.hpp"
 #include "Npc.hpp"
+#include "Terrain.hpp"
 
 using json = nlohmann::json;
 
@@ -20,6 +22,8 @@ public:
 	static json fLogin();
 	static json fRegistration();
     static json fCreateNpc(const std::string &session // method for NPC creation
-	static std::string fLogout(std::string session); //drop user session
+	static json fCreateTerrain(const std::string &session);
+	static json fShowFullListOfTerrains();
+	static std::string fLogout(std::string &session); //drop user session
 };
 #endif // !__USER_ACTIONS_HPP__
