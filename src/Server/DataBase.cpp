@@ -36,8 +36,10 @@ json DataBase::fExecuteQuery(std::string sql_statement)
             ++wordsFound;
     }
     json error;
+    
     error["result"] = "error"; // insert "Result" as the json key and "Error" as its value
     error["message"] = "unknown MySQL Query"; // insert "Message" as the json key and message as its value
+
     return error;
 }
 
@@ -49,8 +51,10 @@ json DataBase::fConnection(string host, string user_name, string password, strin
     if (_connection == NULL)
     {
         // If we can't create the Database Connection Handle
+
         connection_result["result"] = "error"; // insert "Result" as the json key and "Error" as its value
         connection_result["message"] = "can't create a MySQL Connection Handle"; // insert "Message" as the json key and message as its value
+
     }
     // Connecting to a Database Server
     else if(!mysql_real_connect(_connection, // address of an existing MYSQL structure.
@@ -104,7 +108,7 @@ json DataBase::fGetData(string sql_statement)
             int values_number = mysql_num_fields(result); // Number of values in a row
             json final_json; // json for final data
             json jarr; //json array
-            
+
             //fields = mysql_num_fields(result); // Number of fields
             while ((row = mysql_fetch_row(result)) != NULL)
             {
