@@ -6,27 +6,29 @@
 //  Copyright © 2017 Olha Leskovska. All rights reserved.
 //
 
-#include "Includes/NPC.hpp"
+#include "Includes/Npc.hpp"
 
-NPC::NPC()
+Npc::Npc()
 {
 }
 
-NPC::NPC(string name,
-         string type_NPC,
-         string hitpoints,
-         string level,
-         string strength,
-         string dexterity,
-         string constitution,
-         string intelligence,
-         string wisdom,
-         string charisma)
+Npc::Npc(string &id_owner,
+         string &name,
+         string &type_npc,
+         string &level,
+         string &hitpoints,
+         string &strength,
+         string &dexterity,
+         string &constitution,
+         string &intelligence,
+         string &wisdom,
+         string &charisma)
 {
+    _id_owner = id_owner,
     _name = name;
-    _type_NPC = type_NPC;
-    _hitpoints = hitpoints;
+    _type_npc = type_npc;
     _level = level;
+    _hitpoints = hitpoints;
     _strength = strength;
     _dexterity = dexterity;
     _constitution = constitution;
@@ -35,10 +37,11 @@ NPC::NPC(string name,
     _charisma = charisma;
 }
 
-NPC::NPC(const NPC &npc)
+Npc::Npc(const Npc &npc)
 {
+    _id_owner = npc._id_owner;
     _name = npc._name;
-    _type_NPC = npc._type_NPC;
+    _type_npc = npc._type_npc;
     _hitpoints = npc._hitpoints;
     _level = npc._level;
     _strength = npc._strength;
@@ -49,13 +52,14 @@ NPC::NPC(const NPC &npc)
     _charisma = npc._charisma;
 }
 
-NPC &NPC::operator = (const NPC &npc)
+Npc &Npc::operator = (const Npc &npc)
 {
-    if (this == & npc)
+    if (this == &npc)
         return * this;
     
+    _id_owner = npc._id_owner;
     _name = npc._name;
-    _type_NPC = npc._type_NPC;
+    _type_npc = npc._type_npc;
     _hitpoints = npc._hitpoints;
     _level = npc._level;
     _strength = npc._strength;
@@ -67,7 +71,12 @@ NPC &NPC::operator = (const NPC &npc)
     return * this;
 }
 
-void NPC::fRandomizeAbilities() // fills the character abilities by rolling dices
+void Npc::fSetOwner(const string id_owner)
+{
+    _id_owner = id_owner;
+}
+
+void Npc::fRandomizeAbilities() // fills the character abilities by rolling dices
 {
     _level = "1";
     
@@ -147,7 +156,7 @@ void NPC::fRandomizeAbilities() // fills the character abilities by rolling dice
     } while (sum > MAX_ABILITIES_SUM);
 }
 
-void NPC::fSetAbilities() // asks user for defining abilities points
+void Npc::fSetAbilities() // asks user for defining abilities points
 {
     string level;
     do
@@ -266,7 +275,7 @@ void NPC::fSetAbilities() // asks user for defining abilities points
     } while (sum > MAX_ABILITIES_SUM);
 }
 
-void NPC::fAddNPC() // creates NPC
+void Npc::fAddNpc() // creates NPC
 {
     cout << "********** NPC **********" << endl;
     string name;
@@ -281,17 +290,17 @@ void NPC::fAddNPC() // creates NPC
             _name = name;
     } while (!DataValidator::fValidate(name, DataValidator::SQL_INJECTION));
     
-    string type_NPC;
+    string type_npc;
     do
     {
         cout << "Input the NPC's type: ";
-        getline(cin, type_NPC);
+        getline(cin, type_npc);
         
-        if (!DataValidator::fValidate(type_NPC, DataValidator::SQL_INJECTION)) // type_NPC validation
+        if (!DataValidator::fValidate(type_npc, DataValidator::SQL_INJECTION)) // type_NPC validation
             cout << "This datum should consist of letters!" << endl;
         else
-            _type_NPC = type_NPC;
-    } while (!DataValidator::fValidate(type_NPC, DataValidator::SQL_INJECTION));
+            _type_npc = type_npc;
+    } while (!DataValidator::fValidate(type_npc, DataValidator::SQL_INJECTION));
     
     int choice;
     cout << "Choose the way to fill the NPC's abilities:" << endl;
@@ -305,10 +314,10 @@ void NPC::fAddNPC() // creates NPC
     switch (choice)
     {
         case 1:
-            NPC::fRandomizeAbilities();
+            Npc::fRandomizeAbilities();
             break;
         case 2:
-            NPC::fSetAbilities();
+            Npc::fSetAbilities();
             break;
         default:
             cout << "Unexpected operation." << endl;
@@ -316,10 +325,10 @@ void NPC::fAddNPC() // creates NPC
     }
 }
 
-void NPC::fShowNPC()
+void Npc::fShowNpc()
 {
     cout << "Name: " << _name << endl;
-    cout << "Type: " << _type_NPC << endl;
+    cout << "Type: " << _type_npc << endl;
     cout << "Level: " << _level << endl;
     cout << "Hitpoints: " << _hitpoints << endl;
     cout << "Strength: " << _strength << endl;
@@ -330,25 +339,22 @@ void NPC::fShowNPC()
     cout << "Charisma: " << _charisma << endl;
 }
 
-json NPC::fToJson()
+json Npc::fToJson()
 {
     json npc;
+    npc["session_id"] = _id_owner;
     npc["npc"] = _name;
-    npc["type"] = _type_NPC;
+    npc["type"] = _type_npc;
     npc["level"] = _level;
-    
-    json abilities;
-    abilities["hitpoints"] = _hitpoints;
-    abilities["strength"] = _strength;
-    abilities["dexterity"] = _dexterity;
-    abilities["constitution"] = _constitution;
-    abilities["intelligence"] = _intelligence;
-    abilities["wisdom"] = _wisdom;
-    abilities["charisma"] = _charisma;
-    
-    npc["abilities"] = abilities;
+    npc["hitpoints"] = _hitpoints;
+    npc["strength"] = _strength;
+    npc["dexterity"] = _dexterity;
+    npc["constitution"] = _constitution;
+    npc["intelligence"] = _intelligence;
+    npc["wisdom"] = _wisdom;
+    npc["charisma"] = _charisma;
     
     return npc;
 }
 
-NPC::~NPC() {}
+Npc::~Npc() {}

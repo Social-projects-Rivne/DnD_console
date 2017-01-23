@@ -6,6 +6,7 @@
 #include <regex>
 #include "Includes/json.hpp"
 #include "Includes/sha256.hpp"
+#include "Npc.hpp"
 
 using json = nlohmann::json;
 
@@ -18,6 +19,7 @@ public:
 	// { "Login": "username", "Password": "SHA256_hashed_password" }
 	static json fLogin();
 	static json fRegistration();
+    static json fCreateNpc(const std::string &session // method for NPC creation
 	static std::string fLogout(std::string session); //drop user session
 };
 #endif // !__USER_ACTIONS_HPP__

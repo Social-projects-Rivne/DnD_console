@@ -6,8 +6,8 @@
 //  Copyright © 2017 Olha Leskovska. All rights reserved.
 //
 
-#ifndef NPC_hpp
-#define NPC_hpp
+#ifndef Npc_hpp
+#define Npc_hpp
 
 #include <stdio.h>
 #include <string>
@@ -24,13 +24,14 @@ using json = nlohmann::json;
 
 const int MAX_ABILITIES_SUM = 80;
 
-class NPC
+class Npc
 {
 private:
+    string _id_owner;
     string _name;
-    string _type_NPC;
-    string _hitpoints;
+    string _type_npc;
     string _level;
+    string _hitpoints;
     string _strength;
     string _dexterity;
     string _constitution;
@@ -40,34 +41,37 @@ private:
     
 public:
     
-    NPC();
+    Npc();
     
-    NPC(string name,
-        string type_NPC,
-        string hitpoints,
-        string level,
-        string strength,
-        string dexterity,
-        string constitution,
-        string intelligence,
-        string wisdom,
-        string charisma);
+    Npc(string &id_owner,
+        string &name,
+        string &type_npc,
+        string &level,
+        string &hitpoints,
+        string &strength,
+        string &dexterity,
+        string &constitution,
+        string &intelligence,
+        string &wisdom,
+        string &charisma);
     
-    NPC(const NPC &npc); // copy constructor
+    Npc(const Npc &npc); // copy constructor
     
-    NPC &operator = (const NPC& npc); // assignment operator =
-
+    Npc &operator = (const Npc &npc); // assignment operator =
+    
+    void fSetOwner(const string id_owner); // setter for owner's id
+    
     void fRandomizeAbilities(); // fills the character abilities by rolling dices
     
     void fSetAbilities(); // asks user for defining abilities points
     
-    void fAddNPC(); // creates NPC
+    void fAddNpc(); // creates NPC
     
-    void fShowNPC(); // shows NPC in console window
+    void fShowNpc(); // shows NPC in console window
     
     json fToJson(); // converts NPC data into json
     
-    ~NPC();
+    ~Npc();
 };
 
-#endif /* NPC_hpp */
+#endif /* Npc_hpp */

@@ -118,6 +118,23 @@ json UserActions::fRegistration()
 	return user_registration_data;
 
 }
+
+/*
+ Method for NPC creation
+ */
+json UserActions::fCreateNpc(const std::string &session)
+{
+    Npc npc;
+    
+    npc.fSetOwner(session);
+    npc.fAddNpc();
+    
+    cout << "Your NPC: " << endl;
+    npc.fShowNpc();
+    
+    return npc.fToJson();
+}
+
 /*
 	Method clear session string
 */
