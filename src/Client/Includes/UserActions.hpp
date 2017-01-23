@@ -7,6 +7,7 @@
 #include "json.hpp"
 #include "sha256.hpp"
 #include "DataValidator.hpp"
+#include "Npc.hpp"
 #include "Terrain.hpp"
 
 using json = nlohmann::json;
@@ -20,6 +21,7 @@ public:
 	// { "Login": "username", "Password": "SHA256_hashed_password" }
 	static json fLogin();
 	static json fRegistration();
+    static json fCreateNpc(const std::string &session // method for NPC creation
 	static json fCreateTerrain(const std::string &session);
 	static json fShowFullListOfTerrains();
 	static std::string fLogout(std::string &session); //drop user session

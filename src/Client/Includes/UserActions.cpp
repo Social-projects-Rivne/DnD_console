@@ -120,6 +120,22 @@ json UserActions::fRegistration()
 
 }
 
+/*
+	Method for NPC creation
+ */
+json UserActions::fCreateNpc(const std::string &session)
+{
+    Npc npc;
+    
+    npc.fSetOwner(session);
+    npc.fAddNpc();
+    
+    cout << "Your NPC: " << endl;
+    npc.fShowNpc();
+    
+    return npc.fToJson();
+}
+
 json UserActions::fCreateTerrain(const std::string &session)
 {
 	std::string terrain_name;
