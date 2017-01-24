@@ -10,7 +10,7 @@
 #define SRC_DICE_HPP_
 
 #include <set>
-using std::multiset
+using std::multiset;
 
 class Dice {
 private:

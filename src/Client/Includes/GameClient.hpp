@@ -7,17 +7,18 @@
 class GameClient
 {
 private:
-	HttpClient *_http_client;    // http-client object
+	//HttpClient *_http_client;    // http-client object
 	std::string _game_session;   // game session
 public:
 	GameClient();
 
-	void fMenu();
+	void fMenu(std::string &host, std::string &port);
 	~GameClient();
 private:
-	int fGetInput();
+	char fGetInput();
 	void fDisplayMainMenu();
-	void fDisplayDmMenu(const std::string &user_session);
+	void fDisplayDmMenu(std::string &host, std::string &port,const std::string &user_session);
 	void fDisplayPlayerMenu(const std::string &user_session);
-	void fSwitchMode(const std::string &user_session);
+	void fSwitchMode(std::string &host, std::string &port, const std::string &user_session);
+	//void SendRequest(std::string &host, std::string &port,const std::string &url, std::string &response, std::string &data);
 };
