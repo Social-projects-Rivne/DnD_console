@@ -20,10 +20,10 @@ public:
 
 	void fShowTerrain();
 	json fTerrain_To_Json();
-	void Terrain::SetName(const std::string name);
-	void Terrain::SetHeight(const std::string height);
-	void Terrain::SetWidth(const std::string width);
-	void Terrain::SetDescription(const std::string description);
-	void Terrain::SetOwner(const std::string owner);
+	void SetName(const std::string name);
+	void SetHeight(const std::string height);
+	void SetWidth(const std::string width);
+	void SetDescription(const std::string description);
+	void SetOwner(const std::string owner);
 	~Terrain();
 };

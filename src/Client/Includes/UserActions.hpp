@@ -7,7 +7,7 @@
 #include "json.hpp"
 #include "sha256.hpp"
 #include "DataValidator.hpp"
-#include "Npc.hpp"
+#include "NPC.hpp"
 #include "Terrain.hpp"
 
 using json = nlohmann::json;

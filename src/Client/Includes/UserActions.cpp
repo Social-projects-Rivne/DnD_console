@@ -276,6 +276,7 @@ json UserActions::fLoadTerrain(const std::string &session)
 	request["session_id"] = session;
 	do
 	{
+		std::cout << "Enter terrain id:\n";
 		std::getline(std::cin, terrain_id);
 		try
 		{
