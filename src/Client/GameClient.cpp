@@ -79,7 +79,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 		case 3:
 		{
 
-			std::string request = UserActions::fShowFullListOfTerrains().dump();
+			std::string request = UserActions::fShowFullListOfTerrains(_game_session).dump();
 			std::string response;
 			SendRequest(host, port, "/api/loaddefinedterrains", response, request);
 			std::cout << "Response: " << response << std::endl;

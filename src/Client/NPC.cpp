@@ -12,7 +12,7 @@ Npc::Npc()
 {
 }
 
-Npc::Npc(string &owner,
+Npc::Npc(string &id_owner,
          string &name,
          string &type_npc,
          string &level,
@@ -24,7 +24,7 @@ Npc::Npc(string &owner,
          string &wisdom,
          string &charisma)
 {
-    _owner = owner,
+    _id_owner = id_owner,
     _name = name;
     _type_npc = type_npc;
     _level = level;
@@ -39,7 +39,7 @@ Npc::Npc(string &owner,
 
 Npc::Npc(const Npc &npc)
 {
-    _owner = npc._owner;
+    _id_owner = npc._id_owner;
     _name = npc._name;
     _type_npc = npc._type_npc;
     _hitpoints = npc._hitpoints;
@@ -57,7 +57,7 @@ Npc &Npc::operator = (const Npc &npc)
     if (this == &npc)
         return * this;
     
-    _owner = npc._owner;
+    _id_owner = npc._id_owner;
     _name = npc._name;
     _type_npc = npc._type_npc;
     _hitpoints = npc._hitpoints;
@@ -71,9 +71,9 @@ Npc &Npc::operator = (const Npc &npc)
     return * this;
 }
 
-void Npc::fSetOwner(const string owner)
+void Npc::fSetOwner(const string id_owner)
 {
-    _owner = owner;
+    _id_owner = id_owner;
 }
 
 void Npc::fRandomizeAbilities() // fills the character abilities by rolling dices
@@ -344,7 +344,7 @@ void Npc::fShowNpc()
 json Npc::fToJson()
 {
     json npc;
-    npc["session_id"] = _owner;
+    npc["session_id"] = _id_owner;
     npc["npc"] = _name;
     npc["type"] = _type_npc;
     npc["level"] = _level;
