@@ -6,7 +6,7 @@
 //  Copyright © 2017 Olha Leskovska. All rights reserved.
 //
 
-#include "Includes/Npc.hpp"
+#include "Includes/NPC.hpp"
 
 Npc::Npc()
 {

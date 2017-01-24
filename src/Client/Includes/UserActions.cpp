@@ -262,6 +262,37 @@ json UserActions::fShowFullListOfTerrains()
 	return request;
 }
 
+json UserActions::fLoadMyTerrains(const std::string &session)
+{
+	json request;
+	request["session_id"] = session;
+	return request;
+}
+
+json UserActions::fLoadTerrain(const std::string &session)
+{
+	json request;
+	std::string terrain_id;
+	request["session_id"] = session;
+	do
+	{
+		std::cout << "Enter terrain id:\n";
+		std::getline(std::cin, terrain_id);
+		try
+		{
+			std::stoi(terrain_id);
+		}
+		catch (const std::exception&)
+		{
+			terrain_id = "*";
+		}
+	} while (!DataValidator::fValidate(terrain_id, DataValidator::SQL_INJECTION));
+
+	request["terrain_id"] = terrain_id;
+
+	return request;
+}
+
 /*
 	Method clear session string
 */
