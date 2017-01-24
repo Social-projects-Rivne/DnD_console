@@ -40,7 +40,8 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 	std::cout << "2. Create Terrain" << std::endl;
 	std::cout << "3. Full list of terrains" << std::endl;
 	std::cout << "4. Show my terrains" << std::endl;
-	std::cout << "5. Back to previous  menu" << std::endl;
+	std::cout << "5. Load terrain by id" << std::endl;
+	std::cout << "6. Back to previous  menu" << std::endl;
 	std::cout << "Enter choice: ";  // user enter option 
 
 
@@ -87,17 +88,31 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 			//std::cout << request << std::endl;
 			//_http_client->fPostData("/api/loadterrain",request);
 		}
+		break;
 		case 4:
 		{
-			
+			auto request = UserActions::fLoadMyTerrains(_game_session).dump();
+			std::string response;
+			SendRequest(host, port, "/api/loadmyterrainslist", response, request);
+			std::cout << "Response: " << response << std::endl;
+
 		}
+		break;
 		case 5:
+		{
+			auto request = UserActions::fLoadTerrain(_game_session).dump();
+			std::string response;
+			SendRequest(host, port, "/api/loadterrain", response, request);
+			std::cout << "Respone: " << response << std::endl;
+		}
+		break;
+		case 6:
 			break;
 		default:
 			std::cout << "Wrong menu option !!!" << std::endl;
 			break;
 		}
-	} while (choice != 5);
+	} while (choice != 6);
 
 }
 

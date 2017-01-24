@@ -24,6 +24,8 @@ public:
 	static json fCreateNpc(const std::string &session); // method for NPC creation
 	static json fCreateTerrain(const std::string &session);
 	static json fShowFullListOfTerrains();
+	static json fLoadMyTerrains(const std::string &session);  //load user terrains
+	static json fLoadTerrain(const std::string &session);     //load switched terrain
 	static std::string fLogout(std::string &session); //drop user session
 };
 #endif // !__USER_ACTIONS_HPP__
