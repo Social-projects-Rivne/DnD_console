@@ -226,12 +226,12 @@ json UserActions::fCreateTerrain(const std::string &session)
 	return terrain.fTerrain_To_Json();
 }
 
-json UserActions::fShowFullListOfTerrains()
+json UserActions::fShowFullListOfTerrains(const std::string &session)
 {
 	std::string type, count;
 
 	json request;
-	
+	request["session_id"] = session;
 	std::cin.ignore();
 
 	do
