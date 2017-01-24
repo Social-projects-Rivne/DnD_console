@@ -152,6 +152,8 @@ void HttpClient:: fHandleReadContent(const boost::system::error_code& err)
 	if (!err)
 	{
 		// Write all of the data that has been read so far.
+		std::istream istream(&_response);
+		std::getline(istream, this->_response_string);
 		std::cout << &_response;
 		// Continue reading remaining data until EOF.
 		boost::asio::async_read(_socket, _response, boost::asio::transfer_at_least(1), boost::bind(&HttpClient::fHandleReadContent, this, boost::asio::placeholders::error));
