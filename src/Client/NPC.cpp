@@ -281,6 +281,8 @@ void Npc::fAddNpc() // creates NPC
     string name;
     do
     {
+        cin.clear();
+        cin.ignore();
         cout << "Input a name: ";
         getline(cin, name);
         
