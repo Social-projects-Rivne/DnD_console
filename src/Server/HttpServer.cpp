@@ -358,6 +358,7 @@ void HttpServer::fRun(void)
 
             // announce OK
             state_info += "HTTP/1.1 200 OK\n";
+            //cout << " HTTP / 1.1 200 OK\n" << endl;
         }
     }
 }
@@ -652,5 +653,4 @@ bool HttpServer::fSetResponse(const char* body, const unsigned int length, const
     }
     return 1;
 }
-
 
