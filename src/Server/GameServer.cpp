@@ -44,7 +44,6 @@ int main(int argc, char* argv[])
     // connect to database
     nlohmann::json json_result = data_base.fConnection(params["database.host"], params["database.username"], params["database.password"], params["database.name"]);
     cout << "data_base.fConnection returned:\n" << json_result << endl;
-    cout << json_result["result"] << endl;
     // start HTTP server with correct termination
     pHttp_server = new HttpServer(stoi(params["server.port"]), params["server.root"]);
     // pHttp_server = new HttpServer(15000, "Root/");
@@ -241,16 +240,18 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
     {
     	cout<<"USER("<<id_user<<") is logged in\n";
         string name = json_request["name"];
+        string type = json_request["type"];
         string width = json_request["width"];
         string height = json_request["height"];
         string description = json_request["description"];
 
         if (DataValidator::fValidate(name,        DataValidator::NAME) &&
+        	DataValidator::fValidate(type,        DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(width,       DataValidator::LENGTH) &&
 			DataValidator::fValidate(height,      DataValidator::LENGTH) &&
 			DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
         {
-			string query = "INSERT INTO Terrain (name, width, height, description, id_owner) VALUES ('" + name + "', " + width + ", " + height + ", '" + description + "', " + id_user + ");";
+			string query = "INSERT INTO Terrain (name, type, width, height, description, id_owner) VALUES ('" + name + "', " + type + ", " + width + ", " + height + ", '" + description + "', " + id_user + ");";
 			nlohmann::json json_result = data_base.fExecuteQuery(query);
 			cout << query << "\nRESULT:\n" << json_result << endl;
 			string query_result = json_result["result"];
@@ -332,7 +333,7 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string terrain_id = json_request["terrain_id"];
-        string query = "SELECT name, width, height, description, id_owner FROM Terrain WHERE id = " + terrain_id + ";";
+        string query = "SELECT name, type, width, height, description, id_owner FROM Terrain WHERE id = " + terrain_id + ";";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
@@ -343,11 +344,12 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
             if (stoi(rows) > 0)
             {
                 string terrain = json_result["data"][0]["name"];
+                string type = json_result["data"][0]["type"];
                 string width = json_result["data"][0]["width"];
                 string height = json_result["data"][0]["height"];
                 string description = json_result["data"][0]["description"];
                 string id_owner = json_result["data"][0]["id_owner"];
-                json_response = "{\"status\":\"success\", \"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+                json_response = "{\"status\":\"success\", \"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"type\": \"" + type + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"no terrain that you own with the specified id\"}";
@@ -383,11 +385,12 @@ void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_reque
                 {
                     string terrain_id = json_result["data"][rows_qtt]["id"];
                     string terrain = json_result["data"][rows_qtt]["name"];
+                    string type = json_result["data"][rows_qtt]["type"];
                     string width = json_result["data"][rows_qtt]["width"];
                     string height = json_result["data"][rows_qtt]["height"];
                     string description = json_result["data"][rows_qtt]["description"];
                     string id_owner = json_result["data"][rows_qtt]["id_owner"];
-                    json_response += "{\"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+                    json_response += "{\"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"type\": \"" + type + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
                     if (rows_qtt)
                         json_response += ",";
                 }
@@ -426,12 +429,13 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
                 	cout<<"hello, dear client\n";
                     string terrain_id = json_result["data"][rows_qtt]["id"];
                     string terrain = json_result["data"][rows_qtt]["name"];
+                    string type = json_result["data"][rows_qtt]["type"];
                     string width = json_result["data"][rows_qtt]["width"];
                     string height = json_result["data"][rows_qtt]["height"];
                     string description = json_result["data"][rows_qtt]["description"];
                     string id_owner = json_result["data"][rows_qtt]["id_owner"];
                 	cout<<"half way\n";
-                    json_response += "{\"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+                    json_response += "{\"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"type\": \"" + type + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
                     if (rows_qtt)
                         json_response += ",";
                 }
