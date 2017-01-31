@@ -32,13 +32,27 @@ private:
 
 	void fHandleReadContent(const boost::system::error_code &err);
 	
+
+	void fPostData(const std::string &path, const std::string &data);
+
+	void fGetData(const std::string &path);
+
+	void fPutData(const std::string &path, const std::string &data);
+
+	void fDeleteData(const std::string &path, const std::string &data);
+
 	public:
+
+		enum Methods {
+			_GET,
+			_POST,
+			_PUT,
+			_DELETE
+		};
 
 		HttpClient(boost::asio::io_service& io_service, const std::string &server, const std::string &port);
 		
-		void fPostData(const std::string &path, std::string &data);
-		
-		void fGetData(std::string &path);
-		
+		void fRequest(const Methods &method,const std::string &path, const std::string &data);
+
 		std::string fGetResponse();
 };

@@ -168,7 +168,7 @@ void HttpClient:: fHandleReadContent(const boost::system::error_code& err)
 /*
     Method for getting data from server.
 */
-void HttpClient::fGetData(std::string &path)
+void HttpClient::fGetData(const std::string &path)
 {
 	// Form the request.
 	std::ostream request_stream(&_request);
@@ -181,7 +181,7 @@ void HttpClient::fGetData(std::string &path)
 /*
 	Method for postring data to server.
 */
-void HttpClient::fPostData(const std::string &path, std::string &data)
+void HttpClient::fPostData(const std::string &path, const std::string &data)
 {
 	//Form the request
 	std::ostream request_stream(&_request);
@@ -193,6 +193,58 @@ void HttpClient::fPostData(const std::string &path, std::string &data)
 	request_stream << "Content-Length: " << data.length() << " \r\n";
 	request_stream << "Connection: close\r\n\r\n";
 
+}
+
+void HttpClient::fPutData(const std::string &path, const std::string &data)
+{
+	std::ostream request_stream(&_request);
+	request_stream << "PUT " << path << " HTTP/1.1\r\n";	                // Request type and path
+	request_stream << "Host: " << _server << " \r\n";		                // Host "localhost" for example
+	request_stream << "Accept: */*\r\n";
+	request_stream << "Content-Type: " << "application/json" << " \r\n";
+	request_stream << "Content: " << data << " \r\n";                          // JSON data
+	request_stream << "Content-Length: " << data.length() << " \r\n";
+	request_stream << "Connection: close\r\n\r\n";
+
+}
+
+void HttpClient::fDeleteData(const std::string &path, const std::string &data)
+{
+	std::ostream request_stream(&_request);
+	request_stream << "DELETE " << path << " HTTP/1.1\r\n";	                // Request type and path
+	request_stream << "Host: " << _server << " \r\n";		                // Host "localhost" for example
+	request_stream << "Accept: */*\r\n";
+	request_stream << "Content-Type: " << "application/json" << " \r\n";
+	request_stream << "Content: " << data << " \r\n";                          // JSON data
+	request_stream << "Content-Length: " << data.length() << " \r\n";
+	request_stream << "Connection: close\r\n\r\n";
+
+}
+
+void HttpClient::fRequest(const Methods &method,const std::string &path, const std::string &data=" ")
+{
+	switch (method)
+	{
+	case HttpClient::Methods::_GET:
+	{
+		fGetData(path);
+	}
+	break;
+	case HttpClient::Methods::_POST:
+	{
+		fPostData(path, data);
+	}
+	break;
+	case HttpClient::Methods::_PUT:
+	{
+		fPutData(path,data);
+	}
+	break;
+	case HttpClient::Methods::_DELETE:
+	{
+		fDeleteData(path, data);
+	}
+	}
 }
 
 /*
