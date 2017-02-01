@@ -18,7 +18,6 @@ private:
 	char fGetInput();
 	void fDisplayMainMenu();
 	void fDisplayDmMenu(std::string &host, std::string &port,const std::string &user_session);
-	void fDisplayPlayerMenu(const std::string &user_session);
+	void fDisplayPlayerMenu(std::string &host, std::string &port,const std::string &user_session);
 	void fSwitchMode(std::string &host, std::string &port, const std::string &user_session);
-	//void SendRequest(std::string &host, std::string &port,const std::string &url, std::string &response, std::string &data);
 };

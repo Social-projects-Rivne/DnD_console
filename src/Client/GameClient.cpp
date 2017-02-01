@@ -7,8 +7,7 @@
 
 GameClient::GameClient()
 {
-	//_http_client = new HttpClient(io_service, "localhost", "27022"); //create http-client with options: host="localhost", port="33000"
-
+	
 }
 char GameClient::fGetInput()
 {
@@ -17,13 +16,13 @@ char GameClient::fGetInput()
 	return choice;
 }
 
-void SendRequest(std::string &host, std::string &port,const std::string &url, std::string &response, std::string &data)
+void SendRequest(const HttpClient::Methods &method, std::string &host, std::string &port,const std::string &url, std::string &response, std::string &data)
 {
 	boost::asio::io_service *io_service = new boost::asio::io_service;
 
 	HttpClient *http_client = new HttpClient(*io_service, host, port);
 	
-	http_client->fPostData(url,data);
+	http_client->fRequest(method, url, data);
 	io_service->run();
 	response = http_client->fGetResponse();
 	delete http_client;
@@ -35,18 +34,18 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 {
 	int choice = 0;
 
-	std::cout << "********** DM Mode **********" << std::endl;
-	std::cout << "1. Create NPC" << std::endl;
-	std::cout << "2. Create Terrain" << std::endl;
-	std::cout << "3. Full list of terrains" << std::endl;
-	std::cout << "4. Show my terrains" << std::endl;
-	std::cout << "5. Load terrain by id" << std::endl;
-	std::cout << "6. Back to previous  menu" << std::endl;
-	std::cout << "Enter choice: ";  // user enter option 
-
+	
 
 	do
 	{
+		std::cout << "********** DM Mode **********" << std::endl;
+		std::cout << "1. Create NPC" << std::endl;
+		std::cout << "2. Create Terrain" << std::endl;
+		std::cout << "3. Full list of terrains" << std::endl;
+		std::cout << "4. Show my terrains" << std::endl;
+		std::cout << "5. Load terrain by id" << std::endl;
+		std::cout << "6. Back to previous  menu" << std::endl;
+		std::cout << "Enter choice: ";  // user enter option 
 
 		choice = fGetInput()-48;
 
@@ -57,7 +56,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 
 			std::string request = UserActions::fCreateNpc(user_session).dump();
 			std::string response;
-			SendRequest(host, port, "/api/addnpc", response, request);
+			SendRequest(HttpClient::_POST,host, port, "/api/addnpc", response, request);
 			std::cout << "Response: " << response << std::endl;
 
             //_http_client->fPostData("/api/addnpc", request);
@@ -68,7 +67,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 
 			std::string request = UserActions::fCreateTerrain(user_session).dump();
 			std::string response;
-			SendRequest(host, port, "/api/addterrain", response, request);
+			SendRequest(HttpClient::_POST,host, port, "/api/addterrain", response, request);
 			std::cout << "Response: " << response << std::endl;
 
 			//std::string request = UserActions::fCreateTerrain(user_session).dump();
@@ -81,7 +80,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 
 			std::string request = UserActions::fShowFullListOfTerrains(_game_session).dump();
 			std::string response;
-			SendRequest(host, port, "/api/loaddefinedterrains", response, request);
+			SendRequest(HttpClient::_POST,host, port, "/api/loaddefinedterrains", response, request);
 			std::cout << "Response: " << response << std::endl;
 
 			//std::string request = UserActions::fShowFullListOfTerrains().dump();
@@ -93,7 +92,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 		{
 			auto request = UserActions::fLoadMyTerrains(_game_session).dump();
 			std::string response;
-			SendRequest(host, port, "/api/loadmyterrainslist", response, request);
+			SendRequest(HttpClient::_POST,host, port, "/api/loadmyterrainslist", response, request);
 			std::cout << "Response: " << response << std::endl;
 
 		}
@@ -102,7 +101,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 		{
 			auto request = UserActions::fLoadTerrain(_game_session).dump();
 			std::string response;
-			SendRequest(host, port, "/api/loadterrain", response, request);
+			SendRequest(HttpClient::_POST,host, port, "/api/loadterrain", response, request);
 			std::cout << "Respone: " << response << std::endl;
 		}
 		break;
@@ -116,23 +115,63 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 
 }
 
-void GameClient::fDisplayPlayerMenu(const std::string &user_session)
+void GameClient::fDisplayPlayerMenu(std::string &host, std::string &port,const std::string &user_session)
 {
+	int choice = 0;
+	
+	do
+	{
+		std::cout << "********** Player Mode **********" << std::endl;
+		std::cout << "1. Create character" << std::endl;
+		std::cout << "2. Load character by name" << std::endl;
+		std::cout << "3. Full list of my characters" << std::endl;
+		
+		std::cout << "Enter choice:" << std::endl;
 
+		choice= fGetInput() - 48;
+		switch (choice)
+		{
+		case 1:
+		{
+			std::string request = UserActions::fCreateCharacter(user_session).dump();
+			std::string response;
+			SendRequest(HttpClient::_POST, host, port, "/api/addcharacter", response, request);
+			std::cout << "Response: " << response << std::endl;
+		}
+		break;
+		case 2:
+		{
+			std::string request = UserActions::fLoadCharacterByName(user_session).dump();
+			std::string response;
+			SendRequest(HttpClient::_POST, host, port, "/api/loaddefinedcharacter", response, request);
+			std::cout << "Response: " << response << std::endl;
+
+		}
+		break;
+		case 3:
+		{
+			auto request = UserActions::fLoadMyCharacters(_game_session).dump();
+			std::string response;
+			SendRequest(HttpClient::_POST, host, port, "/api/loadmycharacterslist", response, request);
+			std::cout << "Response: " << response << std::endl;
+		}
+		break;
+		}
+	} while (choice != 4);
 }
 
 void GameClient::fSwitchMode(std::string &host,std::string &port, const std::string &user_session)
 {
 	int mode = 0;
-	std::cout << "********** Game Modes **********" << std::endl;
-	std::cout << "1. Player Mode" << std::endl;
-	std::cout << "2. DM Mode" << std::endl;
-	std::cout << "3. Back to main menu" << std::endl;
-
-	std::cout << "Choose mode: ";
 
 	do
 	{
+		std::cout << "********** Game Modes **********" << std::endl;
+		std::cout << "1. Player Mode" << std::endl;
+		std::cout << "2. DM Mode" << std::endl;
+		std::cout << "3. Back to main menu" << std::endl;
+
+		std::cout << "Choose mode: ";
 
 		mode = fGetInput()-48;
 
@@ -140,7 +179,7 @@ void GameClient::fSwitchMode(std::string &host,std::string &port, const std::str
 		{
 		case 1:
 		{
-			fDisplayPlayerMenu(user_session);
+			fDisplayPlayerMenu(host, port,user_session);
 		}
 		break;
 		case 2:
@@ -178,7 +217,7 @@ void GameClient::fMenu(std::string &host, std::string &port)
 		do
 		{
 
-			system("cls");
+//			system("cls");
 			fDisplayMainMenu();
 			choice = fGetInput()-48;
 
@@ -189,7 +228,7 @@ void GameClient::fMenu(std::string &host, std::string &port)
 
 				std::string request = UserActions::fRegistration().dump();
 				std::string response;
-				SendRequest(host,port, "/api/userregister", response,request);
+				SendRequest(HttpClient::_POST,host,port, "/api/userregister", response,request);
 				std::cout << "Response: " << response << std::endl;
 				system("cls");
 
@@ -202,7 +241,7 @@ void GameClient::fMenu(std::string &host, std::string &port)
 			{
 				std::string request = UserActions::fLogin().dump();
 				std::string response;
-				SendRequest(host, port, "/api/userlogin", response, request);
+				SendRequest(HttpClient::_POST,host, port, "/api/userlogin", response, request);
 				std::cout << "Response: " << response << std::endl;
 
 				//_http_client->fPostData("/api/userlogin", UserActions::fLogin().dump()); // send POST request for logining
@@ -233,9 +272,8 @@ void GameClient::fMenu(std::string &host, std::string &port)
 			break;
 			case 3:
 			{
-				std::string request = UserActions::fLogin().dump();
 				std::string response;
-				SendRequest(host, port, "/api/userlogin", response, _game_session);
+				SendRequest(HttpClient::_POST,host, port, "/api/userlogout", response, _game_session);
 				_game_session = UserActions::fLogout(_game_session);
 				std::cout << "Response: " << response << std::endl;
 
@@ -262,5 +300,5 @@ void GameClient::fMenu(std::string &host, std::string &port)
 
 GameClient::~GameClient()
 {
-	//delete _http_client;
+	
 }
