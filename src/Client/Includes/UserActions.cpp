@@ -149,22 +149,17 @@ json UserActions::fCreateTerrain(const std::string &session)
 
 	do
 	{
-		std::cout << "Enter terrain name:" << std::endl;
-		std::getline(std::cin, terrain_name);
+		cin.clear();
+		cin.ignore();
+		cout << "Input terrain name: ";
+		getline(cin, terrain_name);
 
-		std::cin.ignore();
-
-
-		if (!DataValidator::fValidate(terrain_name, DataValidator::SQL_INJECTION))
-		{
-			std::cout << "You have entered invalid data, this value is prohibited signs !!!" << std::endl;
-		}
+		if (!DataValidator::fValidate(terrain_name, DataValidator::SQL_INJECTION)) // name validation
+			cout << "You have entered invalid data, this value is prohibited signs !!!" << std::endl;
 		else
-		{
 			terrain.SetName(terrain_name);
-		}
+	} while (!DataValidator::fValidate(terrain_name, DataValidator::SQL_INJECTION));
 
-	} while (!DataValidator::fValidate(terrain_name, DataValidator::NAME));
 
 	do
 	{
@@ -173,7 +168,7 @@ json UserActions::fCreateTerrain(const std::string &session)
 
 		if (!DataValidator::fValidate(width, DataValidator::LENGTH))
 		{
-			std::cout << "You input value less then 4 or more the 32 !!!" << std::endl;
+			std::cout << "You input value less then 1 or more the 32 !!!" << std::endl;
 		}
 		else
 		{
@@ -189,7 +184,7 @@ json UserActions::fCreateTerrain(const std::string &session)
 
 		if (!DataValidator::fValidate(height, DataValidator::LENGTH))
 		{
-			std::cout << "You input value less then 4 or more the 32 !!!" << std::endl;
+			std::cout << "You input value less then 1 or more the 32 !!!" << std::endl;
 		}
 		else
 		{
@@ -296,6 +291,41 @@ json UserActions::fLoadTerrain(const std::string &session)
 /*
 	Method clear session string
 */
+
+json UserActions::fCreateCharacter(const std::string &session)
+{
+
+	Character character;
+
+	character.fSetOwner(session);
+	character.fAddCharacter();
+	return character.fToJson();
+}
+
+json UserActions::fLoadCharacterByName(const std::string &session)
+{
+	json request;
+	std::string character_name;
+
+	request["session_id"] = session;
+	do
+	{
+		std::cout << "Enter terrain name:" << std::endl;
+		std::getline(std::cin, character_name);
+		
+	} while (!DataValidator::fValidate(character_name, DataValidator::SQL_INJECTION));
+
+	request["character"] = character_name;
+
+	return request;
+}
+json UserActions::fLoadMyCharacters(const std::string &session)
+{
+	json request;
+	request["session_id"] = session;
+	return request;
+}
+
 std::string UserActions::fLogout(std::string &session)
 {
 	session.clear();

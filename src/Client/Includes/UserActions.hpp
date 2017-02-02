@@ -9,6 +9,7 @@
 #include "DataValidator.hpp"
 #include "NPC.hpp"
 #include "Terrain.hpp"
+#include "Character.hpp"
 
 using json = nlohmann::json;
 
@@ -22,10 +23,13 @@ public:
 	static json fLogin();
 	static json fRegistration();
 	static json fCreateNpc(const std::string &session); // method for NPC creation
-	static json fCreateTerrain(const std::string &session);
+	static json fCreateTerrain(const std::string &session); //method for Terrain creation
 	static json fShowFullListOfTerrains(const std::string &session);
 	static json fLoadMyTerrains(const std::string &session);  //load user terrains
 	static json fLoadTerrain(const std::string &session);     //load switched terrain
+	static json fCreateCharacter(const std::string &session); //method for character creation
+	static json fLoadCharacterByName(const std::string &session); //method for load user character
+	static json fLoadMyCharacters(const std::string &session); //method for load user characters
 	static std::string fLogout(std::string &session); //drop user session
 };
 #endif // !__USER_ACTIONS_HPP__

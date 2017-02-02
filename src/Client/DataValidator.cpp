@@ -90,6 +90,7 @@ bool DataValidator::fValidateAbilities(const std::string & abilities)
 	return sum <= 80 && sum >= 0;
 }
 
+
 bool DataValidator::fValidateLength(const std::string & length)
 {
 	int len;
@@ -102,7 +103,7 @@ bool DataValidator::fValidateLength(const std::string & length)
 		return false;
 	}
 
-	return len >= 4 && len < 32;
+	return len >= 1 && len < 32;
 }
 
 

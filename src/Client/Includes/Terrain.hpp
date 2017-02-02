@@ -1,5 +1,9 @@
 #pragma once
 
+
+#ifndef TERRAIN
+#define TERRAIN
+
 #include "json.hpp"
 #include <iostream>
 #include <string>
@@ -27,3 +31,4 @@ public:
 	void SetOwner(const std::string owner);
 	~Terrain();
 };
+#endif
