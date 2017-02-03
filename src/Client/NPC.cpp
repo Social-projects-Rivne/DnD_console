@@ -14,7 +14,7 @@ Npc::Npc()
 
 Npc::Npc(string &owner,
          string &name,
-         string &type_npc,
+         string &type,
          string &level,
          string &hitpoints,
          string &strength,
@@ -26,7 +26,7 @@ Npc::Npc(string &owner,
 {
     _owner = owner,
     _name = name;
-    _type_npc = type_npc;
+    _type = type;
     _level = level;
     _hitpoints = hitpoints;
     _strength = strength;
@@ -41,7 +41,7 @@ Npc::Npc(json &jsonData)
 {
     _owner = jsonData["session"];
     _name = jsonData["npc"];
-    _type_npc = jsonData["type"];
+    _type = jsonData["type"];
     _level = jsonData["level"];
     _hitpoints = jsonData["hitpoints"];
     _strength = jsonData["strength"];
@@ -56,7 +56,7 @@ Npc::Npc(const Npc &npc)
 {
     _owner = npc._owner;
     _name = npc._name;
-    _type_npc = npc._type_npc;
+    _type = npc._type;
     _hitpoints = npc._hitpoints;
     _level = npc._level;
     _strength = npc._strength;
@@ -74,7 +74,7 @@ Npc &Npc::operator = (const Npc &npc)
     
     _owner = npc._owner;
     _name = npc._name;
-    _type_npc = npc._type_npc;
+    _type = npc._type;
     _hitpoints = npc._hitpoints;
     _level = npc._level;
     _strength = npc._strength;
@@ -98,7 +98,7 @@ void Npc::fSetName(const string &name)
 
 void Npc::fSetType(const string &type)
 {
-    _type_npc = type;
+    _type = type;
 }
 
 void Npc::fSetLevel(const string &level)
@@ -148,7 +148,7 @@ string Npc::fGetName()
 
 string Npc::fGetType()
 {
-    return _type_npc;
+    return _type;
 }
 
 string Npc::fGetLevel()
@@ -194,21 +194,11 @@ string Npc::fGetCharisma()
 void Npc::fRandomizeAbilities() // fills the character abilities by rolling dices
 {
     _level = "1";
+    _hitpoints = "100";
     
     int sum;
     do
     {
-        sum = 0;
-        string hitpoints;
-        do
-        {
-            hitpoints = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
-            
-            if (DataValidator::fValidate(hitpoints, DataValidator::ABILITY))
-                _hitpoints = hitpoints;
-        } while (!DataValidator::fValidate(hitpoints, DataValidator::ABILITY));
-        sum += stoi(hitpoints);
-        
         string strength;
         do
         {
@@ -283,28 +273,24 @@ void Npc::fSetAbilities() // asks user for defining abilities points
             _level = level;
     } while (stoi(level) <= 0);
     
+    string hitpoints;
+    do
+    {
+        cout << "Input the hitpoints ammount: ";
+        getline(cin, hitpoints);
+        
+        if (stoi(hitpoints) > 0) // hitpoints validation
+            _hitpoints = hitpoints;
+    } while (stoi(hitpoints) <= 0);
+    
     int sum;
     do
     {
         sum = 0;
-        string hitpoints;
-        do
-        {
-            cout << "Input the ammount of hitpoints: ";
-            getline(cin, hitpoints);
-            
-            if (!DataValidator::fValidate(hitpoints, DataValidator::ABILITY))
-                cout << "This datum should be more than 0 and less than (or equal to) 20!" << endl;
-            else
-                _hitpoints = hitpoints;
-        } while (!DataValidator::fValidate(hitpoints, DataValidator::ABILITY));
-        sum += stoi(hitpoints);
-        
-        cout << MAX_ABILITIES_SUM - sum << " points left." << endl;
         string strength;
         do
         {
-            cout << "Input the strength-value: ";
+            cout << "Input the strength value: ";
             getline(cin, strength);
             
             if (!DataValidator::fValidate(strength, DataValidator::ABILITY))
@@ -318,7 +304,7 @@ void Npc::fSetAbilities() // asks user for defining abilities points
         string dexterity;
         do
         {
-            cout << "Input the dexterity-value: ";
+            cout << "Input the dexterity value: ";
             getline(cin, dexterity);
             
             if (!DataValidator::fValidate(dexterity, DataValidator::ABILITY))
@@ -332,7 +318,7 @@ void Npc::fSetAbilities() // asks user for defining abilities points
         string constitution;
         do
         {
-            cout << "Input the constitution-value: ";
+            cout << "Input the constitution value: ";
             getline(cin, constitution);
             
             if (!DataValidator::fValidate(constitution, DataValidator::ABILITY))
@@ -346,7 +332,7 @@ void Npc::fSetAbilities() // asks user for defining abilities points
         string intelligence;
         do
         {
-            cout << "Input the intelligence-value: ";
+            cout << "Input the intelligence value: ";
             getline(cin, intelligence);
             
             if (!DataValidator::fValidate(intelligence, DataValidator::ABILITY))
@@ -360,7 +346,7 @@ void Npc::fSetAbilities() // asks user for defining abilities points
         string wisdom;
         do
         {
-            cout << "Input the wisdom-value: ";
+            cout << "Input the wisdom value: ";
             getline(cin, wisdom);
             
             if (!DataValidator::fValidate(wisdom, DataValidator::ABILITY))
@@ -375,7 +361,7 @@ void Npc::fSetAbilities() // asks user for defining abilities points
         do
         {
             cout << "This ability is the last." << endl;
-            cout << "Input the charisma-value: ";
+            cout << "Input the charisma value: ";
             getline(cin, charisma);
             
             if (!DataValidator::fValidate(charisma, DataValidator::ABILITY))
@@ -386,7 +372,7 @@ void Npc::fSetAbilities() // asks user for defining abilities points
         sum += stoi(charisma);
         
         if (sum > MAX_ABILITIES_SUM)
-            cout << "The sum of all vability-values should be less than (or equal to) 80!\nTry again!" << endl;
+            cout << "The sum of all ability values should be less than (or equal to) 80!\nTry again!" << endl;
     } while (sum > MAX_ABILITIES_SUM);
 }
 
@@ -407,17 +393,17 @@ void Npc::fAddNpc() // creates NPC
             _name = name;
     } while (!DataValidator::fValidate(name, DataValidator::SQL_INJECTION));
     
-    string type_npc;
+    string type;
     do
     {
         cout << "Input the NPC's type: ";
-        getline(cin, type_npc);
+        getline(cin, type);
         
-        if (!DataValidator::fValidate(type_npc, DataValidator::SQL_INJECTION)) // type_NPC validation
+        if (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION)) // type validation
             cout << "This datum should consist of letters!" << endl;
         else
-            _type_npc = type_npc;
-    } while (!DataValidator::fValidate(type_npc, DataValidator::SQL_INJECTION));
+            _type = type;
+    } while (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION));
     
     int choice;
     cout << "Choose the way to fill the NPC's abilities:" << endl;
@@ -445,7 +431,7 @@ void Npc::fAddNpc() // creates NPC
 void Npc::fShowNpc()
 {
     cout << "Name: " << _name << endl;
-    cout << "Type: " << _type_npc << endl;
+    cout << "Type: " << _type << endl;
     cout << "Level: " << _level << endl;
     cout << "Hitpoints: " << _hitpoints << endl;
     cout << "Strength: " << _strength << endl;
@@ -461,7 +447,7 @@ json Npc::fToJson()
     json npc;
     npc["session_id"] = _owner;
     npc["npc"] = _name;
-    npc["type"] = _type_npc;
+    npc["type"] = _type;
     npc["level"] = _level;
     npc["hitpoints"] = _hitpoints;
     npc["strength"] = _strength;
