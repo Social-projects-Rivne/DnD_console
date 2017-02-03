@@ -41,10 +41,11 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 		std::cout << "********** DM Mode **********" << std::endl;
 		std::cout << "1. Create NPC" << std::endl;
 		std::cout << "2. Create Terrain" << std::endl;
-		std::cout << "3. Full list of terrains" << std::endl;
-		std::cout << "4. Show my terrains" << std::endl;
-		std::cout << "5. Load terrain by id" << std::endl;
-		std::cout << "6. Back to previous  menu" << std::endl;
+        std::cout << "3. Create Board" << std::endl;
+		std::cout << "4. Full list of terrains" << std::endl;
+		std::cout << "5. Show my terrains" << std::endl;
+		std::cout << "6. Load terrain by id" << std::endl;
+		std::cout << "7. Back to previous  menu" << std::endl;
 		std::cout << "Enter choice: ";  // user enter option 
 
 		choice = fGetInput()-48;
@@ -75,7 +76,15 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 
 		}
 		break;
-		case 3:
+        case 3:
+        {
+            std::string request = UserActions::fCreateBoard(user_session).dump();
+            std::string response;
+            SendRequest(HttpClient::_POST, host, port, "/api/addboard", response, request);
+            std::cout << "Response: " << response << std::endl;
+        }
+        break;
+		case 4:
 		{
 
 			std::string request = UserActions::fShowFullListOfTerrains(_game_session).dump();
@@ -88,7 +97,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 			//_http_client->fPostData("/api/loadterrain",request);
 		}
 		break;
-		case 4:
+		case 5:
 		{
 			auto request = UserActions::fLoadMyTerrains(_game_session).dump();
 			std::string response;
@@ -97,7 +106,7 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 
 		}
 		break;
-		case 5:
+		case 6:
 		{
 			auto request = UserActions::fLoadTerrain(_game_session).dump();
 			std::string response;
@@ -105,13 +114,13 @@ void GameClient::fDisplayDmMenu(std::string &host, std::string &port, const std:
 			std::cout << "Respone: " << response << std::endl;
 		}
 		break;
-		case 6:
+		case 7:
 			break;
 		default:
 			std::cout << "Wrong menu option !!!" << std::endl;
 			break;
 		}
-	} while (choice != 6);
+	} while (choice != 7);
 
 }
 

@@ -10,6 +10,7 @@
 #include "NPC.hpp"
 #include "Terrain.hpp"
 #include "Character.hpp"
+#include "Board.hpp"
 
 using json = nlohmann::json;
 
@@ -24,6 +25,7 @@ public:
 	static json fRegistration();
 	static json fCreateNpc(const std::string &session); // method for NPC creation
 	static json fCreateTerrain(const std::string &session); //method for Terrain creation
+    static json fCreateBoard(const std::string &session);
 	static json fShowFullListOfTerrains(const std::string &session);
 	static json fLoadMyTerrains(const std::string &session);  //load user terrains
 	static json fLoadTerrain(const std::string &session);     //load switched terrain

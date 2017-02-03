@@ -221,6 +221,47 @@ json UserActions::fCreateTerrain(const std::string &session)
 	return terrain.fTerrain_To_Json();
 }
 
+json UserActions::fCreateBoard(const std::string &session)
+{
+    std::string name;
+    std::string length;
+    std::string width;
+
+    std::cin.clear();
+    std::cin.ignore();
+
+    std::cout << "Enter board name:\n";
+    std::getline(std::cin, name);
+    while (!DataValidator::fValidate(name, DataValidator::SQL_INJECTION) || name.length() < 2)
+    {
+        std::cout << "Invalid board name. Enter board name:\n";
+        std::getline(std::cin, name);
+    }
+
+    std::cout << "Enter board length:\n";
+    std::getline(std::cin, length);
+    while (!DataValidator::fValidate(length, DataValidator::LENGTH))
+    {
+        std::cout << "Invalid length. Enter board length:\n";
+        std::getline(std::cin, length);
+    }
+
+    std::cout << "Enter board width:\n";
+    std::getline(std::cin, width);
+    while (!DataValidator::fValidate(width, DataValidator::LENGTH))
+    {
+        std::cout << "Invalid width. Enter board width:\n";
+        std::getline(std::cin, width);
+    }
+
+
+
+    Board board(name, length, width);
+    json json_board = board.fToJson();
+    json_board["session_id"] = session;
+    return json_board;
+}
+
 json UserActions::fShowFullListOfTerrains(const std::string &session)
 {
 	std::string type, count;
