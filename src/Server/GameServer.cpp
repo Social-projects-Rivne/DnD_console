@@ -22,6 +22,7 @@ void fUserLogIn(std::string &json_response, nlohmann::json &json_request);
 bool fRetrieveUserId(std::string &id_user, std::string &session_id);
 void fSaveTerrain(std::string &json_response, nlohmann::json &json_request);
 void fSaveNpc(std::string &json_response, nlohmann::json &json_request);
+void fSaveBoard(std::string &json_response, nlohmann::json &json_request);
 void fSendTerrain(std::string &json_response, nlohmann::json &json_request);
 void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_request);
@@ -111,6 +112,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                         fSendOwnTerrainsList(response, json_request);
                     else if (path.find("/api/addnpc") != string::npos)
                         fSaveNpc(response, json_request);
+                    else if (path.find("/api/addboard") != string::npos)
+                        fSaveBoard(response, json_request);
                     else
                     	response = "{\"status\": \"fail\",\"message\": \"requested API is not implemented\"}";
                 }
@@ -228,6 +231,43 @@ bool fRetrieveUserId(std::string &id_user, std::string &session_id)
 		}
     }
     return 0;
+}
+
+void fSaveBoard(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string user_id;
+    if (fRetrieveUserId(user_id, session_id))
+    {
+        cout << "USER(" << user_id << ") is logged in\n";
+        string name = json_request["name"];
+        string length = json_request["length"];
+        string width = json_request["width"];
+
+        if (DataValidator::fValidate(name,   DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(length, DataValidator::LENGTH) &&
+            DataValidator::fValidate(width,  DataValidator::LENGTH))
+        {
+            string query = "INSERT INTO Board (name, height, width) VALUES('" + name + "', '" + length + "', '" + width  + "');";
+            nlohmann::json json_result = data_base.fExecuteQuery(query);
+            cout << query << "\nRESULT:\n" << json_result << endl;
+            string query_result = json_result["result"];
+            if (query_result == "success")
+            {
+                query = "SELECT LAST_INSERT_ID() AS id FROM Board";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                string board_id = json_result["data"][0]["id"];
+                json_response = "{\"status\":\"success\", \"board_id\": \"" + board_id + "\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"board is not added, sql query execution failed\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
 }
 
 
