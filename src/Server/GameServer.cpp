@@ -103,7 +103,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
     else
     {
     	if (http_headers.find((string)"Content") == http_headers.end())
-    		cout<<"Unable to gain \"Content\" from http request."<<endl;
+            response = "{\"status\": \"fail\",\"message\": \"Unable to gain content from http request.\"}";
     	else
     	{
         	string request_data_content = http_headers[(string)"Content"];
@@ -146,6 +146,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
             }
     	}
     }
+    cout << "RESPONSE:\n" << response << endl;
     pHttp_server->fSetResponse(response.data(), response.length(), "JSON");
 }
 
