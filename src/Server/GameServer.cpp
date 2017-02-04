@@ -37,27 +37,43 @@ DataBase data_base;
 int main(int argc, char* argv[])
 {
     // read data from config.ini file
-    IniParser pIni_parser("config.ini");
-    auto params = pIni_parser.fGetParams();
+        cout << "(1/3) The following keys were parsed out from the configuration file:\n";
+        IniParser pIni_parser("config.ini");
+        auto params = pIni_parser.fGetParams();
+        for (auto & param: params)
+    	    cout << "\t" << param.first + ":" + param.second + "\n";
+        cout << "\n";
 
-    /*for (auto & param: params)
-    {
-    	cout << param.first + " " + param.second + "\n";
-    }*/
+    // check for DB connection
+        cout << "(2/3) ";
+        nlohmann::json json_result = data_base.fConnection(params["database.host"], params["database.username"], params["database.password"], params["database.name"]);
+        string db_connection_result = json_result["result"];
+        if (db_connection_result == "error")
+        {
+            string db_connection_message = json_result["message"];
+            cout << "Unable to connect to DB: " << db_connection_message << endl;
+            return -10;
+        }
+        cout << "DB connection is available\n\n";
 
-    // connect to database
-    nlohmann::json json_result = data_base.fConnection(params["database.host"], params["database.username"], params["database.password"], params["database.name"]);
-    cout << "data_base.fConnection returned:\n" << json_result << endl;
     // start HTTP server with correct termination
-    pHttp_server = new HttpServer(stoi(params["server.port"]), params["server.root"]);
-    // pHttp_server = new HttpServer(15000, "Root/");
+        cout << "(3/3) ";
+        pHttp_server = new HttpServer(stoi(params["server.port"]), params["server.root"]);
+        // pHttp_server = new HttpServer(15000, "Root/");
+        if (pHttp_server->state_error)
+        {
+            cout << "Unable to create HTTP server: " << pHttp_server->state_info << endl;
+            return -20;
+        }
+        pHttp_server->fGenerateResponse = &fParseRequest; // assign callback function
+        signal(SIGINT, fHandler); // listen for SIGINT (aka control-c), if it comes call function named fHandler
+        cout << "HTTP server is started:\n" << pHttp_server->state_info << endl;
+        pHttp_server->state_info = "";
 
-    pHttp_server->fGenerateResponse = &fParseRequest; // assign callback function
-    signal(SIGINT, fHandler); // listen for SIGINT (aka control-c), if it comes call function named fHandler
-    pHttp_server->fRun(); // server's loop waiting for user connections
+        pHttp_server->fRun(); // blocking function. Server's loop waits for user connections
 
-                          // clear memory and sclose socets (in destructors, etc)
-    delete pHttp_server;
+    // clear memory and close socets (via destructors, etc.)
+        delete pHttp_server;
 }
 
 
@@ -80,27 +96,24 @@ void fHandler(int signal)
 */
 void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers)
 {
+    cout << "\n\nAPI call:\n";
     string response = "";
     if (path.find("/api/")) // if it is not found or if it is not in the beginning
         response = "{\"error\": \"incorrect api call\"}";
     else
     {
     	if (http_headers.find((string)"Content") == http_headers.end())
-    		cout<<"Client must provide \"Content\" http header in his request."<<endl;
+    		cout<<"Unable to gain \"Content\" from http request."<<endl;
     	else
     	{
-        	string request_data_content = "";
-        	request_data_content = http_headers[(string)"Content"];
-        	cout<<request_data_content<<endl;
+        	string request_data_content = http_headers[(string)"Content"];
             if (!request_data_content.length())
                 response = "{\"error\": \"request content is empty\"}";
             else
             {
-                nlohmann::json json_request = json::parse(request_data_content.c_str());
-
                 try
                 {
-                    cout<<"json_request:"<<json_request<<endl;
+                    nlohmann::json json_request = json::parse(request_data_content.c_str());
                     if (path.find("/api/userlogin") != string::npos)
                         fUserLogIn(response, json_request);
                     else if (path.find("/api/userregister") != string::npos)
@@ -128,7 +141,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                 }
                 catch (const exception &)
                 {
-                    response = "{\"status\": \"fail\",\"message\": \"JSON keys are invalid\"}";
+                    response = "{\"status\": \"fail\",\"message\": \"JSON parse failed or JSON keys are invalid\"}";
                 }
             }
     	}
@@ -165,20 +178,17 @@ void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
 				if (query_result == "success")
 				{
 					rows = json_result["rows"];
-					cout << "rows:" << rows << "; stoi(rows):" << stoi(rows) << ";\n";
 					if (stoi(rows) > 0) // get current active session
 					{
-						cout << "case 1\n";
 						string session_id = json_result["data"][0]["id"];
 						json_response = "{\"status\":\"already logged in\", \"session_id\": \"" + session_id + "\"}";
 					}
 					else // create new session
 					{
-						cout << "case 2\n";
 						query = "INSERT INTO Sessions (id_user) VALUES (" + id_user + ");";
 						json_result = data_base.fExecuteQuery(query);
 						cout << query << "\nRESULT:\n" << json_result << endl;
-						query = "SELECT LAST_INSERT_ID() AS id FROM Sessions";
+						query = "SELECT LAST_INSERT_ID() AS id";
 						json_result = data_base.fExecuteQuery(query);
 						cout << query << "\nRESULT:\n" << json_result << endl;
 						string session_id = json_result["data"][0]["id"];
@@ -257,7 +267,7 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
         string height = json_request["height"];
         string description = json_request["description"];
 
-        if (DataValidator::fValidate(name,        DataValidator::NAME) &&
+        if (DataValidator::fValidate(name,        DataValidator::SQL_INJECTION) &&
         	DataValidator::fValidate(type,        DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(width,       DataValidator::LENGTH) &&
 			DataValidator::fValidate(height,      DataValidator::LENGTH) &&
@@ -270,7 +280,7 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
 
 			if (query_result == "success")
 			{
-				query = "SELECT LAST_INSERT_ID() AS id FROM Terrain";
+				query = "SELECT LAST_INSERT_ID() AS id";
 				json_result = data_base.fExecuteQuery(query);
 				cout << query << "\nRESULT:\n" << json_result << endl;
 				string terrain_id = json_result["data"][0]["id"];
@@ -304,7 +314,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
         string wisdom       = json_request["wisdom"];
         string charisma     = json_request["charisma"];
 
-        if (DataValidator::fValidate(name,         DataValidator::NAME) &&
+        if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
     		DataValidator::fValidate(type,         DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
@@ -322,7 +332,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
 
 			if (query_result == "success")
 			{
-				query = "SELECT LAST_INSERT_ID() AS id FROM NPCs";
+				query = "SELECT LAST_INSERT_ID() AS id";
 				json_result = data_base.fExecuteQuery(query);
 				cout << query << "\nRESULT:\n" << json_result << endl;
 				string npc_id = json_result["data"][0]["id"];
@@ -438,7 +448,6 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
                 json_response = "{\"status\":\"success\", \"terrains_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                	cout<<"hello, dear client\n";
                     string terrain_id = json_result["data"][rows_qtt]["id"];
                     string terrain = json_result["data"][rows_qtt]["name"];
                     string type = json_result["data"][rows_qtt]["type"];
@@ -446,7 +455,6 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
                     string height = json_result["data"][rows_qtt]["height"];
                     string description = json_result["data"][rows_qtt]["description"];
                     string id_owner = json_result["data"][rows_qtt]["id_owner"];
-                	cout<<"half way\n";
                     json_response += "{\"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"type\": \"" + type + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
                     if (rows_qtt)
                         json_response += ",";
