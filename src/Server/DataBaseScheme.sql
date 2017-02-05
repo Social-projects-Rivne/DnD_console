@@ -78,3 +78,27 @@ CREATE TABLE Sessions (
     PRIMARY KEY (id),
     FOREIGN KEY (id_user) REFERENCES Users (id)
     );
+
+CREATE TABLE Boards (
+    id INT NOT NULL AUTO_INCREMENT,
+    width TINYINT UNSIGNED NOT NULL,
+    height TINYINT UNSIGNED NOT NULL,
+    description TEXT NOT NULL,
+    id_owner INT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (id_owner) REFERENCES Users (id)
+    );
+
+CREATE TABLE BT_Map (
+    id_board INT NOT NULL,
+    id_terrain INT NOT NULL,
+    FOREIGN KEY (id_board) REFERENCES Boards (id),
+    FOREIGN KEY (id_terrain) REFERENCES Terrain (id)
+    );
+
+CREATE TABLE BN_Map (
+    id_board INT NOT NULL,
+    id_npc INT NOT NULL,
+    FOREIGN KEY (id_board) REFERENCES Boards (id),
+    FOREIGN KEY (id_npc) REFERENCES NPCs (id)
+    );
