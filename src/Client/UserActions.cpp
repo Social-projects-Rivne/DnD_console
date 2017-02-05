@@ -202,7 +202,7 @@ json UserActions::fEditNpc(json &json_npc)
         DEXTERITY = 5,
         CONSTITUTION = 6,
         INTELLIGENCE = 7,
-        WISDOM = 7,
+        WISDOM = 8,
         CHARISMA = 9
     };
     

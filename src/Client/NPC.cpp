@@ -196,7 +196,7 @@ void Npc::fRandomizeAbilities() // fills the character abilities by rolling dice
     _level = "1";
     _hitpoints = "100";
     
-    int sum;
+    int sum=0;
     do
     {
         string strength;
