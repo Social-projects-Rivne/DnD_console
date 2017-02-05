@@ -120,7 +120,7 @@ void GameClient::fSwitchMode(std::string &host,std::string &port, const std::str
 		std::cout << "********** Game Modes **********" << std::endl;
 		std::cout << "1. Player Mode" << std::endl;
 		std::cout << "2. DM Mode" << std::endl;
-		std::cout << "3. Back to main menu" << std::endl;
+		std::cout << "0. Back to main menu" << std::endl;
 
 		std::cout << "Choose mode: ";
 
@@ -293,7 +293,6 @@ void GameClient::fDisplayTerrainMenu(std::string &host, std::string &port, const
 		}
 	} while (choice != 0);
 }
-
 
 void GameClient::fMenu(std::string &host, std::string &port)
 {
