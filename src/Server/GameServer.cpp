@@ -283,7 +283,7 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
 			DataValidator::fValidate(height,      DataValidator::LENGTH) &&
 			DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
         {
-			string query = "INSERT INTO Terrain (name, type, width, height, description, id_owner) VALUES ('" + name + "', " + type + ", " + width + ", " + height + ", '" + description + "', " + id_user + ");";
+			string query = "INSERT INTO Terrain (name, type, width, height, description, id_owner) VALUES ('" + name + "', '" + type + "', " + width + ", " + height + ", '" + description + "', " + id_user + ");";
 			nlohmann::json json_result = data_base.fExecuteQuery(query);
 			cout << query << "\nRESULT:\n" << json_result << endl;
 			string query_result = json_result["result"];
