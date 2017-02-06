@@ -41,7 +41,7 @@ HttpServer::HttpServer(int server_port, string &path_to_root)
 
 
 
-    #ifdef _WIN32
+    /*#ifdef _WIN32
         unsigned long root_path_length = 0;
         char  buffer[4096]; buffer[0] = 0; // set null terminating character in case of pull path retrieving fail
         char** lppPart={nullptr};
@@ -49,7 +49,7 @@ HttpServer::HttpServer(int server_port, string &path_to_root)
         _root = buffer;
     #else
         _root = realpath(_root.data(), nullptr); // full path to server's root on UNIX
-    #endif
+    #endif*/
 
     if (!_root.length()) // endusre path to server's root is specified
     {
@@ -81,7 +81,7 @@ HttpServer::HttpServer(int server_port, string &path_to_root)
         }
     #endif
 
-    state_info += "Using "+_root+" for server's root\n";
+    state_info += "Using \""+_root+"\" folder as server's root\n";
 
     #ifdef _WIN32
         WSADATA wsaData;
@@ -181,11 +181,12 @@ HttpServer::~HttpServer(void)
 /*
 * Main server's loop, that waits and serves client connection.
 */
-void HttpServer::fRun(void)
+void HttpServer::fRun(int display_additional_info)
 {
     while (!state_error)
     {
-        cout<<state_info<<endl;
+        if (display_additional_info)
+            cout<<state_info<<endl;
         fReset(); // reset server's state
         if (fConnected()) // wait until client is connected
         {
@@ -195,123 +196,42 @@ void HttpServer::fRun(void)
                 state_info += "CLIENT REQUEST FAILED. Error code:"+to_string(request_size)+"\n";
                 continue;
             }
+            state_info += "RECEIVED RAW DATA(" + to_string(request_size) + ")\n" + _request + "\n\n";
 
-            int newline_pos = _request.find("\r\n");
-            if (newline_pos == -1)
+            /*state_info += "REQUEST LINES:\n";
+            for (auto it = _request_headers.begin(); it != _request_headers.end(); ++it)
+                state_info += "\t"+(*it).first + ":" + (*it).second + "\n";
+            state_info += "\n";*/
+
+            /*string request_data_content = "";
+            request_data_content = _request_headers[(string)"Content"];
+            if (request_data_content.length())
             {
-                fError(400); // Bad Request
-                continue;
-            }
-            if (_request.length() > LIMIT_REQUEST_LINE)
-            {
-                fError(414); // Request-URI Too Long
-                continue;
-            }
-
-            _request_line = _request.substr(0, newline_pos); // extract request's request-line header // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
-
-            // validate request-header
-            int sp_loc = _request_line.find(' ');
-            int nsp_loc = _request_line.find(' ', sp_loc+1);
-            int qm_loc = _request_line.find('?', nsp_loc+1);
-            int version_loc = _request_line.find("HTTP/1.1");
-
-            string request_method;
-            string request_uri;
-            string requested_path;
-            string requested_file_extension;
-            string request_query;
-            string request_version = "HTTP/1.1";
-
-            if (version_loc == -1)
-            {
-                fError(505); // HTTP Version Not Supported
-                continue;
-            }
-
-            request_method = _request_line.substr(0, sp_loc);
-            if (request_method.compare("GET") && request_method.compare("POST") && request_method.compare("PUT") && request_method.compare("DELETE"))
-            {
-                fError(405); // Method Not Allowed
-                continue;
-            }
-
-            request_uri = _request_line.substr(sp_loc+1, nsp_loc-sp_loc-1);
-            if (!request_uri.length())
-            {
-                fError(400); // Bad Request
-                continue;
-            }
-
-            if (qm_loc > -1)
-            {
-                requested_path = request_uri.substr(0, qm_loc);
-                request_query = request_uri.substr(qm_loc, nsp_loc);
-            }
-            else
-                requested_path = request_uri.substr(0, nsp_loc);
-
-
-            requested_file_extension = requested_path.substr(requested_path.find('.') + 1);
-            _response_body_content_type = fLookup(requested_file_extension);
-            /*if (!response_body_content_type.length())
-            {
-                fError(501); // Not Implemented
-                continue;
+                state_info += "RECEIVED DATA ("+to_string(request_data_content.length())+"bytes):\n----------\n";
+                state_info += request_data_content + "\n----------\n";
             }*/
 
-
-
-            state_info += "REQUEST METHOD: "+request_method+"\n";
-            state_info += "REQUEST URI: "+request_uri+"\n";
-            state_info += "REQUESTED PATH: "+requested_path+"\n";
-            state_info += "REQUEST QUERY: "+request_query+"\n";
-            state_info += "REQUEST VERSION: "+request_version+"\n";
-            state_info += "REQUESTED FILE EXTENSION: "+requested_file_extension+"\n";
-            state_info += "REQUESTED FILE MIME TYPE: "+_response_body_content_type+"\n";
-            state_info += "REQUEST VERSION: "+request_version+"\n";
-
-            newline_pos += 2;
-            int i = newline_pos;
-            while (i < (int)_request.length()-2)
-            {
-                i = _request.find("\r\n", newline_pos);
-                string request_header = _request.substr(newline_pos, i-newline_pos);
-                int dp_pos = request_header.find(':');
-                if (dp_pos < 1)
-                    state_info += "incorrect request header was met: \""+request_header+"\"\n";
-                else
-                    _request_headers.insert ( pair<std::string, std::string>(fTrimString(request_header.substr(0, dp_pos)), fTrimString(request_header.substr(dp_pos+1))) );
-                newline_pos = i+2;
-            }
-            state_info += "REQUEST LINES:\n";
-            for (auto it = _request_headers.begin(); it != _request_headers.end(); ++it)
-            {
-                state_info += "\t"+(*it).first + ":" + (*it).second + "\n";
-            }
-            state_info += "\n";
-
-            i = 0;
+            int i = 0;
             int l = _path_exceptions.size();
             int exception_case = 0;
             while (i < l)
             {
-                if (requested_path.find(_path_exceptions[i++]) == 1)
+                if (_requested_path.find(_path_exceptions[i++]) == 1)
                 {
                     ++exception_case;
-                    fGenerateResponse(requested_path, _request_headers);
+                    fGenerateResponse(_requested_path, _request_headers);
                     break;
                 }
             }
             if (!exception_case)
             {
-                if (access((_root+requested_path).data(), F_OK) == -1 && requested_path.length()>1) // ensure path exists
+                if (access((_root+_requested_path).data(), F_OK) == -1 && _requested_path.length()>1) // ensure path exists
                 {
-                    state_info += "trying access to:\""+(_root+requested_path)+"\n";
+                    state_info += "trying access to:\""+(_root+_requested_path)+"\n";
                     fError(404); // Not Found
                     continue;
                 }
-                if (access((_root+requested_path).data(), R_OK) == -1) // ensure path is readable
+                if (access((_root+_requested_path).data(), R_OK) == -1) // ensure path is readable
                 {
                     fError(403); // Forbidden
                     continue;
@@ -322,7 +242,7 @@ void HttpServer::fRun(void)
                 #ifdef _WIN32
                     // define if it is file or directory
                 #else
-                    DIR* directory = opendir((_root+requested_path).data());
+                    DIR* directory = opendir((_root+_requested_path).data());
                     if(directory != nullptr)
                     {
                         closedir(directory);
@@ -341,7 +261,7 @@ void HttpServer::fRun(void)
                 }
 
 
-                _pFile = fopen((_root+requested_path).data(), "rb");
+                _pFile = fopen((_root+_requested_path).data(), "rb");
                 if (_pFile == nullptr)
                     state_info += "nothing to load\n";
                 else
@@ -360,6 +280,8 @@ void HttpServer::fRun(void)
             state_info += "HTTP/1.1 200 OK\n";
             //cout << " HTTP / 1.1 200 OK\n" << endl;
         }
+        else
+            state_info += "CONNECTION FAILED\n";
     }
 }
 
@@ -442,11 +364,7 @@ bool HttpServer::fConnected(void)
     socklen_t cli_len = sizeof(cli_addr);
     _cfd = accept(_sfd, (struct sockaddr*) &cli_addr, &cli_len);
     if (_cfd == -1)
-    {
-        state_info += "CONNECTION FAILED\n";
         return false;
-    }
-    state_info += "CONNECTION SUCCESSFUL\n";
     return true;
 }
 
@@ -525,6 +443,11 @@ ssize_t HttpServer::fParse(void)
 
     ssize_t request_length = 0;
     _request = "";
+    int newline_pos = 0;
+    int data_starts_at = string::npos;
+    int content_length = 0;
+
+
     while (true) // parse request
     {
         ssize_t bytes_read = recv(_cfd, request_portion_buffer, sizeof(char) * OCTETS, 0);
@@ -556,16 +479,108 @@ ssize_t HttpServer::fParse(void)
         }
 
         _request = full_request;
-        if (_request.find("\r\n\r\n") != string::npos) // search for CRLF CRLF
+        if (!newline_pos)
         {
-            _request = _request.substr(0,_request.length()-2); // trim to one CRLF
-            if (!_request.length())
+            newline_pos = _request.find("\r\n");
+
+            if (newline_pos <= 10)
             {
-                delete [] request_portion_buffer;
-                delete [] full_request;
-                return -7;
+                fError(400); // Bad Request
+                return -400;
             }
-            break;
+            if (newline_pos > LIMIT_REQUEST_LINE)
+            {
+                fError(414); // Request-URI Too Long
+                return -414;
+            }
+            _request_line = _request.substr(0, newline_pos); // extract request's request-line header // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
+
+            int sp_loc = _request_line.find(' ');
+            int nsp_loc = _request_line.find(' ', sp_loc + 1);
+            int qm_loc = _request_line.find('?', nsp_loc + 1);
+
+            _request_method = _request_line.substr(0, sp_loc);
+            if (_request_method != "GET" && _request_method != "POST")
+            {
+                fError(405); // Method Not Allowed
+                return -405;
+            }
+            if (_request_line.find("HTTP/1.1") == -1)
+            {
+                fError(505); // HTTP Version Not Supported
+                return -505;
+            }
+            _request_uri = _request_line.substr(sp_loc + 1, nsp_loc - sp_loc - 1);
+            if (!_request_uri.length())
+            {
+                fError(400); // Bad Request
+                return -400;
+            }
+
+            if (qm_loc > -1)
+            {
+                _requested_path = _request_uri.substr(0, qm_loc);
+                _request_query = _request_uri.substr(qm_loc, nsp_loc);
+            }
+            else
+                _requested_path = _request_uri.substr(0, nsp_loc);
+
+            _requested_file_extension = _requested_path.substr(_requested_path.find('.') + 1);
+            _response_body_content_type = fLookup(_requested_file_extension);
+            /*if (!_response_body_content_type.length())
+            {
+                fError(501); // Not Implemented
+                continue;
+            }*/
+            /*state_info += "REQUEST METHOD: " + _request_method + "\n";
+            state_info += "REQUEST URI: " + _request_uri + "\n";
+            state_info += "REQUESTED PATH: " + _requested_path + "\n";
+            state_info += "REQUEST QUERY: " + _request_query + "\n";
+            //state_info += "REQUEST VERSION: "+request_version+"\n";
+            state_info += "REQUESTED FILE EXTENSION: " + _requested_file_extension + "\n";
+            state_info += "REQUESTED FILE MIME TYPE: " + _response_body_content_type + "\n";*/
+        }
+        if (data_starts_at == string::npos)
+        {
+            data_starts_at = _request.find("\r\n\r\n");
+            if (data_starts_at != string::npos) // search for CRLF CRLF
+            {
+                newline_pos += 2;
+                int i = newline_pos;
+                while (i < (int)_request.length() - 2)
+                {
+                    i = _request.find("\r\n", newline_pos);
+                    string request_header = _request.substr(newline_pos, i - newline_pos);
+                    int dp_pos = request_header.find(':');
+                    if (dp_pos < 1)
+                        state_info += "incorrect request header was met: \"" + request_header + "\"\n";
+                    else
+                        _request_headers.insert(pair<std::string, std::string>(fTrimString(request_header.substr(0, dp_pos)), fTrimString(request_header.substr(dp_pos + 1))));
+                    newline_pos = i + 2;
+                    if (data_starts_at == i)
+                        break;
+                }
+                if (_request_method == "GET") // stop socket reading loop on request without body
+                    break;
+                else // define specified body size
+                {
+                    if (_request_headers.find((string)"Content-Length") == _request_headers.end())
+                    {
+                        fError(400); // Bad Request
+                        return -400;
+                    }
+                    content_length = stoi(_request_headers["Content-Length"]);
+                }
+
+            }
+        }
+        if (data_starts_at != string::npos)// continue reading request body from socket
+        {
+            if (request_length - (data_starts_at + 4) == content_length)
+            {
+                _request_headers.insert(pair<std::string, std::string>((string)"Content", _request.substr(data_starts_at + 4)));
+                break; // stop reading loop if all needed data is received
+            }
         }
 
     }

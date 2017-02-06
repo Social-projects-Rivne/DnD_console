@@ -26,6 +26,11 @@ private:
     int                                 _sfd;                        // file descriptor for sockets // socket file descriptor
     vector <string>                     _path_exceptions;            // e.g. request "/api/userregister" will not search for userregister file in Root/api/ directory, instead, the response will be filled by game server.
     string                              _request;                    // buffer for client request
+    string                              _request_method;               // buffer for first line of user request
+    string                              _request_uri;
+    string                              _requested_path;
+    string                              _requested_file_extension;
+    string                              _request_query;
     string                              _request_line;               // buffer for first line of user request
     std::map <std::string, std::string> _request_headers;
     byte*                               _response_body;              // buffer for response-body
@@ -45,7 +50,7 @@ private: /* see cpp file for the below functions descriptions*/
     string  fLookup(string extension);
     ssize_t fParse(void);
 public:
-    void    fRun(void);
+    void    fRun(int display_additional_info = 0);
     bool    fSetResponse(const char* body, const unsigned int length, const string &content_type);
     void    (*fGenerateResponse)(std::string&, std::map <std::string, std::string> &);    // pointer to user function that is called in case of path exception
     HttpServer(int server_port, string &path_to_root);
