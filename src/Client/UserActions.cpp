@@ -481,8 +481,6 @@ json UserActions::fCreateTerrain(const std::string &session)
 
 	do
 	{
-		cin.clear();
-		cin.ignore();
 		cout << "Input terrain type: ";
 		getline(cin, type);
 
