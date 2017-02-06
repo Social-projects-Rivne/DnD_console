@@ -202,7 +202,7 @@ json UserActions::fEditNpc(json &json_npc)
         DEXTERITY = 5,
         CONSTITUTION = 6,
         INTELLIGENCE = 7,
-        WISDOM = 7,
+        WISDOM = 8,
         CHARISMA = 9
     };
     
@@ -457,6 +457,7 @@ json UserActions::fDeleteNpc(const std::string &session)
 json UserActions::fCreateTerrain(const std::string &session)
 {
 	std::string terrain_name;
+	std::string type;
 	std::string width;
 	std::string height;
 	std::string description;
@@ -478,6 +479,16 @@ json UserActions::fCreateTerrain(const std::string &session)
 			terrain.SetName(terrain_name);
 	} while (!DataValidator::fValidate(terrain_name, DataValidator::SQL_INJECTION));
 
+	do
+	{
+		cout << "Input terrain type: ";
+		getline(cin, type);
+
+		if (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION)) // name validation
+			cout << "You have entered invalid data, this value is prohibited signs !!!" << std::endl;
+		else
+			terrain.SetType(type);
+	} while (!DataValidator::fValidate(type, DataValidator::SQL_INJECTION));
 
 	do
 	{

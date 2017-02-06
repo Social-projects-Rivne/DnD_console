@@ -16,8 +16,9 @@ public:
 	~GameClient();
 private:
 	char fGetInput();
-	void fDisplayMainMenu();
 	void fDisplayDmMenu(std::string &host, std::string &port,const std::string &user_session);
 	void fDisplayPlayerMenu(std::string &host, std::string &port,const std::string &user_session);
+	void fDisplayNPCMenu(std::string &host, std::string &port, const std::string &user_session);
+	void fDisplayTerrainMenu(std::string &host, std::string &port, const std::string &user_session);
 	void fSwitchMode(std::string &host, std::string &port, const std::string &user_session);
 };

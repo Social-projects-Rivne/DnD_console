@@ -189,10 +189,9 @@ void HttpClient::fPostData(const std::string &path, const std::string &data)
 	request_stream << "Host: " << _server << " \r\n";		                // Host "localhost" for example
 	request_stream << "Accept: */*\r\n";
 	request_stream << "Content-Type: " << "application/json" << " \r\n";    
-	request_stream << "Content: "<< data << " \r\n";                          // JSON data
 	request_stream << "Content-Length: " << data.length() << " \r\n";
 	request_stream << "Connection: close\r\n\r\n";
-
+	request_stream << data;                                                 // JSON data
 }
 
 void HttpClient::fPutData(const std::string &path, const std::string &data)
@@ -202,9 +201,10 @@ void HttpClient::fPutData(const std::string &path, const std::string &data)
 	request_stream << "Host: " << _server << " \r\n";		                // Host "localhost" for example
 	request_stream << "Accept: */*\r\n";
 	request_stream << "Content-Type: " << "application/json" << " \r\n";
-	request_stream << "Content: " << data << " \r\n";                          // JSON data
 	request_stream << "Content-Length: " << data.length() << " \r\n";
 	request_stream << "Connection: close\r\n\r\n";
+	request_stream << data;                                                 // JSON data
+
 
 }
 
@@ -215,9 +215,9 @@ void HttpClient::fDeleteData(const std::string &path, const std::string &data)
 	request_stream << "Host: " << _server << " \r\n";		                // Host "localhost" for example
 	request_stream << "Accept: */*\r\n";
 	request_stream << "Content-Type: " << "application/json" << " \r\n";
-	request_stream << "Content: " << data << " \r\n";                          // JSON data
 	request_stream << "Content-Length: " << data.length() << " \r\n";
 	request_stream << "Connection: close\r\n\r\n";
+	request_stream << data;                                                 // JSON data
 
 }
 

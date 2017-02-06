@@ -80,27 +80,19 @@ std::string Character::fSetAbilityMod(std::string ability)
 
 void Character::fSetOwner(const std::string &owner)
 {
-	this->_owner = _owner;
+	this->_owner = owner;
 }
 
 void Character::fRandomizeAbilities()
 {
 	this->_level = "1";
+	this->_hitpoints = "100";
 	this->_experience = "0";
 
 	int sum;
 	do
 	{
 		sum = 0;
-		std::string hitpoints;
-		do
-		{
-			hitpoints = std::to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
-
-			if (DataValidator::fValidate(hitpoints, DataValidator::ABILITY))
-				_hitpoints = hitpoints;
-		} while (!DataValidator::fValidate(hitpoints, DataValidator::ABILITY));
-		sum += stoi(hitpoints);
 
 		std::string strength;
 		do
@@ -259,6 +251,8 @@ json Character::fToJson()
 	character["character"] = _name;
 	character["race"] = _race;
 	character["class"] = _class;
+	character["experience"] = _experience;
+	character["level"] = _level;
 	character["hitpoints"] = _hitpoints;
 	character["strength"] = _strength;
 	character["str_mod"] = _strength_mod;

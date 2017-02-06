@@ -3,10 +3,11 @@
 
 Terrain::Terrain() {}
 
-Terrain::Terrain(const std::string &owner, const std::string &name, const std::string &width, const std::string &height, const std::string &description)
+Terrain::Terrain(const std::string &owner, const std::string &name, const std::string &type, const std::string &width, const std::string &height, const std::string &description)
 {
 	this->_owner = owner;
 	this->_name = name;
+	this->_type = type;
 	this->_height = height;
 	this->_width = width;
 	this->_description = description;
@@ -15,6 +16,7 @@ Terrain::Terrain(const std::string &owner, const std::string &name, const std::s
 void Terrain:: fShowTerrain()
 {
 	std::cout << "Name:" << _name << std::endl;
+	std::cout << "Type:" << _type << std::endl;
 	std::cout << "Width:" << _width << std::endl;
 	std::cout << "Height:" << _height << std::endl;
 	std::cout << "Description:" << _description << std::endl;
@@ -26,6 +28,11 @@ void Terrain::SetName(const std::string name)
 {
 	this->_name = name;
 }
+void Terrain::SetType(const std::string type)
+{
+	this->_type = type;
+}
+
 void Terrain::SetHeight(const std::string height)
 {
 	this->_height = height;
@@ -50,6 +57,7 @@ json Terrain:: fTerrain_To_Json()
 
 	resualt["session_id"] = _owner;
 	resualt["name"] = _name;
+	resualt["type"] = _type;
 	resualt["width"] = _width;
 	resualt["height"] = _height;
 	resualt["description"] = _description;
