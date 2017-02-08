@@ -12,6 +12,8 @@ json UserActions::fLogin()
 	std::string user_pass;		  // user pass input
 	SHA256      sha256;			  // sha256 obj
 
+    cin.ignore();
+    
 	std::cout << "Enter login: ";
 	std::getline(std::cin, user_login);                  // get user login
 	while (user_login.find(' ') != std::string::npos ||  // check for invalid symbols
@@ -50,6 +52,8 @@ json UserActions::fRegistration()
 	const std::regex  validate_email("(\\w+)(\\.|_)?(\\w*)@(\\w+)(\\.(\\w+))+"); // email regex pattern
 	SHA256            sha256;			  // sha256 obj
 
+    cin.ignore();
+    
 	std::cout << "Enter username: (Username field must not be empty)" << std::endl;;
 	std::getline(std::cin, user_username);                   // get user username
 	while (user_username.find(' ') != std::string::npos ||  // check for invalid symbols
@@ -151,6 +155,9 @@ json UserActions::fLoadMyNpcs(const std::string &session)
  */
 json UserActions::fLoadNpc(const std::string &session)
 {
+    cin.clear();
+    cin.ignore();
+    
     json request;
     request["session_id"] = session;
     
@@ -179,6 +186,8 @@ json UserActions::fLoadNpc(const std::string &session)
  */
 json UserActions::fEditNpc(json &json_npc)
 {
+    cin.clear();
+    cin.ignore();
     cout << "********** NPC **********" << endl;
     Npc npc(json_npc);
     npc.fShowNpc();
