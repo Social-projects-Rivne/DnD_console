@@ -33,7 +33,8 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
 void fSendOwnCharacterList(std::string &json_response, nlohmann::json &json_request);
 void fUserRegistration(std::string &json_response, nlohmann::json &json_request);
 void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_request);
-
+void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request);
+void fEditCharacter(std::string &json_response, nlohmann::json &json_request);
 string fSetAbilityMod(std::string ability);
 HttpServer* pHttp_server;
 DataBase data_base;
@@ -146,8 +147,12 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
 						fSaveCharacter(response, json_request);
 					else if (path.find("/api/loadmycharacterslist") != string::npos)
 						fSendOwnCharacterList(response, json_request);
-                    else if (path.find("/api/loaddefinedcharacter") != string::npos)
-                        fSendDefinedCharacter(response, json_request)
+					else if (path.find("/api/loaddefinedcharacter") != string::npos)
+						fSendDefinedCharacter(response, json_request);
+					else if (path.find("/api/deletecharacter") != string::npos)
+						fDeleteCharacter(response, json_request);
+					else if (path.find("/api/editcharacter"))
+						fEditCharacter(response, json_request);
                     else
                     	response = "{\"status\": \"fail\",\"message\": \"requested API is not implemented\"}";
                 }
@@ -857,4 +862,89 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string character_id = json_request["character_id"];
+        string query = "DELETE FROM CHARACTERs WHERE id_user = '" + id_user + "' AND id = '" + character_id + "' LIMIT 1;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+            json_response = "{\"status\":\"success\", \"message\": \"your character with this id was deleted\"}";
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"character is not deleted, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
+{
+	string session_id = json_request["session_id"];
+	string id_user;
+	if (fRetrieveUserId(id_user, session_id))
+	{
+		string character_id = json_request["character_id"];
+		string name = json_request["character"];
+		string race = json_request["race"];
+		string _class = json_request["class"];
+		string experience = json_request["experience"];
+		string hitpoints = json_request["hitpoints"];
+		string level = json_request["level"];
+		string strength = json_request["strength"];
+		string strength_mod = fSetAbilityMod(strength);
+		string dexterity = json_request["dexterity"];
+		string dexterity_mod = fSetAbilityMod(dexterity);
+		string constitution = json_request["constitution"];
+		string constitution_mod = fSetAbilityMod(constitution);
+		string intelligence = json_request["intelligence"];
+		string intelligence_mod = fSetAbilityMod(intelligence);
+		string charisma = json_request["charisma"];
+		string charisma_mod = fSetAbilityMod(charisma);
+		string wisdom = json_request["wisdom"];
+		string wisdom_mod = fSetAbilityMod(wisdom);
+
+		if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(race, DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(_class, DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(hitpoints, DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(level, DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(strength, DataValidator::ABILITY) &&
+			DataValidator::fValidate(dexterity, DataValidator::ABILITY) &&
+			DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
+			DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
+			DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
+			DataValidator::fValidate(charisma, DataValidator::ABILITY))
+		{
+			string query = "UPDATE CHARACTERs SET name = '" + name + "', race = '" + race + "',  class = '" +_class +"', experience = '" + experience+"', hitpoints = '" + hitpoints + "', level = '" + level + "', WHERE id_owner = '" + id_user + "' AND id = '" + character_id + "';";
+			nlohmann::json json_result = data_base.fExecuteQuery(query);
+			cout << query << "\nRESULT:\n" << json_result << endl;
+			string query_result = json_result["result"];
+
+			if (query_result == "success")
+			{
+				query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + character_id + "';";
+				json_result = data_base.fExecuteQuery(query);
+				cout << query << "\nRESULT:\n" << json_result << endl;
+				string npc_id = json_result["data"][0]["id"];
+				json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
+
+			}
+			else
+				json_response = "{\"status\":\"fail\", \"message\": \"npc was not updated, sql query execution failed\"}";
+		}
+		else
+			json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+	}
+	else
+		json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
 }
