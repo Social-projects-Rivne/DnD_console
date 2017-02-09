@@ -32,6 +32,8 @@ public:
 	static json fLoadMyTerrains(const std::string &session);  //load user terrains
 	static json fLoadTerrain(const std::string &session);     //load switched terrain
 	static json fCreateCharacter(const std::string &session); //method for character creation
+	static json fEditCharacter(json &json_character); //edit character by id
+	static json fDeleteCharacter(const std::string &session); //delete character by id
 	static json fLoadCharacterByName(const std::string &session); //method for load user character
     static json fLoadMyCharacters(const std::string &session); //method for load user characters
     static json fLoadMyBoards(const std::string &session); // loads full list of my boards
