@@ -149,26 +149,16 @@ void HttpClient::fGetResponse(std::string &response_)
 
 	if (response.size() > 0)
 	{
-		//std::istream is(&response);
-		std::string line;
-		//std::getline(is, line);
 		oss << &response;
-		response_ = oss.str();
-		//is>>line;
-		//std::cout << "line" << line << std::endl;
-		//std::cout << &response;
-		//std::cout <<"Test"<< _response_string << std::endl;
-		//std::cout << "response:" << response_ << std::endl;
-	
 	}
 	// Read until EOF, writing data to output as we go.
 	boost::system::error_code error;
 	while (boost::asio::read(_socket, response,
 		boost::asio::transfer_at_least(1), error))
-		std::cout << &response;
+		oss << &response;
 	if (error != boost::asio::error::eof)
 		throw boost::system::system_error(error);
-
+	response_ = oss.str();
 }
 
 void HttpClient::fConnect()
