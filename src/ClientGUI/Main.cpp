@@ -16,8 +16,6 @@ int main()
 
     std::cout << "\n\nHELLO\n";
     sf::Event event;
-    GameSfmlClient game(event);
-    int a = 2;
 
     BoardMenu board(10, 10, event, window);
 

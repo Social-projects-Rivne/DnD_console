@@ -204,6 +204,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
             {
                     if (_board_sprite.getGlobalBounds().contains(_event.mouseMove.x, _event.mouseMove.y))
                     {
+                        _npc_on_board[_selected_npc_on_board].elem_sprite.setColor(sf::Color(255, 255, 0));
                         for (auto& npc : _npc_on_board)
                         {
 
@@ -216,8 +217,6 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                                 _npc_on_board[_selected_npc_on_board].elem_sprite.setColor(sf::Color(255, 0, 0));
                                 std::cout << "Ins";
                             }
-                            else
-                                _npc_on_board[_selected_npc_on_board].elem_sprite.setColor(sf::Color(0, 255, 0, 183));
                         }
                     }
                     else
