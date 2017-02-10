@@ -1,5 +1,6 @@
 #pragma once
 #include "SFML\Graphics.hpp"
+#include "HandleBoardElems.hpp"
 #include <memory>
 
 class BoardMenu
@@ -23,24 +24,35 @@ private:
     std::vector<std::shared_ptr<sf::Texture>> _npc_textures;
     std::vector<std::shared_ptr<sf::Texture>> _terrain_textures;
 
-    //npc & terrain sprites
+    //npc & terrain sprites in menu
     std::vector<sf::Sprite>  _npc_sprites;
     std::vector<sf::Sprite>  _terrain_sprites;
+
+    // npc & terrains on board
+    int _npc_id_on_board;
+    int _selected_npc_on_board;
+    std::map<int, HandleBoardElems> _npc_on_board;
+
 
     //store elements on board
     std::vector<sf::Vector2i> _board_elems;
     std::vector<int>          _board_npc_pos;
 
+
+    int _drag_pos_x;
+    int _drag_pos_y;
     int _prev_pos_x;
     int _prev_pos_y;
     int mouseX;
     int mouseY;
     int _selected_npc;
-    bool mouseClicked;
     bool mouseInsideRect;
     bool dragging;
     sf::Vector2f mouseRectOffset;
 
+
+
+    void fCloneNpc(const sf::Sprite &sprite);
     bool fCheckCell(int x, int y);
     void fLoadNpcs(sf::RenderWindow &window);
 public:

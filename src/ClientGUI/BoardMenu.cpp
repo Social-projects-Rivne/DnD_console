@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+void BoardMenu::fCloneNpc(const sf::Sprite & sprite)
+{
+    _npc_on_board.insert({ _npc_id_on_board++, sprite });
+}
+
 bool BoardMenu::fCheckCell(int x, int y)
 {
     return false;
@@ -55,6 +60,7 @@ void BoardMenu::fLoadNpcs(sf::RenderWindow &window)
 
 BoardMenu::BoardMenu(const int &height,const int & width, const sf::Event & event, sf::RenderWindow &window)
 {
+    _npc_id_on_board = 0;
     this->_height = height;
     this->_width = width;
     this->_event = event;
@@ -66,11 +72,9 @@ BoardMenu::BoardMenu(const int &height,const int & width, const sf::Event & even
     _board_elems_sprite.setTexture(_board_elems_texture);
     _board_elems_sprite.setScale(0.7, 0.6);
 
-
-
     _cell_size = _board_sprite.getGlobalBounds().height/16.f;
 
-    _board_sprite.setTextureRect(sf::IntRect(0, 0, _height*_cell_size, _width*_cell_size));
+    _board_sprite.setTextureRect(sf::IntRect(0, 0, _width*_cell_size, _height*_cell_size));
 
 
     fLoadNpcs(window);
@@ -86,34 +90,32 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
 
         if (_event.type == sf::Event::MouseButtonPressed && _event.mouseButton.button == sf::Mouse::Left)
         {
-            mouseClicked = true;
-            int i = 0;
+            // handle dragging for npcs in menu
             for (auto& npc : _npc_sprites)
             {
                 if (npc.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
+                    _npc_on_board.insert({ _npc_id_on_board, npc });
                     dragging = true;
                     mouseRectOffset.x = _event.mouseButton.x - npc.getGlobalBounds().left - npc.getOrigin().x;
                     mouseRectOffset.y = _event.mouseButton.y - npc.getGlobalBounds().top - npc.getOrigin().y;
-                    _selected_npc = i;
-
-                    for (int it = 0; it < _board_npc_pos.size(); ++it)
-                    {
-                        if (_selected_npc == _board_npc_pos[it])
-                        {
-                            _board_npc_pos.erase(_board_npc_pos.begin() + it);
-                            _board_elems.erase(_board_elems.begin() + it);
-                        }
-                    }
-
-
-                    if (!_board_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
-                    {
-                        _prev_pos_x = npc.getPosition().x;
-                        _prev_pos_y = npc.getPosition().y;
-                    }
+                    _selected_npc_on_board = _npc_id_on_board;
+                    std::cout << _selected_npc_on_board << std::endl;
                 }
-                i++;
+            }
+
+            //handle dragging for npcs on board
+            for (auto& npc : _npc_on_board)
+            {
+                if (npc.second.elem_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
+                {
+
+                    _selected_npc_on_board = npc.first;
+                    std::cout << _selected_npc_on_board;
+                    dragging = true;
+                    mouseRectOffset.x = _event.mouseButton.x - npc.second.elem_sprite.getGlobalBounds().left - npc.second.elem_sprite.getOrigin().x;
+                    mouseRectOffset.y = _event.mouseButton.y - npc.second.elem_sprite.getGlobalBounds().top - npc.second.elem_sprite.getOrigin().y;
+                }
             }
         }
         
@@ -123,7 +125,9 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
         {
             if (dragging)
             {
-                _npc_sprites[_selected_npc].setColor(sf::Color(255, 255, 255));
+
+                _npc_on_board[_selected_npc_on_board].elem_sprite.setColor(sf::Color(255, 255, 255));
+
                 if (_board_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
                     int ssX = 0;
@@ -138,7 +142,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                         {
                             ssX = _cell_size*i;
                             posX = i + 1;
-                            std::cout << "Texture X pos - " << posX << std::endl;
+                            std::cout << "Texture X pos - " << ssX << std::endl;
                         }
                     }
 
@@ -148,46 +152,85 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                         {
                             ssY = _cell_size*i;
                             posY = i + 1;
-                            std::cout << "Texture Y pos - " << posY << std::endl;
+                            std::cout << "Texture Y pos - " << ssY << std::endl;
                         }
                     }
-                    _npc_sprites[_selected_npc].setPosition(ssX, ssY);
-                    _board_elems.push_back(sf::Vector2i(posX, posY));
-                    _board_npc_pos.push_back(_selected_npc);
+
+                    if (_npc_id_on_board <= _selected_npc_on_board) _npc_id_on_board++;
+
+                    for (auto& npc : _npc_on_board)
+                    {
+                        if (npc.first == _selected_npc_on_board)
+                        {
+                            _npc_on_board[_selected_npc_on_board].elem_sprite.setPosition(ssX, ssY);
+                            _npc_on_board[_selected_npc_on_board].position_on_board.x = posX;
+                            _npc_on_board[_selected_npc_on_board].position_on_board.y = posY;
+                            _npc_on_board[_selected_npc_on_board].position.x = ssX;
+                            _npc_on_board[_selected_npc_on_board].position.y = ssY;
+                            continue;
+                        }
+
+                        if (npc.second.position.x <= _event.mouseButton.x &&
+                            npc.second.position.x + _cell_size >= _event.mouseButton.x &&
+                            npc.second.position.y <= _event.mouseButton.y &&
+                            npc.second.position.y + _cell_size >= _event.mouseButton.y)
+                        {
+                            _npc_on_board.erase(_selected_npc_on_board);
+                            std::cout << "\nDel\n";
+                        }
+                        else
+                        {
+
+                        }
+                    }
+
                 }
                 else
                 {
-                    _npc_sprites[_selected_npc].setPosition(_prev_pos_x, _prev_pos_y);
+                    _npc_on_board.erase(_selected_npc_on_board);
                 }
 
             }
 
-            mouseClicked = false;
             dragging = false;
         }
 
         if (_event.type == sf::Event::MouseMoved)
         {
+            
             mouseX = _event.mouseMove.x;
             mouseY = _event.mouseMove.y;
             if (dragging)
             {
                     if (_board_sprite.getGlobalBounds().contains(_event.mouseMove.x, _event.mouseMove.y))
                     {
-                        _npc_sprites[_selected_npc].setColor(sf::Color(0, 255, 0, 183));
+                        for (auto& npc : _npc_on_board)
+                        {
+
+                            if (npc.second.position.x <= _event.mouseMove.x &&
+                                npc.second.position.x + _cell_size >= _event.mouseMove.x &&
+                                npc.second.position.y <= _event.mouseMove.y &&
+                                npc.second.position.y + _cell_size >= _event.mouseMove.y &&
+                                npc.first != _selected_npc_on_board)
+                            {
+                                _npc_on_board[_selected_npc_on_board].elem_sprite.setColor(sf::Color(255, 0, 0));
+                                std::cout << "Ins";
+                            }
+                            else
+                                _npc_on_board[_selected_npc_on_board].elem_sprite.setColor(sf::Color(0, 255, 0, 183));
+                        }
                     }
                     else
                     {
-                        _npc_sprites[_selected_npc].setColor(sf::Color(255, 0, 0, 183));
+                        _npc_on_board[_selected_npc_on_board].elem_sprite.setColor(sf::Color(255, 0, 0, 183));
                     }
-                
             }
 
         }
     }
     if (dragging)
     {
-        _npc_sprites[_selected_npc].setPosition(mouseX - mouseRectOffset.x, mouseY - mouseRectOffset.y);
+        _npc_on_board[_selected_npc_on_board].elem_sprite.setPosition(mouseX - mouseRectOffset.x, mouseY - mouseRectOffset.y);
     }
 }
 
@@ -204,6 +247,11 @@ void BoardMenu::fDraw(sf::RenderWindow & window)
     for (auto& npc : _npc_sprites)
     {
         window.draw(npc);
+    }
+
+    for (auto& npc : _npc_on_board)
+    {
+        window.draw(npc.second.elem_sprite);
     }
 
 }
