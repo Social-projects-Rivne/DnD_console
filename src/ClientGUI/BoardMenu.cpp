@@ -95,6 +95,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
             {
                 if (npc.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
+                    std::cout << "Insde";
                     _npc_on_board.insert({ _npc_id_on_board, npc });
                     dragging = true;
                     mouseRectOffset.x = _event.mouseButton.x - npc.getGlobalBounds().left - npc.getOrigin().x;
@@ -109,12 +110,11 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
             {
                 if (npc.second.elem_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
-
                     _selected_npc_on_board = npc.first;
-                    std::cout << _selected_npc_on_board;
                     dragging = true;
                     mouseRectOffset.x = _event.mouseButton.x - npc.second.elem_sprite.getGlobalBounds().left - npc.second.elem_sprite.getOrigin().x;
                     mouseRectOffset.y = _event.mouseButton.y - npc.second.elem_sprite.getGlobalBounds().top - npc.second.elem_sprite.getOrigin().y;
+                    break;
                 }
             }
         }
@@ -167,6 +167,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                             _npc_on_board[_selected_npc_on_board].position_on_board.y = posY;
                             _npc_on_board[_selected_npc_on_board].position.x = ssX;
                             _npc_on_board[_selected_npc_on_board].position.y = ssY;
+                            _npc_on_board[_selected_npc_on_board].is_on_board = true;
                             continue;
                         }
 
@@ -177,10 +178,6 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                         {
                             _npc_on_board.erase(_selected_npc_on_board);
                             std::cout << "\nDel\n";
-                        }
-                        else
-                        {
-
                         }
                     }
 
@@ -250,8 +247,12 @@ void BoardMenu::fDraw(sf::RenderWindow & window)
 
     for (auto& npc : _npc_on_board)
     {
+        if (npc.first == _selected_npc_on_board) continue;
         window.draw(npc.second.elem_sprite);
     }
+
+    if (_npc_on_board.size() > 0)
+        window.draw(_npc_on_board[_selected_npc_on_board].elem_sprite);
 
 }
 
