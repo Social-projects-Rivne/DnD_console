@@ -1,5 +1,8 @@
 #pragma once
 #include <TGUI/TGUI.hpp>
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 class BoardCreate
 {
@@ -14,7 +17,10 @@ class BoardCreate
     tgui::Button::Ptr  _submit_btn;
     tgui::Button::Ptr  _back_btn;
 
+    static void fSubmit(BoardCreate* obj);
+    json _board_json;
 public:
+
     bool display_window;
 
     BoardCreate(const sf::Event &event, sf::RenderWindow &window);
