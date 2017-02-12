@@ -1,66 +1,46 @@
 #pragma once
-#include "SFML\Graphics.hpp"
-#include "HandleBoardElems.hpp"
-#include <memory>
-
+#include <SFML/Graphics.hpp>
+#include "BoardEdit.hpp"
+#include "BoardCreate.hpp"
 class BoardMenu
 {
 private:
-    //sfml event
+    enum _selected_menu 
+    {
+        NONE,
+        CREATE_BOARD,
+        EDIT_BOARD,
+        BACK
+    };
+
     sf::Event _event;
-    //board size
-    int _height, _width;
-    float _cell_size;
 
-    //board ui
-    sf::Texture _board_elems_texture;
-    sf::Sprite  _board_elems_sprite;
+    //UI elems
+    sf::Texture _back_btn;
+    sf::Texture _board_edit_btn;
+    sf::Texture _create_board_btn;
 
-    //board texture & sprite
-    sf::Texture _board_texture;
-    sf::Sprite  _board_sprite;
+    sf::Sprite  _back_btn_spr;
+    sf::Sprite  _board_edit_btn_sprite;
+    sf::Sprite  _create_board_btn_sprite;
 
-    //npc & terrain textures
-    std::vector<std::shared_ptr<sf::Texture>> _npc_textures;
-    std::vector<std::shared_ptr<sf::Texture>> _terrain_textures;
+    //Buttons text
+    sf::Font font;
+    sf::Text _board_edit_txt;
+    sf::Text _back_btn_txt;
+    sf::Text _create_board_txt;
 
-    //npc & terrain sprites in menu
-    std::vector<sf::Sprite>  _npc_sprites;
-    std::vector<sf::Sprite>  _terrain_sprites;
+    //Avail menu options
+    BoardEdit*   edit_board;
+    BoardCreate* create_board;
 
-    // npc & terrains on board
-    int _npc_id_on_board;
-    int _selected_npc_on_board;
-    std::map<int, HandleBoardElems> _npc_on_board;
+    _selected_menu _menu_option;
 
-
-    //store elements on board
-    std::vector<sf::Vector2i> _board_elems;
-    std::vector<int>          _board_npc_pos;
-
-
-    int _drag_pos_x;
-    int _drag_pos_y;
-    int _prev_pos_x;
-    int _prev_pos_y;
-    int mouseX;
-    int mouseY;
-    int _selected_npc;
-    bool mouseInsideRect;
-    bool dragging;
-    sf::Vector2f mouseRectOffset;
-
-
-
-    void fCloneNpc(const sf::Sprite &sprite);
-    bool fCheckCell(int x, int y);
-    void fLoadNpcs(sf::RenderWindow &window);
+    void fLoadUiElements(sf::RenderWindow &window);
 public:
-    BoardMenu(const int &height, const int &width, const sf::Event &event, sf::RenderWindow &window);
+    BoardMenu(const sf::Event &event, sf::RenderWindow &window);
 
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);
-
-    ~BoardMenu();
 };
 

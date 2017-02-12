@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include "BoardMenu.hpp"
+#include "BoardEdit.hpp"
 
 int main()
 {
@@ -13,24 +14,26 @@ int main()
     mouse_sprite.setTexture(mouse_cursor);
     mouse_sprite.setOrigin(16, 16);
 
-
-    std::cout << "\n\nHELLO\n";
     sf::Event event;
 
-    BoardMenu board(10, 10, event, window);
+    BoardMenu menu(event, window);
 
+    BoardEdit board(10, 10, event, window);
 	while (window.isOpen())
 	{
         //game.fUpdate(window);
         //game.fDraw(window);
 
-        board.fUpdate(window);
+        menu.fUpdate(window);
 
-        window.clear();
+        //board.fUpdate(window);
+        //R: 39 G: 42 B: 61
+        window.clear(sf::Color(39,42,61));
 
         mouse_sprite.setPosition(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)));
 
-        board.fDraw(window);
+        //board.fDraw(window);
+        menu.fDraw(window);
 
         window.draw(mouse_sprite);
         window.display();
