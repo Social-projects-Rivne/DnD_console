@@ -17,7 +17,17 @@ class Modes
 	tgui::Button::Ptr _btn_playerMode;
 	tgui::Button::Ptr _btn_DM_Mode;
 	tgui::Button::Ptr _btn_back;
+	
+	void LoadUI()
+	{
 
+	}
+
+public:
+	Modes()
+	{
+
+	}
 };
 
 
@@ -29,6 +39,7 @@ class MeinMenu
 	tgui::Theme::Ptr theme;
 	tgui::Picture::Ptr _main;
 	tgui::Picture::Ptr _menu;
+	tgui::Picture::Ptr _logo;
 	tgui::Button::Ptr _btn_new_game;
 	tgui::Button::Ptr _btn_settings;
 	tgui::Button::Ptr _btn_exit;
@@ -47,7 +58,10 @@ class MeinMenu
 		_menu->setPosition(100, 180);
 		_menu->setSize(372, 582);
 		gui.add(_menu);
-
+		_logo = std::make_shared<tgui::Picture>("logo.png");
+		_logo->setPosition(100, 100);
+		_logo->setSize(372, 122);
+		gui.add(_logo);
 		_btn_new_game = theme->load("Button");
 		_btn_new_game->setSize(275, 50);
 		_btn_new_game->setPosition(145, 270);
