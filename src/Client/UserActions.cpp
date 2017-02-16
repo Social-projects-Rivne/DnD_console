@@ -669,7 +669,6 @@ json UserActions::fLoadMyCharacters(const std::string &session)
 	return request;
 }
 
-
 /*
  Method for loading the list of boards of mine
  */

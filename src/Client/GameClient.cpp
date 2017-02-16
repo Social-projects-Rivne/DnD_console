@@ -463,9 +463,8 @@ void GameClient::fDisplayBoardMenu(const std::string &user_session)
             {
                 auto request = UserActions::fLoadMyBoards(_game_session).dump();
                 std::string response;
-				_http_client->fSendRequest(HttpClient::_POST, "/api/loadmyboardslist", request);
-				_http_client->fGetResponse(response);
-				std::cout << response << std::endl;
+                _http_client->fSendRequest(HttpClient::_POST, "/api/loadmyboardslist", request);
+                _http_client->fGetResponse(response);std::cout << response << std::endl;
                 /*json response_json = json::parse(response.c_str());
                 
                 if (response_json["status"] == "success")
@@ -490,9 +489,9 @@ void GameClient::fDisplayBoardMenu(const std::string &user_session)
             {
                 auto request = UserActions::fLoadBoard(_game_session).dump();
                 std::string response;
-				_http_client->fSendRequest(HttpClient::_POST, "/api/loadboard", request);
-				_http_client->fGetResponse(response);
-				std::cout << response << std::endl;
+                _http_client->fSendRequest(HttpClient::_POST, "/api/loadboard", request);
+                _http_client->fGetResponse(response);
+                std::cout << response << std::endl;
                 /*json response_json = json::parse(response.c_str());
                 
                 if (response_json["status"] == "success")
