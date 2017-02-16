@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <TGUI/TGUI.hpp>
 #include "BoardEdit.hpp"
 #include "BoardCreate.hpp"
@@ -15,6 +16,8 @@ private:
         EDIT_BOARD,
         BACK
     };
+
+    sf::Thread http_thread;
 
     sf::Event _event;
     tgui::Gui _gui;
@@ -48,6 +51,7 @@ private:
     int _board_height;
     int _board_width;
     int _board_id;
+    bool updated;
     json _board_data;
 
     _selected_menu _menu_option;

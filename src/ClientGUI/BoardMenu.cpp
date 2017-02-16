@@ -1,16 +1,20 @@
 #include "BoardMenu.hpp"
 #include "BoardEdit.hpp"
 
-BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window, HttpClient* client)
+BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window, HttpClient* client) :
+                                            http_thread(&BoardMenu::fLoadBoardListBox, this)
 {
     this->_event = event;
     _gui.setWindow(window);
     _board_id = -1;
     fLoadUiElements(window);
     _client = client;
+    updated = false;
     try
     {
-        fLoadBoardListBox();
+        //http_thread = new sf::Thread(&BoardMenu::fLoadBoardListBox, this);
+        http_thread.launch();
+        //fLoadBoardListBox();
     }
     catch (const std::exception& e)
     {
@@ -29,6 +33,24 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
     {
         while (window.pollEvent(_event))
         {
+            try
+            {
+                if (_board_data["status"] == "success" && !updated)
+                {
+                    std::string quan = _board_data["boards_quantity"];
+                    for (int i = 0; i < std::stoi(quan); i++)
+                    {
+                        _list_of_board->addItem(_board_data["list"][i]["board"], std::to_string(i));
+                    }
+                    updated = true;
+                }
+            }
+            catch (const std::exception&)
+            {
+
+            }
+
+
 
             if (_event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
                 window.close();
@@ -55,7 +77,9 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                 if (_refresh_list_btn_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
                     _list_of_board->removeAllItems();
-                    fLoadBoardListBox();
+                    http_thread.launch();
+                    updated = false;
+                    //fLoadBoardListBox();
                 }
 
                 if (_list_of_board->getPosition().x <= _event.mouseButton.x &&
@@ -205,19 +229,10 @@ void BoardMenu::fLoadBoardListBox()
 {
     //
     std::string response;
-    json res;
     //auto q = "{\"session_id\":\"1\", \"board\":\"temp5\", \"width\":\"15\", \"height\":\"15\", \"description\":\"desc\"}";
     auto str = "{\"session_id\":\"1\"}";
     _client->fSendRequest(HttpClient::_POST, "/api/loadmyboardslist", str);
     _client->fGetResponse(response);
     _board_data = json::parse(response);
     std::cout << _board_data;
-    if (_board_data["status"] == "success")
-    {
-        std::string quan = _board_data["boards_quantity"];
-        for (int i = 0; i < std::stoi(quan); i++)
-        {
-            _list_of_board->addItem(_board_data["list"][i]["board"], std::to_string(i));
-        }
-    }
 }
