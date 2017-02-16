@@ -2,9 +2,14 @@
 #include <iostream>
 #include "BoardMenu.hpp"
 #include "BoardEdit.hpp"
+#include "HttpClient.hpp"
 
 int main()
 {
+    boost::asio::io_service io_service;
+    HttpClient client(io_service, "localhost", "15000");
+
+
 	sf::RenderWindow window(sf::VideoMode(800, 600), "dnd");
     
     window.setMouseCursorVisible(false);
@@ -16,9 +21,8 @@ int main()
 
     sf::Event event;
 
-    BoardMenu menu(event, window);
+    BoardMenu menu(event, window, client);
 
-    BoardEdit board(10, 10, event, window);
 	while (window.isOpen())
 	{
         //game.fUpdate(window);

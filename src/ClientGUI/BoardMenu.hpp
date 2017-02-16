@@ -1,7 +1,10 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <TGUI/TGUI.hpp>
 #include "BoardEdit.hpp"
 #include "BoardCreate.hpp"
+#include "HttpClient.hpp"
+
 class BoardMenu
 {
 private:
@@ -14,8 +17,12 @@ private:
     };
 
     sf::Event _event;
+    tgui::Gui _gui;
 
     //UI elems
+    tgui::ListBox::Ptr _list_of_board;
+    tgui::Theme::Ptr   _theme;
+
     sf::Texture _back_btn;
     sf::Texture _board_edit_btn;
     sf::Texture _create_board_btn;
@@ -37,8 +44,9 @@ private:
     _selected_menu _menu_option;
 
     void fLoadUiElements(sf::RenderWindow &window);
+    void fLoadBoardListBox(HttpClient& cl);
 public:
-    BoardMenu(const sf::Event &event, sf::RenderWindow &window);
+    BoardMenu(const sf::Event &event, sf::RenderWindow &window, HttpClient& cl);
 
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);

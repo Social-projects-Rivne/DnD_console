@@ -1,11 +1,21 @@
 #include "BoardMenu.hpp"
 #include "BoardEdit.hpp"
 
-BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window)
+BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window, HttpClient& client)
 {
     this->_event = event;
+    _gui.setWindow(window);
 
     fLoadUiElements(window);
+    try
+    {
+        fLoadBoardListBox(client);
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+
 
     _menu_option = _selected_menu::NONE;
 }
@@ -36,6 +46,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                     _menu_option = _selected_menu::CREATE_BOARD;
                 }
             }
+            _gui.handleEvent(_event);
         }
     }
     break;
@@ -64,6 +75,7 @@ void BoardMenu::fDraw(sf::RenderWindow & window)
         window.draw(_create_board_btn_sprite);
         window.draw(_board_edit_txt);
         window.draw(_create_board_txt);
+        _gui.draw();
     }
     break;
     case BoardMenu::CREATE_BOARD:
@@ -115,9 +127,9 @@ void BoardMenu::fLoadUiElements(sf::RenderWindow & window)
     _create_board_btn.loadFromFile("sprites/Interface/Button/LongMenuButton.png");
     _create_board_btn_sprite.setTexture(_create_board_btn);
 
-    int wind_center_x = window.getSize().x / 2;
+    int wind_center_x = window.getSize().x;
 
-    _board_edit_btn_sprite.setPosition(wind_center_x - (_board_edit_btn_sprite.getGlobalBounds().width / 2),
+    _board_edit_btn_sprite.setPosition(wind_center_x - (_board_edit_btn_sprite.getGlobalBounds().width + 10),
         _board_edit_btn_sprite.getGlobalBounds().height);
 
     _create_board_btn_sprite.setPosition(_board_edit_btn_sprite.getPosition().x,
@@ -137,4 +149,19 @@ void BoardMenu::fLoadUiElements(sf::RenderWindow & window)
         _create_board_btn_sprite.getPosition().y +
         _create_board_btn_sprite.getGlobalBounds().height / 2 -
         _create_board_txt.getGlobalBounds().height);
+
+
+    _theme = tgui::Theme::create("sprites/Theme/Black.txt");
+    _list_of_board = _theme->load("ListBox");
+    _list_of_board->setSize(300, 400);
+    _gui.add(_list_of_board);
+}
+
+void BoardMenu::fLoadBoardListBox(HttpClient& client)
+{
+    //
+    std::string response;
+    client.fSendRequest(HttpClient::_GET, "/api/loadboards", "test");
+    client.fGetResponse(response);
+    _list_of_board->addItem(response);
 }
