@@ -1,25 +1,32 @@
 #include "BoardCreate.hpp"
 
-void BoardCreate::fSubmit(BoardCreate* o)
+void BoardCreate::fSubmit()
 {
-    if (o->_board_height->getText().toAnsiString() != "" &&
-        o->_board_width->getText().toAnsiString() != "")
+    if (_board_height->getText().toAnsiString() != "" &&
+        _board_width->getText().toAnsiString() != "")
     {
-        o->_board_json["name"] = o->_board_name->getText().toAnsiString();
-        o->_board_json["height"] = o->_board_height->getText().toAnsiString();
-        o->_board_json["width"] = o->_board_width->getText().toAnsiString();
-        std::cout << std::setw(2) << o->_board_json;
-        o->display_window = false;
+        _board_json["session_id"] = "1";
+        _board_json["board"] = _board_name->getText().toAnsiString();
+        _board_json["height"] = _board_height->getText().toAnsiString();
+        _board_json["width"] = _board_width->getText().toAnsiString();
+        _board_json["description"] = "ddddd";
+        std::cout << std::setw(2) << _board_json;
+
+        std::string response;
+        _client->fSendRequest(HttpClient::_POST, "/api/addboard", _board_json.dump());
+        _client->fGetResponse(response);
+        std::cout << response;
+        display_window = false;
     }
 
 }
 
-BoardCreate::BoardCreate(const sf::Event &event, sf::RenderWindow & window)
+BoardCreate::BoardCreate(const sf::Event &event, sf::RenderWindow & window, HttpClient* cl)
 {
     display_window = true;
     this->_event = event;
     gui.setWindow(window);
-
+    _client = cl;
     std::cout << "Start";
 
     theme = tgui::Theme::create("sprites/Theme/Black.txt");
@@ -46,7 +53,7 @@ BoardCreate::BoardCreate(const sf::Event &event, sf::RenderWindow & window)
     _submit_btn->setSize(150, 50);
     _submit_btn->setPosition(75, 165);
     
-    _submit_btn->connect("pressed", BoardCreate::fSubmit, this);
+    _submit_btn->connect("pressed", &BoardCreate::fSubmit, this);
 
     gui.add(_board_name);
     gui.add(_board_height);

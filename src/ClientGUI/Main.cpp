@@ -7,7 +7,7 @@
 int main()
 {
     boost::asio::io_service io_service;
-    HttpClient client(io_service, "localhost", "15000");
+    HttpClient* client = new HttpClient(io_service, "localhost", "15000");
 
 
 	sf::RenderWindow window(sf::VideoMode(800, 600), "dnd");

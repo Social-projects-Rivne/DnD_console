@@ -26,27 +26,36 @@ private:
     sf::Texture _back_btn;
     sf::Texture _board_edit_btn;
     sf::Texture _create_board_btn;
+    sf::Texture _refresh_list_btn;
 
     sf::Sprite  _back_btn_spr;
     sf::Sprite  _board_edit_btn_sprite;
     sf::Sprite  _create_board_btn_sprite;
+    sf::Sprite  _refresh_list_btn_sprite;
 
     //Buttons text
     sf::Font font;
     sf::Text _board_edit_txt;
     sf::Text _back_btn_txt;
     sf::Text _create_board_txt;
+    sf::Text _refresh_list_txt;
 
     //Avail menu options
     BoardEdit*   edit_board;
     BoardCreate* create_board;
+    HttpClient* _client;
+
+    int _board_height;
+    int _board_width;
+    int _board_id;
+    json _board_data;
 
     _selected_menu _menu_option;
 
     void fLoadUiElements(sf::RenderWindow &window);
-    void fLoadBoardListBox(HttpClient& cl);
+    void fLoadBoardListBox();
 public:
-    BoardMenu(const sf::Event &event, sf::RenderWindow &window, HttpClient& cl);
+    BoardMenu(const sf::Event &event, sf::RenderWindow &window, HttpClient* cl);
 
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);
