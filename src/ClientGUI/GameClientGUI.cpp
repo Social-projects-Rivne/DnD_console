@@ -5,6 +5,197 @@
 #include "Includes/UserActions.hpp"
 
 
+
+
+
+
+
+class TerrainUI
+{
+	sf::Event _event;
+	tgui::Gui gui;
+
+	tgui::Theme::Ptr _theme;
+	tgui::EditBox::Ptr _terrain_name;
+	tgui::EditBox::Ptr _terrain_type;
+	tgui::EditBox::Ptr _terrain_width;
+	tgui::EditBox::Ptr _terrain_height;
+	tgui::EditBox::Ptr _terrain_description;
+	tgui::ListBox::Ptr _terrain_list;
+	tgui::Button::Ptr _create_btn;
+	tgui::Button::Ptr _back_btn;
+	tgui::Button::Ptr _refresh_btn;
+	tgui::Picture::Ptr _back;
+	
+	std::string _game_session;
+	json terrain_data;
+	bool updated;
+
+	bool create_pressed;
+
+
+	void fLoadUI()
+	{
+		_theme = std::make_shared<tgui::Theme>("Game.txt");
+
+		auto windowWidth = tgui::bindWidth(gui);
+		auto windowHeight = tgui::bindHeight(gui);
+
+		_theme = std::make_shared<tgui::Theme>("Game.txt");
+		_back = std::make_shared<tgui::Picture>("Back.png");
+		_back->setSize(tgui::bindMax(1280, windowWidth), tgui::bindMax(800, windowHeight));
+		gui.add(_back);
+
+		_terrain_name = _theme->load("EditBox");
+		_terrain_name->setPosition(610, 85);
+		_terrain_name->setSize(160, 50);
+		_terrain_name->setDefaultText("Name");
+		gui.add(_terrain_name,"Name");
+
+		_terrain_type = _theme->load("EditBox");
+		_terrain_type->setPosition(610, 135);
+		_terrain_type->setSize(160, 50);
+		_terrain_type->setDefaultText("Type");
+		gui.add(_terrain_type,"Type");
+
+		_terrain_width = _theme->load("EditBox");
+		_terrain_width->setPosition(610, 185);
+		_terrain_width->setSize(160, 50);
+		_terrain_width->setDefaultText("Width");
+		gui.add(_terrain_width, "Width");
+
+		_terrain_height = _theme->load("EditBox");
+		_terrain_height->setPosition(610, 235);
+		_terrain_height->setSize(160, 50);
+		_terrain_height->setDefaultText("Height");
+		gui.add(_terrain_height, "Height");
+
+		_terrain_description = _theme->load("EditBox");
+		_terrain_description->setPosition(610, 285);
+		_terrain_description->setSize(160, 50);
+		_terrain_description->setDefaultText("Description");
+		gui.add(_terrain_description, "Description");
+
+		_create_btn = _theme->load("Button");
+		_create_btn->setSize(160, 50);
+		_create_btn->setPosition(1030, 335);
+		_create_btn->setText("Create Terrain");
+		gui.add(_create_btn);
+
+		_back_btn = _theme->load("Button");
+		_back_btn->setSize(160, 50);
+		_back_btn->setPosition(50, 665);
+		_back_btn->setText("Back");
+		gui.add(_back_btn);
+
+		_refresh_btn = _theme->load("Button");
+		_refresh_btn->setSize(400, 50);
+		_refresh_btn->setPosition(50, 375);
+		_refresh_btn->setText("Refresh Terrain List");
+		gui.add(_refresh_btn);
+
+		_terrain_list = _theme->load("ListBox");
+		_terrain_list->setPosition(50, 85);
+		_terrain_list->setSize(400, 240);
+		gui.add(_terrain_list);
+
+		
+
+		_create_btn->connect("pressed", &TerrainUI::fCreateTerrain, this, _terrain_name, _terrain_type,_terrain_width,_terrain_height,_terrain_description);
+		_refresh_btn->connect("pressed", &TerrainUI::Refresh, this);
+		_back_btn->connect("pressed", &TerrainUI::fdisable, this);
+	}
+
+	void fCreateTerrain(tgui::EditBox::Ptr name, tgui::EditBox::Ptr type, tgui::EditBox::Ptr width, tgui::EditBox::Ptr height, tgui::EditBox::Ptr description)
+	{
+		//character.fSetOwner(_game_session);
+
+		Terrain terrain(_game_session, name->getText().toAnsiString(), type->getText().toAnsiString(),width->getText().toAnsiString(),height->getText().toAnsiString(),description->getText().toAnsiString());
+
+		std::string response;
+		std::string request = terrain.fTerrain_To_Json().dump();
+		std::cout << request << std::endl;
+		http_client->fSendRequest(HttpClient::_POST, "/api/addterrain", request);
+		http_client->fGetResponse(response);
+		//std::cout << response << std::endl;
+	}
+
+	void fLoadNPCListBox()
+	{
+
+		std::string response;
+		auto request = UserActions::fLoadMyNpcs(_game_session).dump();
+		std::cout << request << std::endl;
+
+		http_client->fSendRequest(HttpClient::_POST, "/api/loadmyterrainslist", request);
+		
+		http_client->fGetResponse(response);
+		terrain_data = json::parse(response);
+		std::cout << terrain_data;
+	}
+
+	void Refresh()
+	{
+		fLoadNPCListBox();
+		_terrain_list->removeAllItems();
+		updated = false;
+	}
+
+	void fdisable()
+	{
+		display_window = false;
+	}
+public:
+	bool display_window;
+	TerrainUI(const sf::Event &event, sf::RenderWindow &window, std::string game_session)
+	{
+
+		display_window = true;
+		_game_session = game_session;
+		gui.setWindow(window);
+		fLoadNPCListBox();
+		updated = false;
+		//_menu_option = NONE;
+		fLoadUI();
+		this->_event = event;
+	}
+
+	void fUpdate(sf::RenderWindow  &window)
+	{
+
+		while (window.pollEvent(_event))
+		{
+			try
+			{
+				if (terrain_data["status"] == "success" && !updated)
+				{
+					std::string quan = terrain_data["terrains_quantity"];
+					for (int i = 0; i < std::stoi(quan); i++)
+					{
+
+						_terrain_list->addItem(terrain_data["list"][i]["terrain"], std::to_string(i));
+					}
+					updated = true;
+				}
+			}
+			catch (const std::exception&)
+			{
+
+			}
+
+			if (_event.type == sf::Event::Closed)
+				window.close();
+
+			gui.handleEvent(_event);
+		}
+	}
+	void fDraw(sf::RenderWindow & window)
+	{
+		gui.draw();
+	}
+};
+
+
 class NPCUI
 {
 	sf::Event _event;
@@ -65,7 +256,7 @@ class NPCUI
 		gui.add(_npc_name);
 
 		_npc_type = _theme->load("EditBox");
-		_npc_type->setPosition(820, 85);
+		_npc_type->setPosition(1030, 85);
 		_npc_type->setSize(160, 50);
 		_npc_type->setDefaultText("Type");
 		gui.add(_npc_type);
@@ -629,7 +820,7 @@ class DM_Mode
 	bool _back;
 	
 	NPCUI *npc_menu;
-
+	TerrainUI *terrain_menu;
 	void fClickedNpC()
 	{
 		 _npc = true;
@@ -682,6 +873,7 @@ class DM_Mode
 
 		_btn_back->connect("pressed", &DM_Mode::fdisable, this);
 		_btn_NPC->connect("pressed", &DM_Mode::fClickedNpC, this);
+		_btn_Terrain->connect("pressed", &DM_Mode::fClickedTerrain, this);
 	}
 
 public:
@@ -713,12 +905,18 @@ public:
 					_menu_option = DM_Mode::NPC_MENU;
 				}
 
+				if (_terrain)
+				{
+					terrain_menu = new TerrainUI(_event, window, _game_session);
+					_menu_option = DM_Mode::TERRAIN_MENU;
+				}
 				gui.handleEvent(_event);
 			}
 		}
 		break;
 		case DM_Mode::TERRAIN_MENU:
 		{
+			terrain_menu->fUpdate(window);
 		}
 		break;
 		case DM_Mode::NPC_MENU:
@@ -748,6 +946,18 @@ public:
 				delete npc_menu;
 				_menu_option = DM_Mode::NONE;
 				_npc = false;
+			}
+		}
+		break;
+		case DM_Mode::TERRAIN_MENU:
+		{
+			if (terrain_menu->display_window)
+				terrain_menu->fDraw(window);
+			else
+			{
+				delete terrain_menu;
+				_menu_option = DM_Mode::NONE;
+				terrain_menu = false;
 			}
 		}
 		break;
@@ -788,7 +998,7 @@ class MeinMenu
 
 	void fExit_clicked()
 	{
-
+		_exit_m = true;
 	}
 	void fLoadUI()
 	{
@@ -862,7 +1072,7 @@ public:
 		{
 			while (window.pollEvent(_event))
 			{
-				if (_event.type == sf::Event::Closed)
+				if (_event.type == sf::Event::Closed||_exit_m)
 					window.close();
 
 				if (_dm_m)
