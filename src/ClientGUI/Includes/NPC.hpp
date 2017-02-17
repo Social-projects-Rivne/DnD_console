@@ -43,17 +43,17 @@ public:
     
     Npc();
     
-    Npc(string &owner,
-        string &name,
-        string &type,
-        string &level,
-        string &hitpoints,
-        string &strength,
-        string &dexterity,
-        string &constitution,
-        string &intelligence,
-        string &wisdom,
-        string &charisma);
+    Npc(const string &owner,
+        const string &name,
+        const string &type,
+        const string &level,
+        const string &hitpoints,
+        const string &strength,
+        const string &dexterity,
+        const string &constitution,
+        const string &intelligence,
+        const string &wisdom,
+        const string &charisma);
     
     Npc(json &jsonData); // creates NPC from json
     

@@ -45,19 +45,19 @@ public:
 
 	Character();
 
-	Character(std::string &name,
-		std::string &race,
-		std::string &_class,
-		std::string &experience,
-		std::string &hitpoints,
-		std::string &level,
-		std::string &strength,
-		std::string &dexterity,
-		std::string &constitution,
-		std::string &intelligence,
-		std::string &wisdom,
-		std::string &charisma,
-		std::string &owner
+	Character(const std::string &name,
+		const std::string &race,
+		const std::string &_class,
+		const std::string &experience,
+		const std::string &hitpoints,
+		const std::string &level,
+		const std::string &strength,
+		const std::string &dexterity,
+		const std::string &constitution,
+		const std::string &intelligence,
+		const std::string &wisdom,
+		const std::string &charisma,
+		const std::string &owner
 	);
 
 	Character(json &jsondata);

@@ -1,6 +1,6 @@
-#include "Includes\GameClient.hpp"
-#include "Includes\IniParser.hpp"
-
+//#include "Includes\GameClient.hpp"
+//#include "Includes\IniParser.hpp"
+//
 //
 //int main()
 //{
