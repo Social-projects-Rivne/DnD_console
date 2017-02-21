@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include "Includes/IniParser.hpp"
 #include "Includes/HttpClient.hpp"
@@ -10,3 +10,4 @@ IniParser pIni_parser("config.ini");
 auto params = pIni_parser.fGetParams();
 
 std::shared_ptr<HttpClient> http_client( new HttpClient(io_service, params["client.host"], params["client.port"]));
+
