@@ -309,21 +309,31 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
 			DataValidator::fValidate(height,      DataValidator::LENGTH) &&
 			DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
         {
-			string query = "INSERT INTO Terrain (name, type, width, height, description, id_owner) VALUES ('" + name + "', '" + type + "', " + width + ", " + height + ", '" + description + "', " + id_user + ");";
-			nlohmann::json json_result = data_base.fExecuteQuery(query);
-			cout << query << "\nRESULT:\n" << json_result << endl;
-			string query_result = json_result["result"];
-
-			if (query_result == "success")
-			{
-				query = "SELECT LAST_INSERT_ID() AS id";
-				json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string terrain_id = json_result["data"][0]["id"];
-				json_response = "{\"status\":\"success\", \"terrain_id\": \"" + terrain_id + "\"}";
-			}
-			else
-				json_response = "{\"status\":\"fail\", \"message\": \"terrain is not added, sql query execution failed\"}";
+            string query = "SELECT id, name From TerrainTypes WHERE name = '" + type + "';";
+            nlohmann::json json_result = data_base.fExecuteQuery(query);
+            cout << query << "\nRESULT:\n" << json_result << endl;
+            
+            if (json_result["result"] == "success" && json_result["rows"] == "1")
+            {
+                string id_type = json_result["data"][0]["id"];
+                query = "INSERT INTO Terrain (name, id_type, width, height, description, id_owner) VALUES ('" + name + "', '" + id_type + "', " + width + ", " + height + ", '" + description + "', " + id_user + ");";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                string query_result = json_result["result"];
+                
+                if (query_result == "success")
+                {
+                    query = "SELECT LAST_INSERT_ID() AS id";
+                    json_result = data_base.fExecuteQuery(query);
+                    cout << query << "\nRESULT:\n" << json_result << endl;
+                    string terrain_id = json_result["data"][0]["id"];
+                    json_response = "{\"status\":\"success\", \"terrain_id\": \"" + terrain_id + "\"}";
+                }
+                else
+                    json_response = "{\"status\":\"fail\", \"message\": \"terrain is not added, sql query execution failed\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"no such Terrain's type\"}";
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
@@ -391,7 +401,7 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string terrain_id = json_request["terrain_id"];
-        string query = "SELECT name, type, width, height, description, id_owner FROM Terrain WHERE id = " + terrain_id + ";";
+        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE t.id = " + terrain_id + " AND t.id_type = type.id;";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
