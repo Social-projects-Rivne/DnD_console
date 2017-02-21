@@ -805,38 +805,57 @@ void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
 			DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
 			DataValidator::fValidate(charisma, DataValidator::ABILITY)) // checks data
 		{
-			string query = "INSERT INTO CHARACTERs (name, race, class, experience,hitpoints, level, id_user) VALUES ('" + name + "', '" + race + "', '" + _class + "', '" + experience + "', '" + hitpoints + "', '" + level + "', '" + id_user + "');";
-			nlohmann::json json_result = data_base.fExecuteQuery(query);
-			cout << query << "\nRESULT:\n" << json_result << endl;
-			string query_result = json_result["result"];
-
-			if (query_result == "success")
-			{
-				query = "SELECT LAST_INSERT_ID() AS id";
-				json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string character_id = json_result["data"][0]["id"];
-				json_response = "{\"status\":\"success\", \"character_id\": \"" + character_id + "\"}";
-
-				string query = "INSERT INTO ABILITIES (strength, str_mod, dexterity, dex_mod, constitution, con_mod, intelligence, int_mod, wisdom, wis_mod, charisma, cha_mod, id_character) VALUES ('" + strength + "', '"+strength_mod+"', '" + dexterity + "', '"+dexterity_mod +"', '" + constitution + "', '"+constitution_mod+"', '" + intelligence + "','"+intelligence_mod+"', '" + wisdom + "','"+wisdom_mod+"', '" + charisma + "','"+charisma_mod+"', '" + character_id + "');";
-				nlohmann::json json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string query_result = json_result["result"];
-				
-				if (query_result == "success")
-				{
-					query = "SELECT LAST_INSERT_ID() AS id";
-					json_result = data_base.fExecuteQuery(query);
-					cout << query << "\nRESULT:\n" << json_result << endl;
-					string ability_id = json_result["data"][0]["id"];
-					json_response = "{\"status\":\"success\", \"ability_id\": \"" + ability_id + "\"}";
-				}
-				else
-					json_response = "{\"status\":\"fail\", \"message\": \"abilities is not added, sql query execution failed\"}";
-
-			}
-			else
-				json_response = "{\"status\":\"fail\", \"message\": \"character is not added, sql query execution failed\"}";
+            string query = "SELECT id, name From Classes WHERE name = '" + c_class + "';";
+            nlohmann::json json_result = data_base.fExecuteQuery(query);
+            cout << query << "\nRESULT:\n" << json_result << endl;
+            
+            if (json_result["result"] == "success" && json_result["rows"] == "1")
+            {
+                string id_class = json_result["data"][0]["id"];
+                query = "SELECT id, name From Races WHERE name = '" + race + "';";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                
+                if (json_result["result"] == "success" && json_result["rows"] == "1")
+                {
+                    string id_race = json_result["data"][0]["id"];
+                    query = "INSERT INTO CHARACTERs (name, id_race, id_class, experience, hitpoints, level, id_user) VALUES ('" + name + "', '" + id_race + "', '" + id_class + "', '" + experience + "', '" + hitpoints + "', '" + level + "', '" + id_user + "');";
+                    json_result = data_base.fExecuteQuery(query);
+                    cout << query << "\nRESULT:\n" << json_result << endl;
+                    string query_result = json_result["result"];
+                    
+                    if (query_result == "success")
+                    {
+                        query = "SELECT LAST_INSERT_ID() AS id";
+                        json_result = data_base.fExecuteQuery(query);
+                        cout << query << "\nRESULT:\n" << json_result << endl;
+                        string character_id = json_result["data"][0]["id"];
+                        json_response = "{\"status\":\"success\", \"character_id\": \"" + character_id + "\"}";
+                        
+                        string query = "INSERT INTO ABILITIES (strength, str_mod, dexterity, dex_mod, constitution, con_mod, intelligence, int_mod, wisdom, wis_mod, charisma, cha_mod, id_character) VALUES ('" + strength + "', '"+strength_mod+"', '" + dexterity + "', '"+dexterity_mod +"', '" + constitution + "', '"+constitution_mod+"', '" + intelligence + "','"+intelligence_mod+"', '" + wisdom + "','"+wisdom_mod+"', '" + charisma + "','"+charisma_mod+"', '" + character_id + "');";
+                        nlohmann::json json_result = data_base.fExecuteQuery(query);
+                        cout << query << "\nRESULT:\n" << json_result << endl;
+                        string query_result = json_result["result"];
+                        
+                        if (query_result == "success")
+                        {
+                            query = "SELECT LAST_INSERT_ID() AS id";
+                            json_result = data_base.fExecuteQuery(query);
+                            cout << query << "\nRESULT:\n" << json_result << endl;
+                            string ability_id = json_result["data"][0]["id"];
+                            //json_response = "{\"status\":\"success\", \"ability_id\": \"" + ability_id + "\"}";
+                        }
+                        else
+                            json_response += "{\"status\":\"fail\", \"message\": \"abilities is not added, sql query execution failed\"}";
+                    }
+                    else
+                        json_response = "{\"status\":\"fail\", \"message\": \"character is not added, sql query execution failed\"}";
+                }
+                else
+                    json_response = "{\"status\":\"fail\", \"message\": \"no such Character's race\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"no such Character's class\"}";
 		}
 		else
 			json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
