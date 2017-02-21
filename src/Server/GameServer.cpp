@@ -608,7 +608,7 @@ void fSendMyNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string npc_id = json_request["npc_id"];
-        string query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id = '" + npc_id + "' AND id_owner = '" + id_user + "';";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         
         cout << query << "\nRESULT:\n" << json_result << endl;
@@ -719,7 +719,7 @@ void fDeleteNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string npc_id = json_request["npc_id"];
-        string query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
