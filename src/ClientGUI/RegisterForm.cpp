@@ -17,6 +17,9 @@ void RegisterForm::fRegistration(tgui::EditBox::Ptr username, tgui::EditBox::Ptr
     if (status == "success")
     {
         std::cout << "OK" << std::endl;
+        information_window->show();
+        //information_window->setCloseButton(_register_button);
+        //information_window->setCloseButton(_back);
     }
 }
 
@@ -61,12 +64,19 @@ void RegisterForm::fInitUIElements()
     _editBoxPasswordRe->setDefaultText("Repeat Password");
     _gui.add(_editBoxPasswordRe, "PasswordRe");
 
+    information_window = _theme->load("ChildWindow");
+    information_window->setSize(250, 120);
+    information_window->setPosition(420, 80);
+    information_window->setTitle("Registration success");
+    _gui.add(information_window);
+    information_window->hide();
 
     _register_button = _theme->load("Button");
     _register_button->setSize(335, 40);
     _register_button->setPosition(224, 255);
     _register_button->setText("Register");
     _gui.add(_register_button);
+    
 
     _back = _theme->load("Button");
     _back->setSize(335, 40);

@@ -20,17 +20,17 @@ void DMForm::fInitUIElements()
     auto windowWidth = tgui::bindWidth(_gui);
     auto windowHeight = tgui::bindHeight(_gui);
 
-    _theme = std::make_shared<tgui::Theme>("Game.txt");
-    _main = std::make_shared<tgui::Picture>("MainMenu.png");
+    _theme = std::make_shared<tgui::Theme>("Interface/Game.txt");
+    _main = std::make_shared<tgui::Picture>("Interface/MainMenu.png");
     _main->setSize(tgui::bindMax(1280, windowWidth), tgui::bindMax(800, windowHeight));
     _gui.add(_main);
 
-    _menu = std::make_shared<tgui::Picture>("MenuWindow.png");
+    _menu = std::make_shared<tgui::Picture>("Interface/MenuWindow.png");
     _menu->setPosition(100, 180);
     _menu->setSize(372, 582);
     _gui.add(_menu);
 
-    _logo = std::make_shared<tgui::Picture>("logo.png");
+    _logo = std::make_shared<tgui::Picture>("Interface/logo.png");
     _logo->setPosition(100, 100);
     _logo->setSize(372, 122);
     _gui.add(_logo);
