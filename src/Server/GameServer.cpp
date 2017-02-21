@@ -650,7 +650,7 @@ void fEditNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string npc_id = json_request["npc_id"];
-        string query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         
@@ -682,21 +682,30 @@ void fEditNpc(std::string &json_response, nlohmann::json &json_request)
                     DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
                     DataValidator::fValidate(charisma,     DataValidator::ABILITY))
                 {
-                    string query = "UPDATE NPCs SET name = '" + name + "', type = '" + type + "', hitpoints = '" + hitpoints + "', level = '" + level + "', strength = '" + strength + "', dexterity = '" + dexterity + "', constitution = '" + constitution + "', intelligence = '" + intelligence + "', wisdom = '" + wisdom + "', charisma = '" + charisma + "' WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
-                    nlohmann::json json_result = data_base.fExecuteQuery(query);
+                    query = "SELECT id, name From NpcTypes WHERE name = '" + type + "';";
+                    json_result = data_base.fExecuteQuery(query);
                     cout << query << "\nRESULT:\n" << json_result << endl;
                     
-                    if (json_result["result"] == "success")
-
+                    if (json_result["result"] == "success" && json_result["rows"] == "1")
                     {
-                        query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
+                        string id_type = json_result["data"][0]["id"];
+                        query = "UPDATE NPCs SET name = '" + name + "', id_type = '" + id_type + "', hitpoints = '" + hitpoints + "', level = '" + level + "', strength = '" + strength + "', dexterity = '" + dexterity + "', constitution = '" + constitution + "', intelligence = '" + intelligence + "', wisdom = '" + wisdom + "', charisma = '" + charisma + "' WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
                         json_result = data_base.fExecuteQuery(query);
                         cout << query << "\nRESULT:\n" << json_result << endl;
-                        string npc_id = json_result["data"][0]["id"];
-                        json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
+                    
+                        if (json_result["result"] == "success")
+                        {
+                            query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
+                            json_result = data_base.fExecuteQuery(query);
+                            cout << query << "\nRESULT:\n" << json_result << endl;
+                            string npc_id = json_result["data"][0]["id"];
+                            json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
+                        }
+                        else
+                            json_response = "{\"status\":\"fail\", \"message\": \"npc was not updated, sql query execution failed\"}";
                     }
                     else
-                        json_response = "{\"status\":\"fail\", \"message\": \"npc was not updated, sql query execution failed\"}";
+                        json_response = "{\"status\":\"fail\", \"message\": \"no such NPC's type\"}";
                 }
                 else
                     json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
