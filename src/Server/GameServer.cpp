@@ -340,7 +340,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string name         = json_request["npc"];
-        string type         = json_request["type"];
+        string id_type      = json_request["id_type"];
         string hitpoints    = json_request["hitpoints"];
         string level        = json_request["level"];
         string strength     = json_request["strength"];
@@ -351,7 +351,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
         string charisma     = json_request["charisma"];
 
         if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
-    		DataValidator::fValidate(type,         DataValidator::SQL_INJECTION) &&
+    		DataValidator::fValidate(id_type,      DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
@@ -361,7 +361,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
 			DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
 			DataValidator::fValidate(charisma,     DataValidator::ABILITY)) // checks data
         {
-			string query = "INSERT INTO NPCs (name, type, hitpoints, level, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner) VALUES ('"+name+"', '"+type+"', '"+hitpoints+"', '"+level+"', '"+strength+"', '"+dexterity+"', '"+constitution+"', '"+intelligence+"', '"+wisdom+"', '"+charisma+"', '"+id_user+"');";
+			string query = "INSERT INTO NPCs (name, id_type, hitpoints, level, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner) VALUES ('" + name + "', '" + id_type + "', '" + hitpoints + "', '" + level + "', '" + strength + "', '" + dexterity + "', '" + constitution + "', '" + intelligence + "', '" + wisdom + "', '" + charisma + "', '" + id_user + "');";
 			nlohmann::json json_result = data_base.fExecuteQuery(query);
 			cout << query << "\nRESULT:\n" << json_result << endl;
 			string query_result = json_result["result"];
