@@ -21,9 +21,13 @@ private:
     tgui::EditBox::Ptr _editBoxPassword;
     tgui::EditBox::Ptr _editBoxPasswordRe;
     tgui::Button::Ptr  _register_button;
+    tgui::Button::Ptr  _back;
 
+    tgui::ChildWindow::Ptr information_window;
 
     void fRegistration(tgui::EditBox::Ptr username, tgui::EditBox::Ptr email, tgui::EditBox::Ptr password, tgui::EditBox::Ptr re_password);
+
+    void fBack_Click();
 
     void fInitUIElements();
 

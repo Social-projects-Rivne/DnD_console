@@ -20,6 +20,11 @@ void RegisterForm::fRegistration(tgui::EditBox::Ptr username, tgui::EditBox::Ptr
     }
 }
 
+void RegisterForm::fBack_Click()
+{
+    display_window = false;
+}
+
 void RegisterForm::fInitUIElements()
 {
     _theme = std::make_shared<tgui::Theme>("Interface/Black.txt");
@@ -63,7 +68,14 @@ void RegisterForm::fInitUIElements()
     _register_button->setText("Register");
     _gui.add(_register_button);
 
+    _back = _theme->load("Button");
+    _back->setSize(335, 40);
+    _back->setPosition(224, 315);
+    _back->setText("Cancel");
+    _gui.add(_back);
+
     _register_button->connect("pressed", &RegisterForm::fRegistration, this, _editBoxUsername, _editBoxEmail, _editBoxPassword, _editBoxPasswordRe);
+    _back->connect("pressed", &RegisterForm::fBack_Click, this);
 }
 
 RegisterForm::RegisterForm(const sf::Event &event, sf::RenderWindow &window, HttpClient *http_client)
