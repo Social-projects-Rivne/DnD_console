@@ -1103,25 +1103,21 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
             int rows_qtt = stoi(rows);
             if (rows_qtt > 0)
             {
-                json_response = "{\"status\":\"success\", \"characters_quantity\":\"" + rows + "\", \"list\": [";
-                while (rows_qtt--)
-                {
-                    string character_id = json_result["data"][rows_qtt]["id"];
-                    string character = json_result["data"][rows_qtt]["name"];
-                    string race = json_result["data"][rows_qtt]["race"];
-                    string class_ = json_result["data"][rows_qtt]["class"];
-                    string experience = json_result["data"][rows_qtt]["experience"];
-                    string hitpoints = json_result["data"][rows_qtt]["hitpoints"];
-                    string level = json_result["data"][rows_qtt]["level"];
-                    string id_owner = json_result["data"][rows_qtt]["id_user"];
-                    json_response += "{\"character\": \"" + character + "\", \"character_id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\"}";
-                    if (rows_qtt)
-                        json_response += ",";
-                }
-                json_response += "]}";
+                json_response = "{\"status\":\"success\", ";
+                
+                string character_id = json_result["data"][0]["id"];
+                string character = json_result["data"][0]["name"];
+                string race = json_result["data"][0]["race"];
+                string class_ = json_result["data"][0]["class"];
+                string experience = json_result["data"][0]["experience"];
+                string hitpoints = json_result["data"][0]["hitpoints"];
+                string level = json_result["data"][0]["level"];
+                string id_owner = json_result["data"][0]["id_user"];
+                
+                json_response += "{\"character\": \"" + character + "\", \"character_id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\"}";
             }
             else
-                json_response = "{\"status\":\"warning\", \"message\": \"list of your characters is empty\"}";
+                json_response = "{\"status\":\"warning\", \"message\": \"you have no such character\"}";
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"list of characters is not loaded, sql query execution failed\"}";
