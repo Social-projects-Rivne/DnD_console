@@ -1092,7 +1092,7 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
     if (fRetrieveUserId(id_user, session_id))
     {
         string name = json_request["character"];
-        string query = "SELECT c.id, c.name, c.race, c.class, c.experience, c.hitpoints, c.level, c.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma, a.id_character FROM Characters c, Abilities a WHERE c.name = '" + name + "' AND c.id = a.id_character;";
+        string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.name = '" + name + "' AND c.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id;";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
@@ -1113,14 +1113,20 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
                 string hitpoints = json_result["data"][0]["hitpoints"];
                 string level = json_result["data"][0]["level"];
                 string id_owner = json_result["data"][0]["id_user"];
+                string strength = json_result["data"][0]["strength"];
+                string dexterity = json_result["data"][0]["dexterity"];
+                string constitution = json_result["data"][0]["constitution"];
+                string intelligence = json_result["data"][0]["intelligence"];
+                string wisdom = json_result["data"][0]["wisdom"];
+                string charisma = json_result["data"][0]["charisma"];
                 
-                json_response += "{\"character\": \"" + character + "\", \"character_id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\"}";
+                json_response += "\"character\": \"" + character + "\", \"id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\"}";
             }
             else
                 json_response = "{\"status\":\"warning\", \"message\": \"you have no such character\"}";
         }
         else
-            json_response = "{\"status\":\"fail\", \"message\": \"list of characters is not loaded, sql query execution failed\"}";
+            json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
