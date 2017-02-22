@@ -1151,27 +1151,28 @@ void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request)
             string rows = json_result["rows"];
             if (stoi(rows) > 0)
             {
+                query = "START TRANSACTION;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
                 query = "DELETE FROM Abilities WHERE id_character = '" + character_id + "' LIMIT 1;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                query = "DELETE FROM Characters WHERE id_user = '" + id_user + "' AND id = '" + character_id + "' LIMIT 1;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                query = "COMMIT;";
                 json_result = data_base.fExecuteQuery(query);
                 
                 cout << query << "\nRESULT:\n" << json_result << endl;
                 query_result = json_result["result"];
                 
                 if (query_result == "success")
-                {
-                    query = "DELETE FROM Characters WHERE id_user = '" + id_user + "' AND id = '" + character_id + "' LIMIT 1;";
-                    nlohmann::json json_result = data_base.fExecuteQuery(query);
-                    
-                    cout << query << "\nRESULT:\n" << json_result << endl;
-                    string query_result = json_result["result"];
-                    
-                    if (query_result == "success")
-                        json_response = "{\"status\":\"success\", \"message\": \"your character with this id was deleted\"}";
-                    else
-                        json_response = "{\"status\":\"fail\", \"message\": \"character is not deleted, sql query execution failed\"}";
-                }
+                    json_response = "{\"status\":\"success\", \"message\": \"your character with this id was deleted\"}";
                 else
-                    json_response = "{\"status\":\"fail\", \"message\": \"character's abilities are not deleted, sql query execution failed\"}";
+                    json_response = "{\"status\":\"fail\", \"message\": \"character is not deleted, sql query execution failed\"}";
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"you have no such character\"}";
