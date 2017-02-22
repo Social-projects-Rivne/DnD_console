@@ -909,7 +909,7 @@ void fSendOwnCharacterList(std::string &json_response, nlohmann::json &json_requ
     
 	if (fRetrieveUserId(id_user, session_id))
 	{
-		string query = "SELECT c.id, c.name, c.race, c.class, c.experience, c.hitpoints, c.level, c.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma, a.id_character FROM Characters c, Abilities a WHERE id_user = " + id_user + " AND c.id = a.id_character;";
+        string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma, a.id_character FROM Characters ch, Abilities a, Classes c, Races r WHERE id_user = " + id_user + " AND c.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id;";
 		nlohmann::json json_result = data_base.fExecuteQuery(query);
 		cout << query << "\nRESULT:\n" << json_result << endl;
 		string query_result = json_result["result"];
