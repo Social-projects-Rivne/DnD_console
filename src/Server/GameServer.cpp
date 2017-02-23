@@ -41,6 +41,8 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request);
 void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request);
 void fEditCharacter(std::string &json_response, nlohmann::json &json_request);
+void fSendClasses(std::string &json_response, nlohmann::json &json_request);
+void fSendRaces(std::string &json_response, nlohmann::json &json_request);
 string fSetAbilityMod(std::string ability);
 HttpServer* pHttp_server;
 DataBase data_base;
@@ -151,6 +153,10 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                       fEditNpc(response, json_request);
                     else if (path.find("/api/deletenpc") != string::npos)
                       fDeleteNpc(response, json_request);
+                    else if (path.find("/api/loadclasses") != string::npos)
+                        fSendClasses(response, json_request);
+                    else if (path.find("/api/loadraces") != string::npos)
+                        fSendRaces(response, json_request);
                     else if (path.find("/api/addcharacter") != string::npos)
                       fSaveCharacter(response, json_request);
                     else if (path.find("/api/loadmycharacterslist") != string::npos)
@@ -1744,6 +1750,82 @@ void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"list of your boards is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendClasses(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM Classes;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"classes_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"class\": \"" + name + "\", \"class_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of classes is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of classes is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendRaces(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM Races;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"races_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"race\": \"" + name + "\", \"race_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of races is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of races is not loaded, sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
