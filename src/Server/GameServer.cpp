@@ -42,7 +42,9 @@ void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request
 void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request);
 void fEditCharacter(std::string &json_response, nlohmann::json &json_request);
 void fSendClasses(std::string &json_response, nlohmann::json &json_request);
-void fSendRaces(std::string &json_response, nlohmann::json &json_request);
+void fSendRaces(std::string &json_response, nlohmann::json &json_request)
+void fSendNpcTypes(std::string &json_response, nlohmann::json &json_request);
+void fSendTerrainTypes(std::string &json_response, nlohmann::json &json_request);
 string fSetAbilityMod(std::string ability);
 HttpServer* pHttp_server;
 DataBase data_base;
@@ -153,10 +155,6 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                       fEditNpc(response, json_request);
                     else if (path.find("/api/deletenpc") != string::npos)
                       fDeleteNpc(response, json_request);
-                    else if (path.find("/api/loadclasses") != string::npos)
-                        fSendClasses(response, json_request);
-                    else if (path.find("/api/loadraces") != string::npos)
-                        fSendRaces(response, json_request);
                     else if (path.find("/api/addcharacter") != string::npos)
                       fSaveCharacter(response, json_request);
                     else if (path.find("/api/loadmycharacterslist") != string::npos)
@@ -177,6 +175,14 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                       fEditBoard(response, json_request);
                     else if (path.find("/api/loadmyboardslist") != string::npos)
                       fSendOwnBoardsList(response, json_request);
+                    else if (path.find("/api/loadclasses") != string::npos)
+                        fSendClasses(response, json_request);
+                    else if (path.find("/api/loadraces") != string::npos)
+                        fSendRaces(response, json_request);
+                    else if (path.find("/api/loadtypesnpc") != string::npos)
+                        fSendNpcTypes(response, json_request);
+                    else if (path.find("/api/loadtypesterrain") != string::npos)
+                        fSendTerrainTypes(response, json_request);
                     else
                     	response = "{\"status\": \"fail\",\"message\": \"requested API is not implemented\"}";
                 }
@@ -1826,6 +1832,83 @@ void fSendRaces(std::string &json_response, nlohmann::json &json_request)
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"list of races is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendNpcTypes(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM NpcTypes;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"types_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"type\": \"" + name + "\", \"type_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of npc's types is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of npc's types is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendTerrainTypes(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM TerrainTypes;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"types_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"type\": \"" + name + "\", \"type_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of terrain types is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of terrain types is not loaded, sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
