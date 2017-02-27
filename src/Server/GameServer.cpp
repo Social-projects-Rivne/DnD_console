@@ -42,7 +42,7 @@ void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request
 void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request);
 void fEditCharacter(std::string &json_response, nlohmann::json &json_request);
 void fSendClasses(std::string &json_response, nlohmann::json &json_request);
-void fSendRaces(std::string &json_response, nlohmann::json &json_request)
+void fSendRaces(std::string &json_response, nlohmann::json &json_request);
 void fSendNpcTypes(std::string &json_response, nlohmann::json &json_request);
 void fSendTerrainTypes(std::string &json_response, nlohmann::json &json_request);
 void fUserLogOut(std::string &json_response, nlohmann::json &json_request);
