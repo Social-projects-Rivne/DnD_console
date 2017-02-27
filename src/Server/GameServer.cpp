@@ -41,6 +41,11 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request);
 void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request);
 void fEditCharacter(std::string &json_response, nlohmann::json &json_request);
+void fSendClasses(std::string &json_response, nlohmann::json &json_request);
+void fSendRaces(std::string &json_response, nlohmann::json &json_request)
+void fSendNpcTypes(std::string &json_response, nlohmann::json &json_request);
+void fSendTerrainTypes(std::string &json_response, nlohmann::json &json_request);
+void fUserLogOut(std::string &json_response, nlohmann::json &json_request);
 string fSetAbilityMod(std::string ability);
 HttpServer* pHttp_server;
 DataBase data_base;
@@ -131,6 +136,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                       fUserLogIn(response, json_request);
                     else if (path.find("/api/userregister") != string::npos)
                       fUserRegistration(response, json_request);
+                    else if (path.find("/api/userlogout") != string::npos)
+                        fUserLogOut(response, json_request);
                     else if (path.find("/api/addterrain") != string::npos)
                       fSaveTerrain(response, json_request);
                     else if (path.find("/api/loadterrain") != string::npos)
@@ -171,6 +178,14 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                       fEditBoard(response, json_request);
                     else if (path.find("/api/loadmyboardslist") != string::npos)
                       fSendOwnBoardsList(response, json_request);
+                    else if (path.find("/api/loadclasses") != string::npos)
+                        fSendClasses(response, json_request);
+                    else if (path.find("/api/loadraces") != string::npos)
+                        fSendRaces(response, json_request);
+                    else if (path.find("/api/loadtypesnpc") != string::npos)
+                        fSendNpcTypes(response, json_request);
+                    else if (path.find("/api/loadtypesterrain") != string::npos)
+                        fSendTerrainTypes(response, json_request);
                     else
                     	response = "{\"status\": \"fail\",\"message\": \"requested API is not implemented\"}";
                 }
@@ -288,6 +303,28 @@ bool fRetrieveUserId(std::string &id_user, std::string &session_id)
     return 0;
 }
 
+void fUserLogOut(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        cout<<"USER("<<id_user<<") is logged in\n";
+        
+        string query = "DELETE FROM Sessions WHERE id = " + session_id;
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+            json_response = "{\"status\":\"success\", \"message\": \"you are logged out\"}";
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"you are not logged out, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
 
 void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
 {
@@ -309,21 +346,31 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
 			DataValidator::fValidate(height,      DataValidator::LENGTH) &&
 			DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
         {
-			string query = "INSERT INTO Terrain (name, type, width, height, description, id_owner) VALUES ('" + name + "', '" + type + "', " + width + ", " + height + ", '" + description + "', " + id_user + ");";
-			nlohmann::json json_result = data_base.fExecuteQuery(query);
-			cout << query << "\nRESULT:\n" << json_result << endl;
-			string query_result = json_result["result"];
-
-			if (query_result == "success")
-			{
-				query = "SELECT LAST_INSERT_ID() AS id";
-				json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string terrain_id = json_result["data"][0]["id"];
-				json_response = "{\"status\":\"success\", \"terrain_id\": \"" + terrain_id + "\"}";
-			}
-			else
-				json_response = "{\"status\":\"fail\", \"message\": \"terrain is not added, sql query execution failed\"}";
+            string query = "SELECT id, name From TerrainTypes WHERE name = '" + type + "';";
+            nlohmann::json json_result = data_base.fExecuteQuery(query);
+            cout << query << "\nRESULT:\n" << json_result << endl;
+            
+            if (json_result["result"] == "success" && json_result["rows"] == "1")
+            {
+                string id_type = json_result["data"][0]["id"];
+                query = "INSERT INTO Terrain (name, id_type, width, height, description, id_owner) VALUES ('" + name + "', '" + id_type + "', " + width + ", " + height + ", '" + description + "', " + id_user + ");";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                string query_result = json_result["result"];
+                
+                if (query_result == "success")
+                {
+                    query = "SELECT LAST_INSERT_ID() AS id";
+                    json_result = data_base.fExecuteQuery(query);
+                    cout << query << "\nRESULT:\n" << json_result << endl;
+                    string terrain_id = json_result["data"][0]["id"];
+                    json_response = "{\"status\":\"success\", \"terrain_id\": \"" + terrain_id + "\"}";
+                }
+                else
+                    json_response = "{\"status\":\"fail\", \"message\": \"terrain is not added, sql query execution failed\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"no such Terrain's type\"}";
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
@@ -340,7 +387,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string name         = json_request["npc"];
-        string type         = json_request["type"];
+        string id_type      = json_request["id_type"];
         string hitpoints    = json_request["hitpoints"];
         string level        = json_request["level"];
         string strength     = json_request["strength"];
@@ -351,7 +398,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
         string charisma     = json_request["charisma"];
 
         if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
-    		DataValidator::fValidate(type,         DataValidator::SQL_INJECTION) &&
+    		DataValidator::fValidate(id_type,      DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
@@ -361,7 +408,7 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
 			DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
 			DataValidator::fValidate(charisma,     DataValidator::ABILITY)) // checks data
         {
-			string query = "INSERT INTO NPCs (name, type, hitpoints, level, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner) VALUES ('"+name+"', '"+type+"', '"+hitpoints+"', '"+level+"', '"+strength+"', '"+dexterity+"', '"+constitution+"', '"+intelligence+"', '"+wisdom+"', '"+charisma+"', '"+id_user+"');";
+			string query = "INSERT INTO NPCs (name, id_type, hitpoints, level, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner) VALUES ('" + name + "', '" + id_type + "', '" + hitpoints + "', '" + level + "', '" + strength + "', '" + dexterity + "', '" + constitution + "', '" + intelligence + "', '" + wisdom + "', '" + charisma + "', '" + id_user + "');";
 			nlohmann::json json_result = data_base.fExecuteQuery(query);
 			cout << query << "\nRESULT:\n" << json_result << endl;
 			string query_result = json_result["result"];
@@ -391,7 +438,7 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string terrain_id = json_request["terrain_id"];
-        string query = "SELECT name, type, width, height, description, id_owner FROM Terrain WHERE id = " + terrain_id + ";";
+        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE t.id = " + terrain_id + " AND t.id_type = type.id;";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
@@ -427,7 +474,7 @@ void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_reque
     {
         string type = json_request["type"];
         string count = json_request["count"];
-        string query = "SELECT id, name, type, width, height, description, id_owner FROM Terrain WHERE type = '" + type + "' LIMIT " + count + ";";
+        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE type.name = '" + type + "' LIMIT " + count + ";";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
@@ -470,7 +517,7 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
     string id_user;
     if (fRetrieveUserId(id_user, session_id))
     {
-        string query = "SELECT id, name, type, width, height, description, id_owner FROM Terrain WHERE id_owner=" + id_user + ";";
+        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE t.id_owner = '" + id_user + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
@@ -514,7 +561,7 @@ void fSendOwnNpcsList(std::string &json_response, nlohmann::json &json_request)
     
     if (fRetrieveUserId(id_user, session_id))
     {
-        string query = "SELECT id, name, type, hitpoints, level, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = " + id_user + ";";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id_owner = " + id_user + " AND n.id_type = t.id;";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         
         cout << query << "\nRESULT:\n" << json_result << endl;
@@ -565,7 +612,7 @@ void fSendNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string npc_id = json_request["npc_id"];
-        string query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id = " + npc_id + ";";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id;";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         
         cout << query << "\nRESULT:\n" << json_result << endl;
@@ -608,7 +655,7 @@ void fSendMyNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string npc_id = json_request["npc_id"];
-        string query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id = '" + npc_id + "' AND id_owner = '" + id_user + "';";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         
         cout << query << "\nRESULT:\n" << json_result << endl;
@@ -650,7 +697,7 @@ void fEditNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string npc_id = json_request["npc_id"];
-        string query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         
@@ -682,21 +729,30 @@ void fEditNpc(std::string &json_response, nlohmann::json &json_request)
                     DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
                     DataValidator::fValidate(charisma,     DataValidator::ABILITY))
                 {
-                    string query = "UPDATE NPCs SET name = '" + name + "', type = '" + type + "', hitpoints = '" + hitpoints + "', level = '" + level + "', strength = '" + strength + "', dexterity = '" + dexterity + "', constitution = '" + constitution + "', intelligence = '" + intelligence + "', wisdom = '" + wisdom + "', charisma = '" + charisma + "' WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
-                    nlohmann::json json_result = data_base.fExecuteQuery(query);
+                    query = "SELECT id, name From NpcTypes WHERE name = '" + type + "';";
+                    json_result = data_base.fExecuteQuery(query);
                     cout << query << "\nRESULT:\n" << json_result << endl;
                     
-                    if (json_result["result"] == "success")
-
+                    if (json_result["result"] == "success" && json_result["rows"] == "1")
                     {
-                        query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
+                        string id_type = json_result["data"][0]["id"];
+                        query = "UPDATE NPCs SET name = '" + name + "', id_type = '" + id_type + "', hitpoints = '" + hitpoints + "', level = '" + level + "', strength = '" + strength + "', dexterity = '" + dexterity + "', constitution = '" + constitution + "', intelligence = '" + intelligence + "', wisdom = '" + wisdom + "', charisma = '" + charisma + "' WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
                         json_result = data_base.fExecuteQuery(query);
                         cout << query << "\nRESULT:\n" << json_result << endl;
-                        string npc_id = json_result["data"][0]["id"];
-                        json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
+                    
+                        if (json_result["result"] == "success")
+                        {
+                            query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
+                            json_result = data_base.fExecuteQuery(query);
+                            cout << query << "\nRESULT:\n" << json_result << endl;
+                            string npc_id = json_result["data"][0]["id"];
+                            json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
+                        }
+                        else
+                            json_response = "{\"status\":\"fail\", \"message\": \"npc was not updated, sql query execution failed\"}";
                     }
                     else
-                        json_response = "{\"status\":\"fail\", \"message\": \"npc was not updated, sql query execution failed\"}";
+                        json_response = "{\"status\":\"fail\", \"message\": \"no such NPC's type\"}";
                 }
                 else
                     json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
@@ -719,7 +775,7 @@ void fDeleteNpc(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string npc_id = json_request["npc_id"];
-        string query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
+        string query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
@@ -757,7 +813,7 @@ void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
 	{
 		std::string name = json_request["character"];
 		std::string race = json_request["race"];
-		std::string _class = json_request["class"];
+		std::string c_class = json_request["class"];
 		std::string experience = json_request["experience"];
 		std::string hitpoints = json_request["hitpoints"];
 		std::string level = json_request["level"];
@@ -776,7 +832,7 @@ void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
 
 		if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(race, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(_class, DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(c_class, DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(hitpoints, DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(level, DataValidator::SQL_INJECTION) &&
 			DataValidator::fValidate(strength, DataValidator::ABILITY) &&
@@ -786,38 +842,57 @@ void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
 			DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
 			DataValidator::fValidate(charisma, DataValidator::ABILITY)) // checks data
 		{
-			string query = "INSERT INTO CHARACTERs (name, race, class, experience,hitpoints, level, id_user) VALUES ('" + name + "', '" + race + "', '" + _class + "', '" + experience + "', '" + hitpoints + "', '" + level + "', '" + id_user + "');";
-			nlohmann::json json_result = data_base.fExecuteQuery(query);
-			cout << query << "\nRESULT:\n" << json_result << endl;
-			string query_result = json_result["result"];
-
-			if (query_result == "success")
-			{
-				query = "SELECT LAST_INSERT_ID() AS id";
-				json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string character_id = json_result["data"][0]["id"];
-				json_response = "{\"status\":\"success\", \"character_id\": \"" + character_id + "\"}";
-
-				string query = "INSERT INTO ABILITIES (strength, str_mod, dexterity, dex_mod, constitution, con_mod, intelligence, int_mod, wisdom, wis_mod, charisma, cha_mod, id_character) VALUES ('" + strength + "', '"+strength_mod+"', '" + dexterity + "', '"+dexterity_mod +"', '" + constitution + "', '"+constitution_mod+"', '" + intelligence + "','"+intelligence_mod+"', '" + wisdom + "','"+wisdom_mod+"', '" + charisma + "','"+charisma_mod+"', '" + character_id + "');";
-				nlohmann::json json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string query_result = json_result["result"];
-				
-				if (query_result == "success")
-				{
-					query = "SELECT LAST_INSERT_ID() AS id";
-					json_result = data_base.fExecuteQuery(query);
-					cout << query << "\nRESULT:\n" << json_result << endl;
-					string ability_id = json_result["data"][0]["id"];
-					json_response = "{\"status\":\"success\", \"ability_id\": \"" + ability_id + "\"}";
-				}
-				else
-					json_response = "{\"status\":\"fail\", \"message\": \"abilities is not added, sql query execution failed\"}";
-
-			}
-			else
-				json_response = "{\"status\":\"fail\", \"message\": \"character is not added, sql query execution failed\"}";
+            string query = "SELECT id, name From Classes WHERE name = '" + c_class + "';";
+            nlohmann::json json_result = data_base.fExecuteQuery(query);
+            cout << query << "\nRESULT:\n" << json_result << endl;
+            
+            if (json_result["result"] == "success" && json_result["rows"] == "1")
+            {
+                string id_class = json_result["data"][0]["id"];
+                query = "SELECT id, name From Races WHERE name = '" + race + "';";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                
+                if (json_result["result"] == "success" && json_result["rows"] == "1")
+                {
+                    string id_race = json_result["data"][0]["id"];
+                    query = "INSERT INTO CHARACTERs (name, id_race, id_class, experience, hitpoints, level, id_user) VALUES ('" + name + "', '" + id_race + "', '" + id_class + "', '" + experience + "', '" + hitpoints + "', '" + level + "', '" + id_user + "');";
+                    json_result = data_base.fExecuteQuery(query);
+                    cout << query << "\nRESULT:\n" << json_result << endl;
+                    string query_result = json_result["result"];
+                    
+                    if (query_result == "success")
+                    {
+                        query = "SELECT LAST_INSERT_ID() AS id";
+                        json_result = data_base.fExecuteQuery(query);
+                        cout << query << "\nRESULT:\n" << json_result << endl;
+                        string character_id = json_result["data"][0]["id"];
+                        json_response = "{\"status\":\"success\", \"character_id\": \"" + character_id + "\"}";
+                        
+                        string query = "INSERT INTO ABILITIES (strength, str_mod, dexterity, dex_mod, constitution, con_mod, intelligence, int_mod, wisdom, wis_mod, charisma, cha_mod, id_character) VALUES ('" + strength + "', '" + strength_mod + "', '" + dexterity + "', '" + dexterity_mod + "', '" + constitution + "', '" + constitution_mod + "', '" + intelligence + "','" + intelligence_mod + "', '" + wisdom + "','" + wisdom_mod + "', '" + charisma + "','" + charisma_mod + "', '" + character_id + "');";
+                        nlohmann::json json_result = data_base.fExecuteQuery(query);
+                        cout << query << "\nRESULT:\n" << json_result << endl;
+                        string query_result = json_result["result"];
+                        
+                        if (query_result == "success")
+                        {
+                            query = "SELECT LAST_INSERT_ID() AS id";
+                            json_result = data_base.fExecuteQuery(query);
+                            cout << query << "\nRESULT:\n" << json_result << endl;
+                            string ability_id = json_result["data"][0]["id"];
+                            //json_response = "{\"status\":\"success\", \"ability_id\": \"" + ability_id + "\"}";
+                        }
+                        else
+                            json_response += "{\"status\":\"fail\", \"message\": \"abilities is not added, sql query execution failed\"}";
+                    }
+                    else
+                        json_response = "{\"status\":\"fail\", \"message\": \"character is not added, sql query execution failed\"}";
+                }
+                else
+                    json_response = "{\"status\":\"fail\", \"message\": \"no such Character's race\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"no such Character's class\"}";
 		}
 		else
 			json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
@@ -871,7 +946,7 @@ void fSendOwnCharacterList(std::string &json_response, nlohmann::json &json_requ
     
 	if (fRetrieveUserId(id_user, session_id))
 	{
-		string query = "SELECT c.id, c.name, c.race, c.class, c.experience, c.hitpoints, c.level, c.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma, a.id_character FROM Characters c, Abilities a WHERE id_user = " + id_user + " AND c.id = a.id_character;";
+        string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma, a.id_character FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.id_user = " + id_user + " AND ch.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id;";
 		nlohmann::json json_result = data_base.fExecuteQuery(query);
 		cout << query << "\nRESULT:\n" << json_result << endl;
 		string query_result = json_result["result"];
@@ -1054,7 +1129,7 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
     if (fRetrieveUserId(id_user, session_id))
     {
         string name = json_request["character"];
-        string query = "SELECT c.id, c.name, c.race, c.class, c.experience, c.hitpoints, c.level, c.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma, a.id_character FROM Characters c, Abilities a WHERE c.name = '" + name + "' AND c.id = a.id_character;";
+        string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.name = '" + name + "' AND ch.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id;";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
@@ -1065,28 +1140,30 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
             int rows_qtt = stoi(rows);
             if (rows_qtt > 0)
             {
-                json_response = "{\"status\":\"success\", \"characters_quantity\":\"" + rows + "\", \"list\": [";
-                while (rows_qtt--)
-                {
-                    string character_id = json_result["data"][rows_qtt]["id"];
-                    string character = json_result["data"][rows_qtt]["name"];
-                    string race = json_result["data"][rows_qtt]["race"];
-                    string class_ = json_result["data"][rows_qtt]["class"];
-                    string experience = json_result["data"][rows_qtt]["experience"];
-                    string hitpoints = json_result["data"][rows_qtt]["hitpoints"];
-                    string level = json_result["data"][rows_qtt]["level"];
-                    string id_owner = json_result["data"][rows_qtt]["id_user"];
-                    json_response += "{\"character\": \"" + character + "\", \"character_id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\"}";
-                    if (rows_qtt)
-                        json_response += ",";
-                }
-                json_response += "]}";
+                json_response = "{\"status\":\"success\", ";
+                
+                string character_id = json_result["data"][0]["id"];
+                string character = json_result["data"][0]["name"];
+                string race = json_result["data"][0]["race"];
+                string class_ = json_result["data"][0]["class"];
+                string experience = json_result["data"][0]["experience"];
+                string hitpoints = json_result["data"][0]["hitpoints"];
+                string level = json_result["data"][0]["level"];
+                string id_owner = json_result["data"][0]["id_user"];
+                string strength = json_result["data"][0]["strength"];
+                string dexterity = json_result["data"][0]["dexterity"];
+                string constitution = json_result["data"][0]["constitution"];
+                string intelligence = json_result["data"][0]["intelligence"];
+                string wisdom = json_result["data"][0]["wisdom"];
+                string charisma = json_result["data"][0]["charisma"];
+                
+                json_response += "\"character\": \"" + character + "\", \"id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\"}";
             }
             else
-                json_response = "{\"status\":\"warning\", \"message\": \"list of your characters is empty\"}";
+                json_response = "{\"status\":\"warning\", \"message\": \"you have no such character\"}";
         }
         else
-            json_response = "{\"status\":\"fail\", \"message\": \"list of characters is not loaded, sql query execution failed\"}";
+            json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1100,16 +1177,45 @@ void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string character_id = json_request["character_id"];
-        string query = "DELETE FROM CHARACTERs WHERE id_user = '" + id_user + "' AND id = '" + character_id + "' LIMIT 1;";
+        string query = "Select id, name FROM Characters WHERE id_user = '" + id_user + "' AND id = '" + character_id + "';";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
         
         if (query_result == "success")
-            json_response = "{\"status\":\"success\", \"message\": \"your character with this id was deleted\"}";
+        {
+            string rows = json_result["rows"];
+            if (stoi(rows) > 0)
+            {
+                query = "START TRANSACTION;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                query = "DELETE FROM Abilities WHERE id_character = '" + character_id + "' LIMIT 1;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                query = "DELETE FROM Characters WHERE id_user = '" + id_user + "' AND id = '" + character_id + "' LIMIT 1;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                query = "COMMIT;";
+                json_result = data_base.fExecuteQuery(query);
+                
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                
+                if (query_result == "success")
+                    json_response = "{\"status\":\"success\", \"message\": \"your character with this id was deleted\"}";
+                else
+                    json_response = "{\"status\":\"fail\", \"message\": \"character is not deleted, sql query execution failed\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"you have no such character\"}";
+        }
         else
-            json_response = "{\"status\":\"fail\", \"message\": \"character is not deleted, sql query execution failed\"}";
+            json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1117,64 +1223,134 @@ void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request)
 
 void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
 {
-	string session_id = json_request["session_id"];
-	string id_user;
-	if (fRetrieveUserId(id_user, session_id))
-	{
-		string character_id = json_request["character_id"];
-		string name = json_request["character"];
-		string race = json_request["race"];
-		string _class = json_request["class"];
-		string experience = json_request["experience"];
-		string hitpoints = json_request["hitpoints"];
-		string level = json_request["level"];
-		string strength = json_request["strength"];
-		string strength_mod = fSetAbilityMod(strength);
-		string dexterity = json_request["dexterity"];
-		string dexterity_mod = fSetAbilityMod(dexterity);
-		string constitution = json_request["constitution"];
-		string constitution_mod = fSetAbilityMod(constitution);
-		string intelligence = json_request["intelligence"];
-		string intelligence_mod = fSetAbilityMod(intelligence);
-		string charisma = json_request["charisma"];
-		string charisma_mod = fSetAbilityMod(charisma);
-		string wisdom = json_request["wisdom"];
-		string wisdom_mod = fSetAbilityMod(wisdom);
-
-		if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(race, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(_class, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(hitpoints, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(level, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(strength, DataValidator::ABILITY) &&
-			DataValidator::fValidate(dexterity, DataValidator::ABILITY) &&
-			DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
-			DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
-			DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
-			DataValidator::fValidate(charisma, DataValidator::ABILITY))
-		{
-			string query = "UPDATE CHARACTERs SET name = '" + name + "', race = '" + race + "',  class = '" +_class +"', experience = '" + experience+"', hitpoints = '" + hitpoints + "', level = '" + level + "', WHERE id_owner = '" + id_user + "' AND id = '" + character_id + "';";
-			nlohmann::json json_result = data_base.fExecuteQuery(query);
-			cout << query << "\nRESULT:\n" << json_result << endl;
-			string query_result = json_result["result"];
-
-			if (query_result == "success")
-			{
-				query = "SELECT id, name, type, level, hitpoints, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner FROM NPCs WHERE id_owner = '" + id_user + "' AND id = '" + character_id + "';";
-				json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string npc_id = json_result["data"][0]["id"];
-				json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
-
-			}
-			else
-				json_response = "{\"status\":\"fail\", \"message\": \"npc was not updated, sql query execution failed\"}";
-		}
-		else
-			json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
-	}
-	else
-		json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string character_id = json_request["character_id"];
+        string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.id = '" + character_id + "' AND ch.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id AND id_owner = '" + id_user + "';";
+        
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        
+        if (json_result["result"] == "success")
+        {
+            string rows = json_result["rows"];
+            if (stoi(rows) > 0)
+            {
+                string name = json_request["character"];
+                string id_race = json_request["id_race"];
+                string id_class = json_request["id_class"];
+                string experience = json_request["experience"];
+                string hitpoints = json_request["hitpoints"];
+                string level = json_request["level"];
+                string strength = json_request["strength"];
+                string strength_mod = fSetAbilityMod(strength);
+                string dexterity = json_request["dexterity"];
+                string dexterity_mod = fSetAbilityMod(dexterity);
+                string constitution = json_request["constitution"];
+                string constitution_mod = fSetAbilityMod(constitution);
+                string intelligence = json_request["intelligence"];
+                string intelligence_mod = fSetAbilityMod(intelligence);
+                string charisma = json_request["charisma"];
+                string charisma_mod = fSetAbilityMod(charisma);
+                string wisdom = json_request["wisdom"];
+                string wisdom_mod = fSetAbilityMod(wisdom);
+                
+                if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(id_race, DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(id_class, DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(hitpoints, DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(level, DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(strength, DataValidator::ABILITY) &&
+                    DataValidator::fValidate(dexterity, DataValidator::ABILITY) &&
+                    DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
+                    DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
+                    DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
+                    DataValidator::fValidate(charisma, DataValidator::ABILITY))
+                {
+                    query = "SELECT id, name From Races WHERE id = '" + id_race + "';";
+                    json_result = data_base.fExecuteQuery(query);
+                    cout << query << "\nRESULT:\n" << json_result << endl;
+                    
+                    if (json_result["result"] == "success" && json_result["rows"] == "1")
+                    {
+                        string id_new_race = json_result["data"][0]["id"];
+                        query = "SELECT id, name From Classes WHERE id = '" + id_class + "';";
+                        json_result = data_base.fExecuteQuery(query);
+                        cout << query << "\nRESULT:\n" << json_result << endl;
+                        
+                        if (json_result["result"] == "success" && json_result["rows"] == "1")
+                        {
+                            string id_new_class = json_result["data"][0]["id"];
+                            query = "UPDATE Characters SET name = '" + name + "', id_race = '" + id_new_race + "', id_class = '" + id_new_class + "', experience = '" + experience + "', hitpoints = '" + hitpoints + "', level = '" + level + "' WHERE id_owner = '" + id_user + "' AND id = '" + character_id + "';";
+                            json_result = data_base.fExecuteQuery(query);
+                            cout << query << "\nRESULT:\n" << json_result << endl;
+                            
+                            if (json_result["result"] == "success")
+                            {
+                                query = "UPDATE Abilities SET strength = '" + strength + "', str_mod = '" + strength_mod + "', dexterity = '" + dexterity + "', dex_mod = '" + dexterity_mod + "', constitution = '" + constitution + "', con_mod = '" + constitution_mod + "', intelligence = '" + intelligence + "', int_mod = '" + intelligence_mod + "', wisdom = '" + wisdom + "', wis_mod = '" + wisdom_mod + "', charisma = '" + charisma + "', cha_mod = '" + charisma_mod + "' WHERE id_character = '" + character_id + "';";
+                                json_result = data_base.fExecuteQuery(query);
+                                cout << query << "\nRESULT:\n" << json_result << endl;
+                                string query_result = json_result["result"];
+                                
+                                if (query_result == "success")
+                                {
+                                    query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.id = '" + character_id + "' AND ch.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id AND id_owner = '" + id_user + "';";
+                                    json_result = data_base.fExecuteQuery(query);
+                                    cout << query << "\nRESULT:\n" << json_result << endl;
+                                    if (query_result == "success")
+                                    {
+                                        string rows = json_result["rows"];
+                                        int rows_qtt = stoi(rows);
+                                        if (rows_qtt > 0)
+                                        {
+                                            json_response = "{\"status\":\"success\", ";
+                                            
+                                            string character_id = json_result["data"][0]["id"];
+                                            string character = json_result["data"][0]["name"];
+                                            string race = json_result["data"][0]["race"];
+                                            string class_ = json_result["data"][0]["class"];
+                                            string experience = json_result["data"][0]["experience"];
+                                            string hitpoints = json_result["data"][0]["hitpoints"];
+                                            string level = json_result["data"][0]["level"];
+                                            string id_owner = json_result["data"][0]["id_user"];
+                                            string strength = json_result["data"][0]["strength"];
+                                            string dexterity = json_result["data"][0]["dexterity"];
+                                            string constitution = json_result["data"][0]["constitution"];
+                                            string intelligence = json_result["data"][0]["intelligence"];
+                                            string wisdom = json_result["data"][0]["wisdom"];
+                                            string charisma = json_result["data"][0]["charisma"];
+                                            
+                                            json_response += "\"character\": \"" + character + "\", \"id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\"}";
+                                        }
+                                    }
+                                    else
+                                        json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
+                                }
+                                else
+                                    json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
+                            }
+                            else
+                                json_response = "{\"status\":\"fail\", \"message\": \"character was not updated, sql query execution failed\"}";
+                        }
+                        else
+                            json_response = "{\"status\":\"fail\", \"message\": \"no such Character's class\"}";
+                    }
+                    else
+                        json_response = "{\"status\":\"fail\", \"message\": \"no such Character's race\"}";
+                }
+                else
+                    json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"there is no your character with this id\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
 }
 
 void fSendBoard(std::string &json_response, nlohmann::json &json_request)
@@ -1675,6 +1851,159 @@ void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"list of your boards is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendClasses(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM Classes;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"classes_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"class\": \"" + name + "\", \"class_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of classes is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of classes is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendRaces(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM Races;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"races_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"race\": \"" + name + "\", \"race_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of races is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of races is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendNpcTypes(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM NpcTypes;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"types_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"type\": \"" + name + "\", \"type_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of npc's types is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of npc's types is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendTerrainTypes(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name FROM TerrainTypes;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"types_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string id = json_result["data"][rows_qtt]["id"];
+                    string name = json_result["data"][rows_qtt]["name"];
+                    json_response += "{\"type\": \"" + name + "\", \"type_id\": \"" + id + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of terrain types is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of terrain types is not loaded, sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";

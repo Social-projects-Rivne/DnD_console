@@ -11,35 +11,66 @@ CREATE TABLE Users (
     UNIQUE (username, password)
     );
 
+CREATE TABLE Classes (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    UNIQUE (name),
+    PRIMARY KEY (id)
+    );
+
+CREATE TABLE Races (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    UNIQUE (name),
+    PRIMARY KEY (id)
+    );
+
 CREATE TABLE Characters (
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(20) NOT NULL,
-    race VARCHAR(50) NOT NULL,
-    class VARCHAR(30) NOT NULL,
+    id_race INT NOT NULL,
+    id_class INT NOT NULL,
     experience TINYINT UNSIGNED NOT NULL,
     hitpoints TINYINT UNSIGNED NOT NULL,
     level TINYINT UNSIGNED NOT NULL,
     id_user INT NOT NULL,
     PRIMARY KEY (id),
+    FOREIGN KEY (id_race) REFERENCES Races (id),
+    FOREIGN KEY (id_class) REFERENCES Classes (id),
     FOREIGN KEY (id_user) REFERENCES Users (id)
+    );
+
+CREATE TABLE TerrainTypes (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    UNIQUE (name),
+    PRIMARY KEY (id)
     );
 
 CREATE TABLE Terrain (
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
-    type VARCHAR(50) NOT NULL,
+    id_type INT NOT NULL,
     width TINYINT UNSIGNED NOT NULL,
     height TINYINT UNSIGNED NOT NULL,
     description TEXT NOT NULL,
     id_owner INT NOT NULL,
     PRIMARY KEY (id),
+    FOREIGN KEY (id_type) REFERENCES TerrainTypes (id),
     FOREIGN KEY (id_owner) REFERENCES Users (id)
+    );
+
+CREATE TABLE NpcTypes (    
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    UNIQUE (name),
+    PRIMARY KEY (id)
     );
 
 CREATE TABLE NPCs (
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
-    type VARCHAR(50) NOT NULL,
+    id_type INT NOT NULL,
     hitpoints TINYINT UNSIGNED NOT NULL,
     level TINYINT UNSIGNED NOT NULL,
     strength TINYINT UNSIGNED NOT NULL,
@@ -50,6 +81,7 @@ CREATE TABLE NPCs (
     charisma TINYINT UNSIGNED NOT NULL,
     id_owner INT NOT NULL,
     PRIMARY KEY (id),
+    FOREIGN KEY (id_type) REFERENCES NpcTypes (id),
     FOREIGN KEY (id_owner) REFERENCES Users (id)
     );
 
