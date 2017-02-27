@@ -16,8 +16,6 @@ HttpClient::HttpClient(boost::asio::io_service& io_service, const std::string &s
 	tcp::resolver::query query(server, port);
 	_endpoint_iterator = _resolver.resolve(query);
 }
-
-
 /*
 
 

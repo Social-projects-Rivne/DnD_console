@@ -67,7 +67,7 @@ MeinMenuForm::MeinMenuForm(const sf::Event &event, sf::RenderWindow &window, std
     _dm_m_button_click = false;
     _http_client = http_client;
     this->_game_session = game_session;
-    window.create(sf::VideoMode(1280, 800), "Dungeons & Dragons");
+   // window.create(sf::VideoMode(1280, 800), "Dungeons & Dragons");
     _gui.setWindow(window);
     this->_event = event;
     fInitUIElements();

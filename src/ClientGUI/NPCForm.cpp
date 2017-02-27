@@ -126,6 +126,12 @@ void NPCForm::fInitUIElements()
     _refresh_btn->setText("Refresh NPCs List");
     _gui.add(_refresh_btn);
 
+    _delete_btn = _theme->load("Button");
+    _delete_btn->setSize(400, 50);
+    _delete_btn->setPosition(50, 445);
+    _delete_btn->setText("Delete NPC");
+    _gui.add(_delete_btn);
+
     _npc_list = _theme->load("ListBox");
     _npc_list->setPosition(50, 85);
     _npc_list->setSize(400, 240);
@@ -135,6 +141,7 @@ void NPCForm::fInitUIElements()
 
     _create_btn->connect("pressed", &NPCForm::fCreateNPC, this, _npc_name, _npc_type);
     _refresh_btn->connect("pressed", &NPCForm::fRefresh, this);
+    _delete_btn->connect("pressed", &NPCForm::fDeleteNPC, this, _npc_list);
     _back_btn->connect("pressed", &NPCForm::fDisable, this);
 }
 
@@ -155,13 +162,21 @@ void NPCForm::fCreateNPC(tgui::EditBox::Ptr name, tgui::EditBox::Ptr type)
 
 void NPCForm::fLoadNPCListBox()
 {
-
     std::string response;
     auto request = UserActions::fLoadMyNpcs(_game_session).dump();
     _http_client->fSendRequest(HttpClient::_POST, "/api/loadmynpcslist", request);
     _http_client->fGetResponse(response);
     _npc_data = json::parse(response);
     std::cout << _npc_data;
+}
+
+void NPCForm::fDeleteNPC(tgui::ListBox::Ptr npc_list)
+{
+    auto request = UserActions::fDeleteNpc(_game_session, npc_list->getSelectedItemId().toAnsiString()).dump();
+    std::string response;
+    _http_client->fSendRequest(HttpClient::_POST, "/api/deletenpc", request);
+    _http_client->fGetResponse(response);
+    std::cout << response;
 }
 
 void NPCForm::fRefresh()
@@ -179,15 +194,15 @@ void NPCForm::fDisable()
 
 NPCForm::NPCForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client)
 {
-
-    display_window = true;
-    _game_session = game_session;
-    _http_client = http_client;
+    this->_event = event;
     _gui.setWindow(window);
-    fLoadNPCListBox();
+    display_window = true;
+    _http_client = http_client;
+    _game_session = game_session;
     _updated = false;
     fInitUIElements();
-    this->_event = event;
+    fLoadNPCListBox();
+
 }
 
 void NPCForm::fUpdate(sf::RenderWindow  &window)
@@ -228,7 +243,7 @@ void NPCForm::fUpdate(sf::RenderWindow  &window)
                 for (int i = 0; i < std::stoi(quan); i++)
                 {
 
-                    _npc_list->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
+                    _npc_list->addItem(_npc_data["list"][i]["npc"], _npc_data["list"][i]["npc_id"]);
                 }
                 _updated = true;
             }

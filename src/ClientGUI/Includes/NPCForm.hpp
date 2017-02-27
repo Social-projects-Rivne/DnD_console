@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <TGUI/TGUI.hpp>
 #include "UserActions.hpp"
 #include "HttpClient.hpp"
@@ -32,7 +33,7 @@ class NPCForm
     tgui::Button::Ptr   _create_btn;
     tgui::Button::Ptr   _back_btn;
     tgui::Button::Ptr   _refresh_btn;
-    
+    tgui::Button::Ptr   _delete_btn;
     tgui::Picture::Ptr  _back;
 
     std::string _data_strength;
@@ -53,6 +54,7 @@ class NPCForm
     void fLoadNPCListBox();
     void fRefresh();
     void fDisable();
+    void fDeleteNPC(tgui::ListBox::Ptr npc_list);
 
 public:
     bool display_window;
