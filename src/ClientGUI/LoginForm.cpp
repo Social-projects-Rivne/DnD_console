@@ -114,8 +114,8 @@ void LoginForm::fUpdate(sf::RenderWindow &window)
 
             if (_main_menu_button_click)
             {
-                _menu_window = new MeinMenuForm(_event, window, _game_session, _http_client);
                 _menu_option = MAIN_MENU;
+                _menu_window = new MeinMenuForm(_event, window, _game_session, _http_client);
             }
 
             _gui.handleEvent(_event);

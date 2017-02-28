@@ -1,5 +1,5 @@
 #include "Includes/CharacterForm.hpp"
-
+#include "Includes/IniParser.hpp"
 
 void CharacterForm::fInitUIElements()
 {
@@ -313,18 +313,25 @@ void CharacterForm::fEditCharacter(tgui::ListBox::Ptr character_list)
 
 void CharacterForm::fLoadCharacterListBox()
 {
-    fLoadRaces();
-    fLoadClasses();
+//    fLoadRaces();
+//    fLoadClasses();
 
-    std::string response;
+    //IniParser pIni_parser("config.ini");
+    //auto params = pIni_parser.fGetParams();
+    //boost::asio::io_service io_service;
+    //
+    //HttpClient *http_client = new HttpClient(io_service, params["client.host"], params["client.port"]);
+    HttpClient &test = *_http_client;
 
-    auto request = UserActions::fLoadMyCharacters(_game_session).dump();
-
-    _http_client->fSendRequest(HttpClient::_POST, "/api/loadmycharacterslist", request);
-    _http_client->fGetResponse(response);
-    _character_data = json::parse(response.c_str());
-
-    std::cout << _character_data;
+   std::string response;
+   
+   auto request = UserActions::fLoadMyCharacters(_game_session).dump();
+    
+   test.fSendRequest(HttpClient::_POST, "/api/loadmycharacterslist", request);
+   test.fGetResponse(response);
+   _character_data = json::parse(response.c_str());
+   _updated = false;
+   //std::cout << _character_data;
 }
 void CharacterForm::fLoadRaces()
 {
@@ -347,7 +354,7 @@ void CharacterForm::fLoadClasses()
     _http_client->fSendRequest(HttpClient::_POST, "/api/loadclasses", request.dump());
     _http_client->fGetResponse(response);
     _character_classes = json::parse(response);
-    std::cout << _character_classes;
+   // std::cout << _character_classes;
 }
 
 void CharacterForm::fRefresh()
@@ -366,7 +373,8 @@ void CharacterForm::fDisable()
 CharacterForm::CharacterForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client)
     : _http_thread(&CharacterForm::fLoadCharacterListBox, this)
 {
-    _http_client = http_client;
+    _is_loaded = false;
+    this->_http_client = http_client;
     display_window = true;
     _gui.setWindow(window);
     _game_session = game_session;
@@ -443,27 +451,28 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
 
         try
         {
-            if (_character_data["status"] == "success" && _character_races["status"] == "success" && _character_classes["status"]=="success" && !_updated)
+            if (_character_data["status"] == "success"&&/*&& _character_races["status"] == "success" && _character_classes["status"]=="success" &&*/ !_updated)
             {
                 std::string quan = _character_data["character_quantity"];
                 for (int i = 0; i < std::stoi(quan); i++)
                 {
-
+                
                     _character_list->addItem(_character_data["list"][i]["character"], _character_data["list"][i]["character_id"]);
                 }
-
-                std::string race_quan = _character_races["races_quantity"];
-                for (int i = 0; i < std::stoi(race_quan); i++)
-                {
-                    _character_race_cbox->addItem(_character_races["list"][i]["race"], _character_races["list"][i]["race_id"]);
-                }
-
-                std::string class_quan = _character_classes["classes_quantity"];
-
-                for (int i = 0; i < std::stoi(class_quan); i++)
-                {
-                    _character_class_cbox->addItem(_character_classes["list"][i]["class"], _character_classes["list"][i]["class_id"]);
-                }
+                
+                //std::string race_quan = _character_races["races_quantity"];
+                //for (int i = 0; i < std::stoi(race_quan); i++)
+                //{
+                //    _character_race_cbox->addItem(_character_races["list"][i]["race"], _character_races["list"][i]["race_id"]);
+                //}
+                //
+                //std::string class_quan = _character_classes["classes_quantity"];
+                //
+                //for (int i = 0; i < std::stoi(class_quan); i++)
+                //{
+                //    _character_class_cbox->addItem(_character_classes["list"][i]["class"], _character_classes["list"][i]["class_id"]);
+                //}
+                
                 _updated = true;
             }
         }

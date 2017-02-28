@@ -192,7 +192,7 @@ void NPCForm::fDisable()
 }
 
 
-NPCForm::NPCForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client)
+NPCForm::NPCForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client):th(&NPCForm::fLoadNPCListBox,this)
 {
     this->_event = event;
     _gui.setWindow(window);
@@ -201,8 +201,8 @@ NPCForm::NPCForm(const sf::Event &event, sf::RenderWindow &window, std::string g
     _game_session = game_session;
     _updated = false;
     fInitUIElements();
-    fLoadNPCListBox();
-
+    //fLoadNPCListBox();
+    th.launch();
 }
 
 void NPCForm::fUpdate(sf::RenderWindow  &window)

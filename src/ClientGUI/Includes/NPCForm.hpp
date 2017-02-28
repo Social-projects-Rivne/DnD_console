@@ -10,6 +10,7 @@ class NPCForm
 {
     sf::Event _event;
     tgui::Gui _gui;
+    sf::Thread th;
 
     HttpClient *_http_client;
 

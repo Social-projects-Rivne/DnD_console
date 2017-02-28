@@ -11,7 +11,6 @@ class CharacterForm
     sf::Event _event;
     tgui::Gui _gui;
     HttpClient* _http_client;
-    //
     sf::Thread _http_thread;
 
     //UI elements 
@@ -71,6 +70,7 @@ class CharacterForm
     bool _updated;
     bool _combo_box;
     bool _create_button_click;
+    bool _is_loaded;
 
     std::string fSetAbilityMod(std::string ability);
     void fInitUIElements();

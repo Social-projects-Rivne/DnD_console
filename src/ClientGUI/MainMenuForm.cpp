@@ -91,8 +91,9 @@ void MeinMenuForm::fUpdate(sf::RenderWindow  &window)
             }
             if (_player_m_button_click)
             {
-                character_window = new CharacterForm(_event, window, _game_session, _http_client);
                 _menu_option = PLAYER_MODE;
+
+                character_window = new CharacterForm(_event, window, _game_session, _http_client);
             }
 
 

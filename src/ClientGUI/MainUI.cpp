@@ -13,6 +13,7 @@ int main()
     try
     {
         boost::asio::io_service io_service;
+
         HttpClient *http_client=new HttpClient(io_service, params["client.host"], params["client.port"]);
         //HttpClient* client = new HttpClient(io_service, "localhost", "15000");
 
