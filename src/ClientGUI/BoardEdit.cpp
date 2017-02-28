@@ -2,6 +2,20 @@
 
 #include <iostream>
 
+void BoardEdit::fLoadUiElems()
+{
+    _elems_list_box = _theme->load("ListBox");
+    _elems_list_box->setSize(200, 300);
+    _elems_list_box->setPosition(300, 50);
+
+    _elems_combo = _theme->load("ComboBox");
+    _elems_combo->setSize(200, 45);
+    _elems_combo->setPosition(300, 0);
+
+    _gui.add(_elems_list_box);
+    _gui.add(_elems_combo);
+}
+
 void BoardEdit::fLoadNpcs(sf::RenderWindow &window)
 {
     
@@ -48,8 +62,29 @@ void BoardEdit::fLoadNpcs(sf::RenderWindow &window)
 
 }
 
-BoardEdit::BoardEdit(const int &height,const int & width, const sf::Event & event, sf::RenderWindow &window)
+void BoardEdit::fLoadElemsData()
 {
+    std::string response;
+    std::string test = "{\"session_id\":\"1\"}";
+    _client->fSendRequest(HttpClient::_POST, "/api/loadmynpcslist", test);
+    _client->fGetResponse(response);
+    _npc_data = json::parse(response.c_str());
+    std::cout << _npc_data << std::endl;
+    _client->fSendRequest(HttpClient::_POST, "/api/loadmyterrainslist", test);
+    response = "";
+    _client->fGetResponse(response);
+    _terrain_data = json::parse(response.c_str());
+    std::cout << _terrain_data << std::endl;
+    _is_loaded = true;
+}
+
+BoardEdit::BoardEdit(const int &height, const int & width, const sf::Event & event, sf::RenderWindow &window, HttpClient* cl)
+    : _load_data_thread(&BoardEdit::fLoadElemsData, this)
+{
+    _is_loaded = false;
+    _client = cl;
+    _gui.setWindow(window);
+    _theme = tgui::Theme::create("sprites/Theme/Black.txt");
     _elems_unique_id_on_board = 0;
     this->_height = height;
     this->_width = width;
@@ -73,12 +108,65 @@ BoardEdit::BoardEdit(const int &height,const int & width, const sf::Event & even
     _submit_sprite.setPosition(window.getSize().x - _submit_sprite.getGlobalBounds().width,
                                window.getSize().y - _submit_sprite.getGlobalBounds().height);
 
-
+    _selected_elem_lbox = -1;
+    _load_data_thread.launch();
+    fLoadUiElems();
     fLoadNpcs(window);
 }
 
 void BoardEdit::fUpdate(sf::RenderWindow & window)
 {
+    if (_is_loaded && _npc_data["status"] == "success")
+    {
+        _elems_combo->addItem("NPC", "npc");
+        _elems_combo->addItem("Terrain", "terr");
+        _elems_combo->setSelectedItemById("npc");
+        std::string quan = _npc_data["npcs_quantity"];
+        _elems_list_box->removeAllItems();
+        for (int i = 0; i < std::stoi(quan); i++)
+        {
+            _elems_list_box->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
+        }
+        _is_loaded = false;
+        _is_updated_list_box = true;
+        _selected_combo_option = _elems_combo->getSelectedItemId();
+    }
+
+    if (_elems_combo->getSelectedItemId() != _selected_combo_option)
+    {
+        _is_updated_list_box = false;
+        _selected_combo_option = _elems_combo->getSelectedItemId();
+    }
+
+    if (!_is_updated_list_box)
+    {
+        if (_selected_combo_option.toAnsiString() == "npc")
+        {
+            _elems_list_box->removeAllItems();
+            if (_npc_data["status"] == "success")
+            {
+                std::string quan = _npc_data["npcs_quantity"];
+                for (int i = 0; i < std::stoi(quan); i++)
+                {
+                    _elems_list_box->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
+                }
+            }
+        }
+        else if (_selected_combo_option.toAnsiString() == "terr")
+        {
+            _elems_list_box->removeAllItems();
+            if (_terrain_data["status"] == "success")
+            {
+                std::string quan = _terrain_data["terrains_quantity"];
+                for (int i = 0; i < std::stoi(quan); i++)
+                {
+                    _elems_list_box->addItem(_terrain_data["list"][i]["terrain"], std::to_string(i));
+                }
+            }
+        }
+        _is_updated_list_box = true;
+    }
+
     while (window.pollEvent(_event) && draw_window)
     {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
@@ -140,6 +228,33 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
         //LMB released
         if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
         {
+
+            if (_elems_list_box->getPosition().x <= _event.mouseButton.x &&
+                _elems_list_box->getPosition().x + _elems_list_box->getSize().x >= _event.mouseButton.x &&
+                _elems_list_box->getPosition().y <= _event.mouseButton.y &&
+                _elems_list_box->getPosition().y + _elems_list_box->getSize().y >= _event.mouseButton.y)
+            {
+                std::string tmp = _elems_list_box->getSelectedItemId().toAnsiString();
+                try
+                {
+                    _selected_elem_lbox = std::stoi(tmp);
+                    if (_selected_combo_option.toAnsiString() == "npc")
+                    {
+
+                    }
+                    else if (_selected_combo_option.toAnsiString() == "terr")
+                    {
+
+                    }
+                }
+                catch (const std::exception&)
+                {
+                    _selected_elem_lbox = -1;
+                }
+                std::cout << _selected_elem_lbox;
+            }
+
+
             if (dragging)
             {
 
@@ -243,6 +358,8 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
             }
 
         }
+
+        _gui.handleEvent(_event);
     }
     if (dragging)
     {
@@ -275,4 +392,5 @@ void BoardEdit::fDraw(sf::RenderWindow & window)
         _elems_on_board.find(_selected_elem_on_board) != _elems_on_board.end())
         window.draw(_elems_on_board[_selected_elem_on_board].elem_sprite);
 
+    _gui.draw();
 }

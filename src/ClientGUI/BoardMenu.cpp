@@ -9,7 +9,7 @@ BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window, HttpClie
     _board_id = -1;
     fLoadUiElements(window);
     _client = client;
-    updated = false;
+    updated = true;
     try
     {
         //http_thread = new sf::Thread(&BoardMenu::fLoadBoardListBox, this);
@@ -31,27 +31,24 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
     {
     case BoardMenu::NONE:
     {
+        try
+        {
+            if (_board_data["status"] == "success" && !updated)
+            {
+                std::string quan = _board_data["boards_quantity"];
+                for (int i = 0; i < std::stoi(quan); i++)
+                {
+                    _list_of_board->addItem(_board_data["list"][i]["board"], std::to_string(i));
+                }
+                updated = true;
+            }
+        }
+        catch (const std::exception&)
+        {
+
+        }
         while (window.pollEvent(_event))
         {
-            try
-            {
-                if (_board_data["status"] == "success" && !updated)
-                {
-                    std::string quan = _board_data["boards_quantity"];
-                    for (int i = 0; i < std::stoi(quan); i++)
-                    {
-                        _list_of_board->addItem(_board_data["list"][i]["board"], std::to_string(i));
-                    }
-                    updated = true;
-                }
-            }
-            catch (const std::exception&)
-            {
-
-            }
-
-
-
             if (_event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
                 window.close();
 
@@ -63,7 +60,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                     {
                         std::string height = _board_data["list"][_board_id]["height"];
                         std::string width = _board_data["list"][_board_id]["width"];
-                        edit_board = new BoardEdit(std::stoi(height), std::stoi(width), _event, window);
+                        edit_board = new BoardEdit(std::stoi(height), std::stoi(width), _event, window, _client);
                         _menu_option = _selected_menu::EDIT_BOARD;
                     }
                 }
@@ -78,7 +75,6 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                 {
                     _list_of_board->removeAllItems();
                     http_thread.launch();
-                    updated = false;
                     //fLoadBoardListBox();
                 }
 
@@ -87,7 +83,6 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                     _list_of_board->getPosition().y <= _event.mouseButton.y &&
                     _list_of_board->getPosition().y + _list_of_board->getSize().y >= _event.mouseButton.y)
                 {
-                    std::cout << "inside" << std::endl;
                     std::string tmp = _list_of_board->getSelectedItemId().toAnsiString();
                     try
                     {
@@ -235,4 +230,5 @@ void BoardMenu::fLoadBoardListBox()
     _client->fGetResponse(response);
     _board_data = json::parse(response);
     std::cout << _board_data;
+    updated = false;
 }
