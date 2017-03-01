@@ -517,7 +517,7 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
     string id_user;
     if (fRetrieveUserId(id_user, session_id))
     {
-        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE t.id_owner = '" + id_user + "';";
+        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE t.id_owner = '" + id_user + "' AND t.id_type = type.id;";
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
