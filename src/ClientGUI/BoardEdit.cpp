@@ -62,6 +62,9 @@ void BoardEdit::fLoadNpcs(sf::RenderWindow &window)
 
 }
 
+
+
+
 void BoardEdit::fLoadElemsData()
 {
     std::string response;
@@ -76,6 +79,75 @@ void BoardEdit::fLoadElemsData()
     _terrain_data = json::parse(response.c_str());
     std::cout << _terrain_data << std::endl;
     _is_loaded = true;
+}
+
+
+void BoardEdit::fNPCTexturesLoader()
+{
+}
+
+void BoardEdit::fLoadTerrPreview()
+{
+}
+
+void BoardEdit::fLoadNPCPreview()
+{
+    std::string elem_type = _npc_data["list"][_selected_elem_lbox]["type"];
+    if (elem_type == "Elf")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Goblin250.png");
+    }
+    else if (elem_type == "Fey")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Fairy250.png");
+    }
+    else if (elem_type == "Giant")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Golem250.png");
+    }
+    else if (elem_type == "Dragon")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Dragon250.png");
+    }
+    else if (elem_type == "Goblin")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Gremlin250.png");
+    }
+    else if (elem_type == "Human")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Monk250.png");
+    }
+    else if (elem_type == "Kobold")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Archer250.png");
+    }
+    else if (elem_type == "Orc")
+    {
+        _preview_el_texture.loadFromFile("sprites/Creatures250/Troglodyte.png");
+    }
+    else
+    {
+
+    }
+    _preview_el_sprite.setTexture(_preview_el_texture);
+    _preview_el_sprite.setPosition(_elems_list_box->getPosition().x, _elems_list_box->getPosition().y + _elems_list_box->getSize().y + 10);
+    _preview_el_sprite.setScale(0.5, 0.5);
+    
+}
+
+void BoardEdit::fLoadPreview()
+{
+    std::cout << "inside" << std::endl;
+    if (_selected_combo_option.toAnsiString() == "npc")
+    {
+        std::cout << "Preview of: " << _npc_data["list"][_selected_elem_lbox]["npc"] << std::endl;
+        fLoadNPCPreview();
+    }
+    else if (_selected_combo_option.toAnsiString() == "terr")
+    {
+        std::cout << "Preview of: " << _terrain_data["list"][_selected_elem_lbox]["terrain"] << std::endl;
+        fLoadTerrPreview();
+    }
 }
 
 BoardEdit::BoardEdit(const int &height, const int & width, const sf::Event & event, sf::RenderWindow &window, HttpClient* cl)
@@ -191,6 +263,21 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
                 }
             }
 
+            if (_preview_el_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
+            {
+                _elems_on_board.insert({ _elems_unique_id_on_board, _preview_el_sprite });
+                _selected_elem_on_board = _elems_unique_id_on_board;
+                dragging = true;
+                mouseRectOffset.x = _event.mouseButton.x - _preview_el_sprite.getGlobalBounds().left - _preview_el_sprite.getOrigin().x;
+                mouseRectOffset.y = _event.mouseButton.y - _preview_el_sprite.getGlobalBounds().top -  _preview_el_sprite.getOrigin().y;
+                _elems_on_board[_selected_elem_on_board].elem_sprite.setScale
+                    (_cell_size / _elems_on_board[_selected_elem_on_board].elem_sprite.getGlobalBounds().width * 
+                        _elems_on_board[_selected_elem_on_board].elem_sprite.getScale().x,
+                     _cell_size / _elems_on_board[_selected_elem_on_board].elem_sprite.getGlobalBounds().height * 
+                        _elems_on_board[_selected_elem_on_board].elem_sprite.getScale().y);
+            }
+
+
             //handle dragging for npcs on board
             for (auto& npc : _elems_on_board)
             {
@@ -238,14 +325,7 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
                 try
                 {
                     _selected_elem_lbox = std::stoi(tmp);
-                    if (_selected_combo_option.toAnsiString() == "npc")
-                    {
-
-                    }
-                    else if (_selected_combo_option.toAnsiString() == "terr")
-                    {
-
-                    }
+                    fLoadPreview();
                 }
                 catch (const std::exception&)
                 {
@@ -391,6 +471,11 @@ void BoardEdit::fDraw(sf::RenderWindow & window)
     if (_elems_on_board.size() > 0 && 
         _elems_on_board.find(_selected_elem_on_board) != _elems_on_board.end())
         window.draw(_elems_on_board[_selected_elem_on_board].elem_sprite);
+
+    if (_selected_elem_lbox > -1)
+    {
+        window.draw(_preview_el_sprite);
+    }
 
     _gui.draw();
 }

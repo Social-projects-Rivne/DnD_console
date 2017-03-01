@@ -40,6 +40,11 @@ private:
     sf::Sprite  _submit_sprite;
     //
 
+    // preview elem texture & sprite
+    sf::Texture _preview_el_texture;
+    sf::Sprite  _preview_el_sprite;
+    //
+
     //board ui
     sf::Texture _board_elems_texture;
     sf::Sprite  _board_elems_sprite;
@@ -91,6 +96,11 @@ private:
     void fLoadNpcs(sf::RenderWindow &window);
 
     void fLoadElemsData();
+
+    void fNPCTexturesLoader();
+    void fLoadTerrPreview();
+    void fLoadNPCPreview();
+    void fLoadPreview();
 
 public:
     bool draw_window;
