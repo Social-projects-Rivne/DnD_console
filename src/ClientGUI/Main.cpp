@@ -10,7 +10,7 @@ int main()
     HttpClient* client = new HttpClient(io_service, "localhost", "15000");
 
 
-	sf::RenderWindow window(sf::VideoMode(800, 600), "dnd");
+	sf::RenderWindow window(sf::VideoMode(1920, 1080), "dnd", sf::Style::Fullscreen);
     
     window.setMouseCursorVisible(false);
     sf::Texture mouse_cursor;

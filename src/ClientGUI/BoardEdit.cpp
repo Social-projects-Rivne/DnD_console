@@ -187,7 +187,7 @@ BoardEdit::BoardEdit(const int &height, const int & width, const sf::Event & eve
                                window.getSize().y - _submit_sprite.getGlobalBounds().height);
 
     _spawn_point.setSize(sf::Vector2f(_cell_size, _cell_size));
-    _spawn_point.setFillColor(sf::Color(0, 255, 0));
+    _spawn_point.setFillColor(sf::Color(0, 255, 0, 133));
     _spawn_point.setPosition(-100, -100);
 
     _selected_elem_lbox = -1;
@@ -260,7 +260,7 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
         // set spawn point
         if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Right)
         {
-            if (_board_sprite.getGlobalBounds().contains(_event.mouseMove.x, _event.mouseMove.y))
+            if (_board_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
             {
                 _is_setted_spawn_point = true; //
                 for (int i = 0; i < _width; i++)
@@ -383,9 +383,12 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
                     spawn_json["pos_y"] = std::to_string(_spawn_posY);
                     spawn_json["type"]  = "spawn";
                     elems_arr.push_back(spawn_json);
+                    _elems_json["data_count"] = _elems_on_board.size()+1;
                 }
-
-                _elems_json["data_count"] = _elems_on_board.size();
+                else
+                {
+                    _elems_json["data_count"] = _elems_on_board.size();
+                }
                 _elems_json["data"] = elems_arr;
                 std::cout << std::setw(2) << _elems_json;
             }
