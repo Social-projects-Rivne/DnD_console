@@ -166,7 +166,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                       fSendDefinedCharacter(response, json_request);
                     else if (path.find("/api/deletecharacter") != string::npos)
                       fDeleteCharacter(response, json_request);
-                    else if (path.find("/api/editcharacter"))
+                    else if (path.find("/api/editcharacter") != string::npos)
                       fEditCharacter(response, json_request);
                     else if (path.find("/api/addboard") != string::npos)
                       fSaveBoard(response, json_request);
@@ -1228,7 +1228,7 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
     if (fRetrieveUserId(id_user, session_id))
     {
         string character_id = json_request["character_id"];
-        string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.id = '" + character_id + "' AND ch.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id AND id_owner = '" + id_user + "';";
+        string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.id = '" + character_id + "' AND ch.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id AND id_user = '" + id_user + "';";
         
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
@@ -1239,8 +1239,8 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
             if (stoi(rows) > 0)
             {
                 string name = json_request["character"];
-                string id_race = json_request["id_race"];
-                string id_class = json_request["id_class"];
+                string race_name = json_request["race"];
+                string class_name = json_request["class"];
                 string experience = json_request["experience"];
                 string hitpoints = json_request["hitpoints"];
                 string level = json_request["level"];
@@ -1258,8 +1258,8 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
                 string wisdom_mod = fSetAbilityMod(wisdom);
                 
                 if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
-                    DataValidator::fValidate(id_race, DataValidator::SQL_INJECTION) &&
-                    DataValidator::fValidate(id_class, DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(race_name, DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(class_name, DataValidator::SQL_INJECTION) &&
                     DataValidator::fValidate(hitpoints, DataValidator::SQL_INJECTION) &&
                     DataValidator::fValidate(level, DataValidator::SQL_INJECTION) &&
                     DataValidator::fValidate(strength, DataValidator::ABILITY) &&
@@ -1269,21 +1269,21 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
                     DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
                     DataValidator::fValidate(charisma, DataValidator::ABILITY))
                 {
-                    query = "SELECT id, name From Races WHERE id = '" + id_race + "';";
+                    query = "SELECT id, name From Races WHERE name = '" + race_name + "';";
                     json_result = data_base.fExecuteQuery(query);
                     cout << query << "\nRESULT:\n" << json_result << endl;
                     
                     if (json_result["result"] == "success" && json_result["rows"] == "1")
                     {
                         string id_new_race = json_result["data"][0]["id"];
-                        query = "SELECT id, name From Classes WHERE id = '" + id_class + "';";
+                        query = "SELECT id, name From Classes WHERE name = '" + class_name + "';";
                         json_result = data_base.fExecuteQuery(query);
                         cout << query << "\nRESULT:\n" << json_result << endl;
                         
                         if (json_result["result"] == "success" && json_result["rows"] == "1")
                         {
                             string id_new_class = json_result["data"][0]["id"];
-                            query = "UPDATE Characters SET name = '" + name + "', id_race = '" + id_new_race + "', id_class = '" + id_new_class + "', experience = '" + experience + "', hitpoints = '" + hitpoints + "', level = '" + level + "' WHERE id_owner = '" + id_user + "' AND id = '" + character_id + "';";
+                            query = "UPDATE Characters SET name = '" + name + "', id_race = '" + id_new_race + "', id_class = '" + id_new_class + "', experience = '" + experience + "', hitpoints = '" + hitpoints + "', level = '" + level + "' WHERE id_user = '" + id_user + "' AND id = '" + character_id + "';";
                             json_result = data_base.fExecuteQuery(query);
                             cout << query << "\nRESULT:\n" << json_result << endl;
                             
