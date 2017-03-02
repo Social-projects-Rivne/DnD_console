@@ -13,11 +13,22 @@ class BoardEdit
 private:
     //sfml event
     sf::Event _event;
+    //
+
+    //// TGUI ELEMS
+    tgui::Gui           _gui;
+    tgui::Theme::Ptr    _theme;
+    tgui::ListBox::Ptr  _elems_list_box;
+    tgui::ComboBox::Ptr _elems_combo;
+
+    //// END OF TGUI ELEMS
+
 
     //handle TGUI combo
     sf::String _selected_combo_option;
     bool       _is_updated_list_box;
     int        _selected_elem_lbox;
+    //
 
     // http thread
     sf::Thread _load_data_thread;
@@ -35,6 +46,14 @@ private:
     float _cell_size;
     //
 
+    // Spawn point
+    int _spawn_abs_posX;
+    int _spawn_abs_posY;
+    int _spawn_posX;
+    int _spawn_posY;
+    sf::RectangleShape _spawn_point;
+    bool               _is_setted_spawn_point;
+
     // buttons textures & sprites
     sf::Texture _submit_button;
     sf::Sprite  _submit_sprite;
@@ -45,25 +64,24 @@ private:
     sf::Sprite  _preview_el_sprite;
     //
 
-    //board ui
-    sf::Texture _board_elems_texture;
-    sf::Sprite  _board_elems_sprite;
-    //
-
     //board texture & sprite
     sf::Texture _board_texture;
     sf::Sprite  _board_sprite;
     //
-    
-    //npc & terrain textures
-    std::vector<std::shared_ptr<sf::Texture>> _npc_textures;
-    std::vector<std::shared_ptr<sf::Texture>> _terrain_textures;
-    //
 
-    //npc & terrain sprites in menu
-    std::vector<sf::Sprite>  _npc_sprites;
-    std::vector<sf::Sprite>  _terrain_sprites;
+
+    ////// Texture loader
+    // npc textures
+    sf::Texture _npc_text[8];
+    sf::Sprite  _npc_spr[8];
+
+    // terrain textres
+    sf::Texture  _terrain_text[6];
+    sf::Sprite   _terrain_spr[6];
+
+    int         _selected_prev_el;
     //
+    //////
 
     // npc & terrains on board
     int _elems_unique_id_on_board;
@@ -80,23 +98,13 @@ private:
     sf::Vector2f mouseRectOffset;
     //
 
-    //// TGUI ELEMS
-    tgui::Gui           _gui;
-    tgui::Theme::Ptr    _theme;
-    tgui::ListBox::Ptr  _elems_list_box;
-    tgui::ComboBox::Ptr _elems_combo;
-
-    //// END OF TGUI ELEMS
-
-
     // Load UI Elems
-    void fLoadUiElems();
+    void fLoadUiElems(sf::RenderWindow& window);
 
-    // NPC & Terrain Loader
-    void fLoadNpcs(sf::RenderWindow &window);
-
+    //http data loader
     void fLoadElemsData();
 
+    // NPC & Terrain Loader
     void fNPCTexturesLoader();
     void fLoadTerrPreview();
     void fLoadNPCPreview();
