@@ -117,8 +117,8 @@ CREATE TABLE Boards (
     width TINYINT UNSIGNED NOT NULL,
     height TINYINT UNSIGNED NOT NULL,
     description TEXT NOT NULL,
-    spawn_x TINYINT UNSIGNED NOT NULL,
-    spawn_y TINYINT UNSIGNED NOT NULL,    
+    spawn_x TINYINT NOT NULL,
+    spawn_y TINYINT NOT NULL,    
     id_owner INT NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (id_owner) REFERENCES Users (id)
