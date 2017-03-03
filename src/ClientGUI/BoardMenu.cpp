@@ -59,8 +59,14 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                     if (_board_id >= 0)
                     {
                         std::string height = _board_data["list"][_board_id]["height"];
-                        std::string width = _board_data["list"][_board_id]["width"];
-                        edit_board = new BoardEdit(std::stoi(height), std::stoi(width), _event, window, _client);
+                        std::string width  = _board_data["list"][_board_id]["width"];
+                        std::string id     = _board_data["list"][_board_id]["id"];
+                        edit_board = new BoardEdit(std::stoi(height),
+                        		                   std::stoi(width),
+												   id,
+												   _event,
+												   window,
+												   _client);
                         _menu_option = _selected_menu::EDIT_BOARD;
                     }
                 }

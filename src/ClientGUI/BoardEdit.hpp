@@ -20,6 +20,7 @@ private:
     tgui::Theme::Ptr    _theme;
     tgui::ListBox::Ptr  _elems_list_box;
     tgui::ComboBox::Ptr _elems_combo;
+    tgui::EditBox::Ptr  _board_name_box;
 
     //// END OF TGUI ELEMS
 
@@ -33,15 +34,23 @@ private:
     // http thread
     sf::Thread _load_data_thread;
     bool _is_loaded;
+
+    sf::Thread _upload_thread;
+    bool _is_uploaded;
     //
 
     //http client
     HttpClient* _client;
     json        _npc_data;
     json        _terrain_data;
+    json        _upload_data;
+    json        _upload_response;
+    json        _old_board_data;
     //
 
-    //board size
+    //board data
+    std::string _board_id;
+    std::string _board_name;
     int _height, _width;
     float _cell_size;
     //
@@ -86,7 +95,6 @@ private:
     // npc & terrains on board
     int _elems_unique_id_on_board;
     int _selected_elem_on_board;
-    json _elems_json;
     std::map<int, HandleBoardElems> _elems_on_board;
     //
 
@@ -109,11 +117,18 @@ private:
     void fLoadTerrPreview();
     void fLoadNPCPreview();
     void fLoadPreview();
+    void fUploadData();
+
 
 public:
     bool draw_window;
 
-    BoardEdit(const int &height, const int &width, const sf::Event &event, sf::RenderWindow &window, HttpClient* cl);
+    BoardEdit(const int &height,
+    		  const int &width,
+			  const std::string &id,
+			  const sf::Event &event,
+			  sf::RenderWindow &window,
+			  HttpClient* cl);
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);
 

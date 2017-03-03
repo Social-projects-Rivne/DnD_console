@@ -4,6 +4,9 @@
 
 void BoardEdit::fLoadUiElems(sf::RenderWindow &window)
 {
+	_board_name_box = _theme->load("EditBox");
+	_board_name_box->setSize(300, 35);
+	_board_name_box->setPosition(5, 5);
 
     _elems_combo = _theme->load("ComboBox");
     _elems_combo->setSize(200, 45);
@@ -15,6 +18,7 @@ void BoardEdit::fLoadUiElems(sf::RenderWindow &window)
     _elems_list_box->setPosition(_elems_combo->getPosition().x,
                                  _elems_combo->getPosition().y + _elems_combo->getSize().y);
 
+    _gui.add(_board_name_box);
     _gui.add(_elems_list_box);
     _gui.add(_elems_combo);
 }
@@ -23,7 +27,7 @@ void BoardEdit::fLoadUiElems(sf::RenderWindow &window)
 void BoardEdit::fLoadElemsData()
 {
     std::string response;
-    std::string test = "{\"session_id\":\"1\"}";
+    std::string test = "{\"session_id\":\"1\", \"board_id\": \""+_board_id+"\"}";
     _client->fSendRequest(HttpClient::_POST, "/api/loadmynpcslist", test);
     _client->fGetResponse(response);
     _npc_data = json::parse(response.c_str());
@@ -34,6 +38,14 @@ void BoardEdit::fLoadElemsData()
     _terrain_data = json::parse(response.c_str());
     std::cout << _terrain_data << std::endl;
     _is_loaded = true;
+    response = "";
+    _client->fSendRequest(HttpClient::_POST, "/api/loadboard", test);
+    _client->fGetResponse(response);
+    _old_board_data = json::parse(response.c_str());
+    _board_name = _old_board_data["board"];
+    _board_name_box->setText(_board_name);
+    std::cout << std::setw(2) << _old_board_data;
+
 }
 
 
@@ -160,9 +172,63 @@ void BoardEdit::fLoadPreview()
     }
 }
 
-BoardEdit::BoardEdit(const int &height, const int & width, const sf::Event & event, sf::RenderWindow &window, HttpClient* cl)
-    : _load_data_thread(&BoardEdit::fLoadElemsData, this)
+void BoardEdit::fUploadData()
 {
+	_load_data_thread.wait();
+    json elems_arr;
+    for (auto &elems : _elems_on_board)
+    {
+        if (elems.second.is_on_board)
+        {
+            json elem;
+            elem["id"]    = elems.second.elem_id;
+            elem["pos_x"] = std::to_string(elems.second.position_on_board.x);
+            elem["pos_y"] = std::to_string(elems.second.position_on_board.y);
+            elem["type"]  = elems.second.type;
+            elems_arr.push_back(elem);
+        }
+    }
+    if (_is_setted_spawn_point)
+    {
+        json spawn_json;
+        spawn_json["pos_x"] = std::to_string(_spawn_posX);
+        spawn_json["pos_y"] = std::to_string(_spawn_posY);
+        spawn_json["type"]  = "spawn";
+        elems_arr.push_back(spawn_json);
+        _upload_data["data_count"] = _elems_on_board.size()+1;
+    }
+    else
+    {
+        _upload_data["data_count"] = _elems_on_board.size();
+    }
+    _upload_data["name"]       = _board_name_box->getText().toAnsiString();
+    _upload_data["board_id"]   = _board_id;
+    _upload_data["data"] = elems_arr;
+    std::cout << std::setw(2) << _upload_data;
+    _upload_data["session_id"] = "1";
+
+
+    //// send to server
+    std::string response;
+    _client->fSendRequest(HttpClient::_POST, "/api/editboard", _upload_data.dump());
+    _client->fGetResponse(response);
+
+    _upload_response = json::parse(response);
+    std::cout << std::setw(2) << _upload_response;
+
+}
+
+
+BoardEdit::BoardEdit(const int &height,
+		             const int & width,
+		             const std::string & board_id,
+					 const sf::Event & event,
+					 sf::RenderWindow &window,
+					 HttpClient* cl)
+    : _load_data_thread(&BoardEdit::fLoadElemsData, this), _upload_thread(&BoardEdit::fUploadData, this)
+{
+	_board_id = board_id;
+	_is_uploaded = false;
     _is_loaded = false;
     _is_setted_spawn_point = false;
     _client = cl;
@@ -179,6 +245,7 @@ BoardEdit::BoardEdit(const int &height, const int & width, const sf::Event & eve
     _cell_size = _board_sprite.getGlobalBounds().height/16.f;
 
     _board_sprite.setTextureRect(sf::IntRect(0, 0, _width*_cell_size, _height*_cell_size));
+    _board_sprite.setPosition(5,45);
 
     _submit_button.loadFromFile("sprites/Interface/Button/LongMenuButton.png");
     _submit_sprite.setTexture(_submit_button);
@@ -191,9 +258,9 @@ BoardEdit::BoardEdit(const int &height, const int & width, const sf::Event & eve
     _spawn_point.setPosition(-100, -100);
 
     _selected_elem_lbox = -1;
+    fLoadUiElems(window);
     _load_data_thread.launch();
     fNPCTexturesLoader();
-    fLoadUiElems(window);
 }
 
 void BoardEdit::fUpdate(sf::RenderWindow & window)
@@ -252,7 +319,11 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
     while (window.pollEvent(_event) && draw_window)
     {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
+        {
+        	_load_data_thread.terminate();
+        	_upload_thread.terminate();
             draw_window = false;
+        }
 
         if (_event.type == sf::Event::Closed)
             window.close();
@@ -265,18 +336,20 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
                 _is_setted_spawn_point = true; //
                 for (int i = 0; i < _width; i++)
                 {
-                    if (_event.mouseButton.x >= _cell_size*i && _event.mouseButton.x <= _cell_size*(i + 1))
+                    if (_event.mouseButton.x >= _board_sprite.getPosition().x + _cell_size*i &&
+                        _event.mouseButton.x <= _board_sprite.getPosition().x + _cell_size*(i + 1))
                     {
-                        _spawn_abs_posX = _cell_size*i;
+                        _spawn_abs_posX = _board_sprite.getPosition().x + _cell_size*i;
                         _spawn_posX = i + 1;
                     }
                 }
 
                 for (int i = 0; i < _height; i++)
                 {
-                    if (_event.mouseButton.y >= _cell_size*i && _event.mouseButton.y <= _cell_size*(i + 1))
+                    if (_event.mouseButton.y >= _board_sprite.getPosition().y + _cell_size*i &&
+                    	_event.mouseButton.y <= _board_sprite.getPosition().y + _cell_size*(i + 1))
                     {
-                        _spawn_abs_posY = _cell_size*i;
+                        _spawn_abs_posY = _board_sprite.getPosition().y + _cell_size*i;
                         _spawn_posY = i + 1;
                     }
                 }
@@ -363,34 +436,7 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
 
             if (_submit_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
             {
-                json elems_arr;
-                for (auto &elems : _elems_on_board)
-                {
-                    if (elems.second.is_on_board)
-                    {
-                        json elem;
-                        elem["id"]    = elems.second.elem_id;
-                        elem["pos_x"] = std::to_string(elems.second.position_on_board.x);
-                        elem["pos_y"] = std::to_string(elems.second.position_on_board.y);
-                        elem["type"]  = elems.second.type;
-                        elems_arr.push_back(elem);
-                    }
-                }
-                if (_is_setted_spawn_point)
-                {
-                    json spawn_json;
-                    spawn_json["pos_x"] = std::to_string(_spawn_posX);
-                    spawn_json["pos_y"] = std::to_string(_spawn_posY);
-                    spawn_json["type"]  = "spawn";
-                    elems_arr.push_back(spawn_json);
-                    _elems_json["data_count"] = _elems_on_board.size()+1;
-                }
-                else
-                {
-                    _elems_json["data_count"] = _elems_on_board.size();
-                }
-                _elems_json["data"] = elems_arr;
-                std::cout << std::setw(2) << _elems_json;
+            	_upload_thread.launch();
             }
         }
         
@@ -432,9 +478,10 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
 
                     for (int i = 0; i < _width; i++)
                     {
-                        if (_event.mouseButton.x >= _cell_size*i && _event.mouseButton.x <= _cell_size*(i + 1))
+                        if (_event.mouseButton.x >= _board_sprite.getPosition().x + _cell_size*i &&
+                        	_event.mouseButton.x <= _board_sprite.getPosition().x + _cell_size*(i + 1))
                         {
-                            ssX = _cell_size*i;
+                            ssX = _board_sprite.getPosition().x + _cell_size*i;
                             posX = i + 1;
                             std::cout << "Texture X pos - " << posX << std::endl;
                         }
@@ -442,9 +489,10 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
 
                     for (int i = 0; i < _height; i++)
                     {
-                        if (_event.mouseButton.y >= _cell_size*i && _event.mouseButton.y <= _cell_size*(i + 1))
+                        if (_event.mouseButton.y >= _board_sprite.getPosition().y + _cell_size*i &&
+                        	_event.mouseButton.y <= _board_sprite.getPosition().y + _cell_size*(i + 1))
                         {
-                            ssY = _cell_size*i;
+                            ssY = _board_sprite.getPosition().y + _cell_size*i;
                             posY = i + 1;
                             std::cout << "Texture Y pos - " << posY << std::endl;
                         }
