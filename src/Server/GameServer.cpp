@@ -133,51 +133,51 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                     nlohmann::json json_request = json::parse(request_data_content.c_str());
 
                     if (path.find("/api/userlogin") != string::npos)
-                      fUserLogIn(response, json_request);
+                        fUserLogIn(response, json_request);
                     else if (path.find("/api/userregister") != string::npos)
-                      fUserRegistration(response, json_request);
+                        fUserRegistration(response, json_request);
                     else if (path.find("/api/userlogout") != string::npos)
                         fUserLogOut(response, json_request);
                     else if (path.find("/api/addterrain") != string::npos)
-                      fSaveTerrain(response, json_request);
+                        fSaveTerrain(response, json_request);
                     else if (path.find("/api/loadterrain") != string::npos)
-                      fSendTerrain(response, json_request);
+                        fSendTerrain(response, json_request);
                     else if (path.find("/api/loaddefinedterrains") != string::npos)
-                      fSendDefinedTerrains(response, json_request);
+                        fSendDefinedTerrains(response, json_request);
                     else if (path.find("/api/loadmyterrainslist") != string::npos)
-                      fSendOwnTerrainsList(response, json_request);
+                        fSendOwnTerrainsList(response, json_request);
                     else if (path.find("/api/addnpc") != string::npos)
-                      fSaveNpc(response, json_request);
+                        fSaveNpc(response, json_request);
                     else if (path.find("/api/loadmynpcslist") != string::npos)
-                      fSendOwnNpcsList(response, json_request);
+                        fSendOwnNpcsList(response, json_request);
                     else if (path.find("/api/loadnpc") != string::npos)
-                      fSendNpc(response, json_request);
+                        fSendNpc(response, json_request);
                     else if (path.find("/api/loadmynpc") != string::npos)
-                      fSendMyNpc(response, json_request);
+                        fSendMyNpc(response, json_request);
                     else if (path.find("/api/editnpc") != string::npos)
-                      fEditNpc(response, json_request);
+                        fEditNpc(response, json_request);
                     else if (path.find("/api/deletenpc") != string::npos)
-                      fDeleteNpc(response, json_request);
+                        fDeleteNpc(response, json_request);
                     else if (path.find("/api/addcharacter") != string::npos)
-                      fSaveCharacter(response, json_request);
+                        fSaveCharacter(response, json_request);
                     else if (path.find("/api/loadmycharacterslist") != string::npos)
-                      fSendOwnCharacterList(response, json_request);
+                        fSendOwnCharacterList(response, json_request);
                     else if (path.find("/api/loaddefinedcharacter") != string::npos)
-                      fSendDefinedCharacter(response, json_request);
+                        fSendDefinedCharacter(response, json_request);
                     else if (path.find("/api/deletecharacter") != string::npos)
-                      fDeleteCharacter(response, json_request);
+                        fDeleteCharacter(response, json_request);
                     else if (path.find("/api/editcharacter") != string::npos)
-                      fEditCharacter(response, json_request);
+                        fEditCharacter(response, json_request);
                     else if (path.find("/api/addboard") != string::npos)
-                      fSaveBoard(response, json_request);
+                        fSaveBoard(response, json_request);
                     else if (path.find("/api/addobjectonboard") != string::npos)
-                      fSaveObjectsOnBoard(response, json_request);
+                        fSaveObjectsOnBoard(response, json_request);
                     else if (path.find("/api/loadboard") != string::npos)
-                      fSendBoard(response, json_request);
+                        fSendBoard(response, json_request);
                     else if (path.find("/api/editboard") != string::npos)
-                      fEditBoard(response, json_request);
+                        fEditBoard(response, json_request);
                     else if (path.find("/api/loadmyboardslist") != string::npos)
-                      fSendOwnBoardsList(response, json_request);
+                        fSendOwnBoardsList(response, json_request);
                     else if (path.find("/api/loadclasses") != string::npos)
                         fSendClasses(response, json_request);
                     else if (path.find("/api/loadraces") != string::npos)
@@ -990,17 +990,26 @@ void fSaveBoard(std::string &json_response, nlohmann::json &json_request)
     string id_owner;
     if (fRetrieveUserId(id_owner, session_id))
     {
-        std::string name = json_request["board"];
-        std::string width = json_request["width"];
-        std::string height = json_request["height"];
-        std::string description = json_request["description"];
+        string name = json_request["board"];
+        string width = json_request["width"];
+        string height = json_request["height"];
+        string description = json_request["description"];
+        string spawn_x = "";
+        string spawn_y = "";
         
-        if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
-            DataValidator::fValidate(width, DataValidator::SQL_INJECTION) &&
-            DataValidator::fValidate(height, DataValidator::SQL_INJECTION) &&
-            DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
+        if (json_request["spawn_x"])
+            spawn_x = json_request["spawn_x"];
+        if (json_request["spawn_y"])
+            spawn_y = json_request["spawn_y"];
+        
+        if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(width,        DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(height,       DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(description,  DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(spawn_x,      DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(spawn_y,      DataValidator::SQL_INJECTION)) // checks data
         {
-            string query = "INSERT INTO Boards (name, width, height, description, id_owner) VALUES ('" + name + "', '" + width + "', '" + height + "', '" + description + "', '" + id_owner + "');";
+            string query = "INSERT INTO Boards (name, width, height, description, spawn_x, spawn_y, id_owner) VALUES ('" + name + "', '" + width + "', '" + height + "', '" + description + "', '" + spawn_x + "', '" + spawn_y + "', '" + id_owner + "');";
             nlohmann::json json_result = data_base.fExecuteQuery(query);
             cout << query << "\nRESULT:\n" << json_result << endl;
             string query_result = json_result["result"];
