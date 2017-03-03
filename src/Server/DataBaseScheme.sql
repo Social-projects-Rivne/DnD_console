@@ -117,6 +117,8 @@ CREATE TABLE Boards (
     width TINYINT UNSIGNED NOT NULL,
     height TINYINT UNSIGNED NOT NULL,
     description TEXT NOT NULL,
+    spawn_x TINYINT NOT NULL,
+    spawn_y TINYINT NOT NULL,    
     id_owner INT NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (id_owner) REFERENCES Users (id)
@@ -138,4 +140,11 @@ CREATE TABLE BN_Map (
     npc_y TINYINT UNSIGNED NOT NULL,
     FOREIGN KEY (id_board) REFERENCES Boards (id),
     FOREIGN KEY (id_npc) REFERENCES NPCs (id)
+    );
+
+CREATE TABLE BoardChar (
+    id_board INT NOT NULL,
+    id_character INT NOT NULL,
+    FOREIGN KEY (id_board) REFERENCES Boards (id),
+    FOREIGN KEY (id_character) REFERENCES Characters (id)
     );
