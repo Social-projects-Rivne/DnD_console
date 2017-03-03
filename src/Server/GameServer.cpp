@@ -1519,7 +1519,7 @@ void fSendBoard(std::string &json_response, nlohmann::json &json_request)
                                         string height = json_result["data"][0]["height"];
                                         string description = json_result["data"][0]["description"];
                                         string id_owner = json_result["data"][0]["id_owner"];
-                                        json_response = "{\"status\":\"success\", \"board\": \"" + board + "\", \"board_id\": \"" + board + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+                                        json_response = "{\"status\":\"success\", \"board\": \"" + board + "\", \"board_id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
                                     }
                                     else
                                         json_response = "{\"status\":\"fail\", \"message\": \"no board that you own with the specified id\"}";
