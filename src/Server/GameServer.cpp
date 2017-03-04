@@ -1038,7 +1038,7 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
     string id_owner;
     if (fRetrieveUserId(id_owner, session_id))
     {
-        std::string id_board = json_request["id_board"];
+        std::string id_board = json _request["id_board"];
         string data_count = json_request["data_count"];
         int data_qtt = stoi(data_count);
         if (data_qtt > 0)
@@ -1064,7 +1064,7 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                             string rows = json_result["rows"];
                             int row_qtt = stoi(rows);
                             if (row_qtt > 0)
-                                json_response = "{\"status\":\"fail\", \"message\": \"duplication\"}";
+                                json_response += "{\"status\":\"fail\", \"message\": \"position duplication of npc with id " + id_npc +"\"}";
                             else
                             {
                                 query = "INSERT INTO BN_Map (id_board, id_npc, npc_x, npc_y) VALUES ('" + id_board + "', '" + id_npc + "', '" + pos_x + "', '" + pos_y + "');";
@@ -1073,16 +1073,16 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                                 query_result = json_result["result"];
                                 
                                 if (query_result == "success")
-                                    json_response = "{\"status\":\"success\", \"message\": \"npc(s) is(are) added\"}";
+                                    json_response += "{\"status\":\"success\", \"message\": \"npc with id " + id_npc + " is added\"}";
                                 else
-                                    json_response = "{\"status\":\"fail\", \"message\": \"npc is not added, sql query execution failed\"}";
+                                    json_response += "{\"status\":\"fail\", \"message\": \"npc with id " + id_npc + " is not added, sql query execution failed\"}";
                             }
                         }
                         else
-                            json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+                            json_response += "{\"status\":\"fail\", \"message\": \"database error\"}";
                     }
                     else
-                        json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+                        json_response += "{\"status\":\"fail\", \"message\": \"invalid npc's data passed\"}";
                 }
                 else if (json_request["data"][data_qtt]["type"] == "terrain")
                 {
@@ -1103,7 +1103,7 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                             string rows = json_result["rows"];
                             int row_qtt = stoi(rows);
                             if (row_qtt > 0)
-                                json_response = "{\"status\":\"fail\", \"message\": \"duplication\"}";
+                                json_response += "{\"status\":\"fail\", \"message\": \"position duplication of terrain with id " + id_terrain +"\"}";
                             else
                             {
                                 query = "INSERT INTO BT_Map (id_board, id_terrain, terrain_x, terrain_y) VALUES ('" + id_board + "', '" + id_terrain + "', '" + pos_x + "', '" + pos_y + "');";
@@ -1112,16 +1112,16 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                                 query_result = json_result["result"];
                                 
                                 if (query_result == "success")
-                                    json_response = "{\"status\":\"success\", \"message\": \"terrain(s) is(are) added\"}";
+                                    json_response += "{\"status\":\"success\", \"message\": \"terrain with id " + id_terrain + " is added\"}";
                                 else
-                                    json_response = "{\"status\":\"fail\", \"message\": \"terrain is not added, sql query execution failed\"}";
+                                    json_response += "{\"status\":\"fail\", \"message\": \"terrain with id " + id_terrain + " is not added, sql query execution failed\"}";
                             }
                         }
                         else
-                            json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+                            json_response += "{\"status\":\"fail\", \"message\": \"database error\"}";
                     }
                     else
-                        json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+                        json_response += "{\"status\":\"fail\", \"message\": \"invalid terrain's data passed\"}";
                 }
             }
         }
