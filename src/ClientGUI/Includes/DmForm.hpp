@@ -34,15 +34,10 @@ class DMForm
 
     _selected_menu _menu_option;
 
-    bool _terrain_button_click;
-    bool _npc_button_click;
-    bool _back_button_click;
 
     NPCForm *npc_menu_window;
     TerrainForm *terrain_menu_window;
 
-    void fClickedNpC();
-    void fClickedTerrain();
     void fDisable();
     void fInitUIElements();
 
