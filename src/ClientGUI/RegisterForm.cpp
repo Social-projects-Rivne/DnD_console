@@ -3,15 +3,6 @@
 
 void RegisterForm::fRegistration(tgui::EditBox::Ptr username, tgui::EditBox::Ptr email, tgui::EditBox::Ptr password, tgui::EditBox::Ptr re_password)
 {
-    //test_message = _theme->load("MessageBox");
-    //test_message->setSize(500, 250);
-    //test_message->setPosition(250, 250);
-    //test_message->add(_register_button);
-    //
-    //_gui.add(test_message);
-    //test_message->show();
-    //information_window->setSize(500, 250);
-    //information_window->add(_register_button);
     information_window->show();
     std::string request = UserActions::fRegistration(username->getText(), email->getText().toAnsiString(), password->getText().toAnsiString(), re_password->getText().toAnsiString()).dump();
     std::cout << request << std::endl;
@@ -44,6 +35,11 @@ void RegisterForm::fInitUIElements()
     _picture = std::make_shared<tgui::Picture>("Interface/login.jpg");
     _picture->setSize(windowWidth,windowHeight);
     _gui.add(_picture);
+
+    tgui::Picture::Ptr logo1 = std::make_shared<tgui::Picture>("Interface/log.png");
+    logo1->setSize(400, 232);
+    logo1->setPosition(10, -30);
+    _gui.add(logo1);
 
     _editBoxUsername = _theme->load("EditBox");
     _editBoxUsername->setSize(300, 40);
