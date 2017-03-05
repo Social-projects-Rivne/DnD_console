@@ -10,13 +10,11 @@ int main()
 {
     IniParser pIni_parser("config.ini");
     auto params = pIni_parser.fGetParams();
+    boost::asio::io_service io_service;
+
+    HttpClient *http_client = new HttpClient(io_service, params["client.host"], params["client.port"]);
     try
     {
-        boost::asio::io_service io_service;
-
-        HttpClient *http_client=new HttpClient(io_service, params["client.host"], params["client.port"]);
-        //HttpClient* client = new HttpClient(io_service, "localhost", "15000");
-
         sf::Image icon;
         if (!icon.loadFromFile("Interface/ico.png")) {
             return EXIT_FAILURE;
