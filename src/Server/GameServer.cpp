@@ -1588,7 +1588,7 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                     
                     if (query_result == "success")
                     {
-                        json_response += "{\"status\":\"success\", \"message\": \"board is updated";
+                        json_response += "{\"status\":\"success\", \"message\": \"board is updated\"}";
                         while (data_qtt--)
                         {
                             if (json_request["type"] == "npc")
@@ -1606,12 +1606,12 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                                     query_result = json_result["result"];
                                     
                                     if (query_result == "success")
-                                        json_response += ", npc with id " + id_npc + " is updated";
+                                        json_response += "{\"status\":\"success\", \"message\": \"npc with id " + id_npc + " is updated\"}";
                                     else
-                                        json_response += ", npc with id " + id_npc + " is not updated, sql query execution failed";
+                                        json_response += "{\"status\":\"fail\", \"message\": \"npc with id " + id_npc + " is not updated, sql query execution failed\"}";
                                 }
                                 else
-                                    json_response += ", npc is not updated, invalid data passed";
+                                    json_response += "{\"status\":\"fail\", \"message\": \"invalid npc's data passed\"}";
                             }
                             else if (json_request["type"] == "terrain")
                             {
@@ -1628,12 +1628,12 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                                     query_result = json_result["result"];
                                     
                                     if (query_result == "success")
-                                        json_response += ", terrain with id " + id_terrain + " is updated";
+                                        json_response += "{\"status\":\"success\", \"message\": \"terrain with id " + id_terrain + " is updated\"}";
                                     else
-                                        json_response += ", terrain with id " + id_terrain + " is not updated, sql query execution failed";
+                                        json_response += "{\"status\":\"fail\", \"message\": \"terrain with id " + id_terrain + " is not updated, sql query execution failed\"}";
                                 }
                                 else
-                                    json_response += ", terrain is not updated, invalid data passed";
+                                    json_response += "{\"status\":\"fail\", \"message\": \"invalid terrain's data passed\"}";
                             }
                             else if (json_request["type"] == "spawn")
                             {
@@ -1649,15 +1649,14 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                                     query_result = json_result["result"];
                                     
                                     if (query_result == "success")
-                                        json_response += ", spawn point is updated";
+                                        json_response += "{\"status\":\"success\", \"message\": \"spawn point is updated\"}";
                                     else
-                                        json_response += ", spawn point is not updated, sql query execution failed";
+                                        json_response += "{\"status\":\"fail\", \"message\": \"spawn point is not updated, sql query execution failed\"}";
                                 }
                                 else
-                                    json_response += ", spawn point is not updated, invalid data passed";
+                                    json_response += "{\"status\":\"fail\", \"message\": \"invalid spawn point's data passed\"}";
                             }
                         }
-                        json_response += "\"}";
                     }
                     else
                     json_response = "{\"status\":\"success\", \"message\": \"board is not updated, sql query execution failed\"}";
