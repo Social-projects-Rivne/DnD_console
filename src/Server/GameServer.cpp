@@ -269,7 +269,7 @@ void fUserRegistration(std::string &json_response, nlohmann::json &json_request)
 {
     string username = json_request["username"];
     string password = json_request["password"];
-    string email = json_request["email"];
+    string email    = json_request["email"];
 
     if (DataValidator::fValidate(username, DataValidator::NAME) &&
         DataValidator::fValidate(password, DataValidator::PASSWORD) &&
@@ -316,8 +316,6 @@ void fUserLogOut(std::string &json_response, nlohmann::json &json_request)
     
     if (fRetrieveUserId(id_user, session_id))
     {
-        cout<<"USER("<<id_user<<") is logged in\n";
-        
         string query = "DELETE FROM Sessions WHERE id = " + session_id;
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
@@ -339,11 +337,10 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
     string id_user;
     if (fRetrieveUserId(id_user, session_id))
     {
-    	cout<<"USER("<<id_user<<") is logged in\n";
-        string name = json_request["name"];
-        string type = json_request["type"];
-        string width = json_request["width"];
-        string height = json_request["height"];
+        string name        = json_request["name"];
+        string type        = json_request["type"];
+        string width       = json_request["width"];
+        string height      = json_request["height"];
         string description = json_request["description"];
 
         if (DataValidator::fValidate(name,        DataValidator::SQL_INJECTION) &&
@@ -454,12 +451,12 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
             string rows = json_result["rows"];
             if (stoi(rows) > 0)
             {
-                string terrain = json_result["data"][0]["name"];
-                string type = json_result["data"][0]["type"];
-                string width = json_result["data"][0]["width"];
-                string height = json_result["data"][0]["height"];
+                string terrain     = json_result["data"][0]["name"];
+                string type        = json_result["data"][0]["type"];
+                string width       = json_result["data"][0]["width"];
+                string height      = json_result["data"][0]["height"];
                 string description = json_result["data"][0]["description"];
-                string id_owner = json_result["data"][0]["id_owner"];
+                string id_owner    = json_result["data"][0]["id_owner"];
                 json_response = "{\"status\":\"success\", \"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"type\": \"" + type + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
             }
             else
@@ -494,13 +491,13 @@ void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_reque
                 json_response = "{\"status\":\"success\", \"terrains_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string terrain_id = json_result["data"][rows_qtt]["id"];
-                    string terrain = json_result["data"][rows_qtt]["name"];
-                    string type = json_result["data"][rows_qtt]["type"];
-                    string width = json_result["data"][rows_qtt]["width"];
-                    string height = json_result["data"][rows_qtt]["height"];
+                    string terrain_id  = json_result["data"][rows_qtt]["id"];
+                    string terrain     = json_result["data"][rows_qtt]["name"];
+                    string type        = json_result["data"][rows_qtt]["type"];
+                    string width       = json_result["data"][rows_qtt]["width"];
+                    string height      = json_result["data"][rows_qtt]["height"];
                     string description = json_result["data"][rows_qtt]["description"];
-                    string id_owner = json_result["data"][rows_qtt]["id_owner"];
+                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
                     json_response += "{\"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"type\": \"" + type + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
                     if (rows_qtt)
                         json_response += ",";
@@ -537,13 +534,13 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
                 json_response = "{\"status\":\"success\", \"terrains_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string terrain_id = json_result["data"][rows_qtt]["id"];
-                    string terrain = json_result["data"][rows_qtt]["name"];
-                    string type = json_result["data"][rows_qtt]["type"];
-                    string width = json_result["data"][rows_qtt]["width"];
-                    string height = json_result["data"][rows_qtt]["height"];
+                    string terrain_id  = json_result["data"][rows_qtt]["id"];
+                    string terrain     = json_result["data"][rows_qtt]["name"];
+                    string type        = json_result["data"][rows_qtt]["type"];
+                    string width       = json_result["data"][rows_qtt]["width"];
+                    string height      = json_result["data"][rows_qtt]["height"];
                     string description = json_result["data"][rows_qtt]["description"];
-                    string id_owner = json_result["data"][rows_qtt]["id_owner"];
+                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
                     json_response += "{\"terrain\": \"" + terrain + "\", \"terrain_id\": \"" + terrain_id + "\", \"width\": \"" + width + "\", \"type\": \"" + type + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
                     if (rows_qtt)
                         json_response += ",";
@@ -582,18 +579,18 @@ void fSendOwnNpcsList(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"success\", \"npcs_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string npc_id = json_result["data"][rows_qtt]["id"];
-                    string npc = json_result["data"][rows_qtt]["name"];
-                    string type = json_result["data"][rows_qtt]["type"];
-                    string hitpoints = json_result["data"][rows_qtt]["hitpoints"];
-                    string level = json_result["data"][rows_qtt]["level"];
-                    string strength = json_result["data"][rows_qtt]["strength"];
-                    string dexterity = json_result["data"][rows_qtt]["dexterity"];
+                    string npc_id       = json_result["data"][rows_qtt]["id"];
+                    string npc          = json_result["data"][rows_qtt]["name"];
+                    string type         = json_result["data"][rows_qtt]["type"];
+                    string hitpoints    = json_result["data"][rows_qtt]["hitpoints"];
+                    string level        = json_result["data"][rows_qtt]["level"];
+                    string strength     = json_result["data"][rows_qtt]["strength"];
+                    string dexterity    = json_result["data"][rows_qtt]["dexterity"];
                     string constitution = json_result["data"][rows_qtt]["constitution"];
                     string intelligence = json_result["data"][rows_qtt]["intelligence"];
-                    string wisdom = json_result["data"][rows_qtt]["wisdom"];
-                    string charisma = json_result["data"][rows_qtt]["charisma"];
-                    string id_owner = json_result["data"][rows_qtt]["id_owner"];
+                    string wisdom       = json_result["data"][rows_qtt]["wisdom"];
+                    string charisma     = json_result["data"][rows_qtt]["charisma"];
+                    string id_owner     = json_result["data"][rows_qtt]["id_owner"];
                     json_response += "{\"npc\": \"" + npc + "\", \"npc_id\": \"" + npc_id + "\", \"type\": \"" + type + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\", \"id_owner\": \"" + id_owner + "\"}";
                     if (rows_qtt)
                         json_response += ",";
@@ -629,17 +626,17 @@ void fSendNpc(std::string &json_response, nlohmann::json &json_request)
             string rows = json_result["rows"];
             if (stoi(rows) > 0)
             {
-                string npc = json_result["data"][0]["name"];
-                string type = json_result["data"][0]["type"];
-                string level = json_result["data"][0]["level"];
-                string hitpoints = json_result["data"][0]["hitpoints"];
-                string strength = json_result["data"][0]["strength"];
-                string dexterity = json_result["data"][0]["dexterity"];
+                string npc          = json_result["data"][0]["name"];
+                string type         = json_result["data"][0]["type"];
+                string level        = json_result["data"][0]["level"];
+                string hitpoints    = json_result["data"][0]["hitpoints"];
+                string strength     = json_result["data"][0]["strength"];
+                string dexterity    = json_result["data"][0]["dexterity"];
                 string constitution = json_result["data"][0]["constitution"];
                 string intelligence = json_result["data"][0]["intelligence"];
-                string wisdom = json_result["data"][0]["wisdom"];
-                string charisma = json_result["data"][0]["charisma"];
-                string id_owner = json_result["data"][0]["id_owner"];
+                string wisdom       = json_result["data"][0]["wisdom"];
+                string charisma     = json_result["data"][0]["charisma"];
+                string id_owner     = json_result["data"][0]["id_owner"];
                 
                 json_response = "{\"status\":\"success\", \"npc\":\"" + npc + "\", \"id\": \"" + npc_id + "\", \"type\": \"" + type + "\", \"level\": \"" + level + "\", \"hitpoints\": \"" + hitpoints + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\", \"id_owner\": \"" + id_owner + "\"}";
             }
@@ -672,17 +669,17 @@ void fSendMyNpc(std::string &json_response, nlohmann::json &json_request)
             string rows = json_result["rows"];
             if (stoi(rows) > 0)
             {
-                string npc = json_result["data"][0]["name"];
-                string type = json_result["data"][0]["type"];
-                string level = json_result["data"][0]["level"];
-                string hitpoints = json_result["data"][0]["hitpoints"];
-                string strength = json_result["data"][0]["strength"];
-                string dexterity = json_result["data"][0]["dexterity"];
+                string npc          = json_result["data"][0]["name"];
+                string type         = json_result["data"][0]["type"];
+                string level        = json_result["data"][0]["level"];
+                string hitpoints    = json_result["data"][0]["hitpoints"];
+                string strength     = json_result["data"][0]["strength"];
+                string dexterity    = json_result["data"][0]["dexterity"];
                 string constitution = json_result["data"][0]["constitution"];
                 string intelligence = json_result["data"][0]["intelligence"];
-                string wisdom = json_result["data"][0]["wisdom"];
-                string charisma = json_result["data"][0]["charisma"];
-                string id_owner = json_result["data"][0]["id_owner"];
+                string wisdom       = json_result["data"][0]["wisdom"];
+                string charisma     = json_result["data"][0]["charisma"];
+                string id_owner     = json_result["data"][0]["id_owner"];
                 
                 json_response = "{\"status\":\"success\", \"npc\":\"" + npc + "\", \"id\": \"" + npc_id + "\", \"type\": \"" + type + "\", \"level\": \"" + level + "\", \"hitpoints\": \"" + hitpoints + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\", \"id_owner\": \"" + id_owner + "\"}";
             }
@@ -817,36 +814,36 @@ void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
 	string id_user;
 	if (fRetrieveUserId(id_user, session_id))
 	{
-		std::string name = json_request["character"];
-		std::string race = json_request["race"];
-		std::string c_class = json_request["class"];
-		std::string experience = json_request["experience"];
-		std::string hitpoints = json_request["hitpoints"];
-		std::string level = json_request["level"];
-		std::string strength = json_request["strength"];
-		std::string strength_mod = fSetAbilityMod(strength);
-		std::string dexterity = json_request["dexterity"];
-		std::string dexterity_mod = fSetAbilityMod(dexterity);
-		std::string constitution = json_request["constitution"];
+		std::string name             = json_request["character"];
+		std::string race             = json_request["race"];
+		std::string c_class          = json_request["class"];
+		std::string experience       = json_request["experience"];
+		std::string hitpoints        = json_request["hitpoints"];
+		std::string level            = json_request["level"];
+		std::string strength         = json_request["strength"];
+		std::string strength_mod     = fSetAbilityMod(strength);
+		std::string dexterity        = json_request["dexterity"];
+		std::string dexterity_mod    = fSetAbilityMod(dexterity);
+		std::string constitution     = json_request["constitution"];
 		std::string constitution_mod = fSetAbilityMod(constitution);
-		std::string intelligence = json_request["intelligence"];
+		std::string intelligence     = json_request["intelligence"];
 		std::string intelligence_mod = fSetAbilityMod(intelligence);
-		std::string charisma = json_request["charisma"];
-		std::string charisma_mod = fSetAbilityMod(charisma);
-		std::string wisdom = json_request["wisdom"];
-		std::string wisdom_mod = fSetAbilityMod(wisdom);
+		std::string charisma         = json_request["charisma"];
+		std::string charisma_mod     = fSetAbilityMod(charisma);
+		std::string wisdom           = json_request["wisdom"];
+		std::string wisdom_mod       = fSetAbilityMod(wisdom);
 
-		if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(race, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(c_class, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(hitpoints, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(level, DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(strength, DataValidator::ABILITY) &&
-			DataValidator::fValidate(dexterity, DataValidator::ABILITY) &&
+		if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(race,         DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(c_class,      DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
+			DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
+			DataValidator::fValidate(dexterity,    DataValidator::ABILITY) &&
 			DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
 			DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
-			DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
-			DataValidator::fValidate(charisma, DataValidator::ABILITY)) // checks data
+			DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
+			DataValidator::fValidate(charisma,     DataValidator::ABILITY)) // checks data
 		{
             string query = "SELECT id, name From Classes WHERE name = '" + c_class + "';";
             nlohmann::json json_result = data_base.fExecuteQuery(query);
@@ -967,13 +964,13 @@ void fSendOwnCharacterList(std::string &json_response, nlohmann::json &json_requ
 				while (rows_qtt--)
 				{
 					string character_id = json_result["data"][rows_qtt]["id"];
-					string character = json_result["data"][rows_qtt]["name"];
-					string race = json_result["data"][rows_qtt]["race"];
-					string class_ = json_result["data"][rows_qtt]["class"];
-					string experience = json_result["data"][rows_qtt]["experience"];
-					string hitpoints = json_result["data"][rows_qtt]["hitpoints"];
-					string level = json_result["data"][rows_qtt]["level"];
-					string id_owner = json_result["data"][rows_qtt]["id_user"];
+					string character    = json_result["data"][rows_qtt]["name"];
+					string race         = json_result["data"][rows_qtt]["race"];
+					string class_       = json_result["data"][rows_qtt]["class"];
+					string experience   = json_result["data"][rows_qtt]["experience"];
+					string hitpoints    = json_result["data"][rows_qtt]["hitpoints"];
+					string level        = json_result["data"][rows_qtt]["level"];
+					string id_owner     = json_result["data"][rows_qtt]["id_user"];
 					json_response += "{\"character\": \"" + character + "\", \"character_id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\"}";
 					if (rows_qtt)
 						json_response += ",";
@@ -996,9 +993,9 @@ void fSaveBoard(std::string &json_response, nlohmann::json &json_request)
     string id_owner;
     if (fRetrieveUserId(id_owner, session_id))
     {
-        string name = json_request["board"];
-        string width = json_request["width"];
-        string height = json_request["height"];
+        string name        = json_request["board"];
+        string width       = json_request["width"];
+        string height      = json_request["height"];
         string description = json_request["description"];
         string spawn_x = "";
         string spawn_y = "";
@@ -1045,7 +1042,7 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
     if (fRetrieveUserId(id_owner, session_id))
     {
         std::string id_board = json _request["id_board"];
-        string data_count = json_request["data_count"];
+        string data_count    = json_request["data_count"];
         int data_qtt = stoi(data_count);
         if (data_qtt > 0)
         {
@@ -1054,8 +1051,8 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                 if (json_request["data"][data_qtt]["type"] == "npc")
                 {
                     string id_npc = json_request["data"][data_qtt]["id"];
-                    string pos_x = json_request["data"][data_qtt]["pos_x"];
-                    string pos_y = json_request["data"][data_qtt]["pos_y"];
+                    string pos_x  = json_request["data"][data_qtt]["pos_x"];
+                    string pos_y  = json_request["data"][data_qtt]["pos_y"];
                     
                     if (DataValidator::fValidate(pos_x, DataValidator::SQL_INJECTION)&&
                         DataValidator::fValidate(pos_y, DataValidator::SQL_INJECTION)) // checks data
@@ -1093,8 +1090,8 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                 else if (json_request["data"][data_qtt]["type"] == "terrain")
                 {
                     string id_terrain = json_request["data"][data_qtt]["id"];
-                    string pos_x = json_request["data"][data_qtt]["pos_x"];
-                    string pos_y = json_request["data"][data_qtt]["pos_y"];
+                    string pos_x      = json_request["data"][data_qtt]["pos_x"];
+                    string pos_y      = json_request["data"][data_qtt]["pos_y"];
                     
                     if (DataValidator::fValidate(pos_x, DataValidator::SQL_INJECTION)&&
                         DataValidator::fValidate(pos_y, DataValidator::SQL_INJECTION)) // checks data
@@ -1158,19 +1155,19 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
                 json_response = "{\"status\":\"success\", ";
                 
                 string character_id = json_result["data"][0]["id"];
-                string character = json_result["data"][0]["name"];
-                string race = json_result["data"][0]["race"];
-                string class_ = json_result["data"][0]["class"];
-                string experience = json_result["data"][0]["experience"];
-                string hitpoints = json_result["data"][0]["hitpoints"];
-                string level = json_result["data"][0]["level"];
-                string id_owner = json_result["data"][0]["id_user"];
-                string strength = json_result["data"][0]["strength"];
-                string dexterity = json_result["data"][0]["dexterity"];
+                string character    = json_result["data"][0]["name"];
+                string race         = json_result["data"][0]["race"];
+                string class_       = json_result["data"][0]["class"];
+                string experience   = json_result["data"][0]["experience"];
+                string hitpoints    = json_result["data"][0]["hitpoints"];
+                string level        = json_result["data"][0]["level"];
+                string id_owner     = json_result["data"][0]["id_user"];
+                string strength     = json_result["data"][0]["strength"];
+                string dexterity    = json_result["data"][0]["dexterity"];
                 string constitution = json_result["data"][0]["constitution"];
                 string intelligence = json_result["data"][0]["intelligence"];
-                string wisdom = json_result["data"][0]["wisdom"];
-                string charisma = json_result["data"][0]["charisma"];
+                string wisdom       = json_result["data"][0]["wisdom"];
+                string charisma     = json_result["data"][0]["charisma"];
                 
                 json_response += "\"character\": \"" + character + "\", \"id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\"}";
             }
@@ -1253,36 +1250,36 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
             string rows = json_result["rows"];
             if (stoi(rows) > 0)
             {
-                string name = json_request["character"];
-                string race_name = json_request["race"];
-                string class_name = json_request["class"];
-                string experience = json_request["experience"];
-                string hitpoints = json_request["hitpoints"];
-                string level = json_request["level"];
-                string strength = json_request["strength"];
-                string strength_mod = fSetAbilityMod(strength);
-                string dexterity = json_request["dexterity"];
-                string dexterity_mod = fSetAbilityMod(dexterity);
-                string constitution = json_request["constitution"];
+                string name             = json_request["character"];
+                string race_name        = json_request["race"];
+                string class_name       = json_request["class"];
+                string experience       = json_request["experience"];
+                string hitpoints        = json_request["hitpoints"];
+                string level            = json_request["level"];
+                string strength         = json_request["strength"];
+                string strength_mod     = fSetAbilityMod(strength);
+                string dexterity        = json_request["dexterity"];
+                string dexterity_mod    = fSetAbilityMod(dexterity);
+                string constitution     = json_request["constitution"];
                 string constitution_mod = fSetAbilityMod(constitution);
-                string intelligence = json_request["intelligence"];
+                string intelligence     = json_request["intelligence"];
                 string intelligence_mod = fSetAbilityMod(intelligence);
-                string charisma = json_request["charisma"];
-                string charisma_mod = fSetAbilityMod(charisma);
-                string wisdom = json_request["wisdom"];
-                string wisdom_mod = fSetAbilityMod(wisdom);
+                string charisma         = json_request["charisma"];
+                string charisma_mod     = fSetAbilityMod(charisma);
+                string wisdom           = json_request["wisdom"];
+                string wisdom_mod       = fSetAbilityMod(wisdom);
                 
-                if (DataValidator::fValidate(name, DataValidator::SQL_INJECTION) &&
-                    DataValidator::fValidate(race_name, DataValidator::SQL_INJECTION) &&
-                    DataValidator::fValidate(class_name, DataValidator::SQL_INJECTION) &&
-                    DataValidator::fValidate(hitpoints, DataValidator::SQL_INJECTION) &&
-                    DataValidator::fValidate(level, DataValidator::SQL_INJECTION) &&
-                    DataValidator::fValidate(strength, DataValidator::ABILITY) &&
-                    DataValidator::fValidate(dexterity, DataValidator::ABILITY) &&
+                if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(race_name,    DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(class_name,   DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
+                    DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
+                    DataValidator::fValidate(dexterity,    DataValidator::ABILITY) &&
                     DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
                     DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
-                    DataValidator::fValidate(wisdom, DataValidator::ABILITY) &&
-                    DataValidator::fValidate(charisma, DataValidator::ABILITY))
+                    DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
+                    DataValidator::fValidate(charisma,     DataValidator::ABILITY))
                 {
                     query = "SELECT id, name From Races WHERE name = '" + race_name + "';";
                     json_result = data_base.fExecuteQuery(query);
@@ -1323,19 +1320,19 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
                                             json_response = "{\"status\":\"success\", ";
                                             
                                             string character_id = json_result["data"][0]["id"];
-                                            string character = json_result["data"][0]["name"];
-                                            string race = json_result["data"][0]["race"];
-                                            string class_ = json_result["data"][0]["class"];
-                                            string experience = json_result["data"][0]["experience"];
-                                            string hitpoints = json_result["data"][0]["hitpoints"];
-                                            string level = json_result["data"][0]["level"];
-                                            string id_owner = json_result["data"][0]["id_user"];
-                                            string strength = json_result["data"][0]["strength"];
-                                            string dexterity = json_result["data"][0]["dexterity"];
+                                            string character    = json_result["data"][0]["name"];
+                                            string race         = json_result["data"][0]["race"];
+                                            string class_       = json_result["data"][0]["class"];
+                                            string experience   = json_result["data"][0]["experience"];
+                                            string hitpoints    = json_result["data"][0]["hitpoints"];
+                                            string level        = json_result["data"][0]["level"];
+                                            string id_owner     = json_result["data"][0]["id_user"];
+                                            string strength     = json_result["data"][0]["strength"];
+                                            string dexterity    = json_result["data"][0]["dexterity"];
                                             string constitution = json_result["data"][0]["constitution"];
                                             string intelligence = json_result["data"][0]["intelligence"];
-                                            string wisdom = json_result["data"][0]["wisdom"];
-                                            string charisma = json_result["data"][0]["charisma"];
+                                            string wisdom       = json_result["data"][0]["wisdom"];
+                                            string charisma     = json_result["data"][0]["charisma"];
                                             
                                             json_response += "\"character\": \"" + character + "\", \"id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\", \"strength\": \"" + strength + "\", \"dexterity\": \"" + dexterity + "\", \"constitution\": \"" + constitution + "\", \"intelligence\": \"" + intelligence + "\", \"wisdom\": \"" + wisdom + "\", \"charisma\": \"" + charisma + "\"}";
                                         }
@@ -1546,7 +1543,7 @@ void fSendBoard(std::string &json_response, nlohmann::json &json_request)
                         
                         while (rows_qtt--)
                         {
-                            string type       = "npc";
+                            string type       = "terrain";
                             string id_terrain = json_result["data"][rows_qtt]["id_terrain"];
                             string terrain_x  = json_result["data"][rows_qtt]["terrain_x"];
                             string terrain_y  = json_result["data"][rows_qtt]["terrain_y"];
@@ -1559,9 +1556,6 @@ void fSendBoard(std::string &json_response, nlohmann::json &json_request)
                     }
                 }
                 int data_count = npc_rows_qtt + terrain_rows_qtt;
-                cout << "npc_rows_qtt " << npc_rows_qtt << endl;
-                cout << "terrain_rows_qtt " << terrain_rows_qtt << endl;
-                cout << "data_count " << data_count << endl;
                 if (npc_rows_qtt > 0 || terrain_rows_qtt > 0)
                     json_response += "], \"data_count\":\"" + to_string(data_count) + "\"";
             }
@@ -1611,8 +1605,8 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                             if (json_request["type"] == "npc")
                             {
                                 string id_npc = json_request["data"][data_qtt]["id"];
-                                string npc_x = json_request["data"][data_qtt]["pos_x"];
-                                string npc_y = json_request["data"][data_qtt]["pos_y"];
+                                string npc_x  = json_request["data"][data_qtt]["pos_x"];
+                                string npc_y  = json_request["data"][data_qtt]["pos_y"];
                                 
                                 if (DataValidator::fValidate(npc_x,    DataValidator::SQL_INJECTION) &&
                                     DataValidator::fValidate(npc_y,    DataValidator::SQL_INJECTION))
@@ -1633,8 +1627,8 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                             else if (json_request["type"] == "terrain")
                             {
                                 string id_terrain = json_request["data"][data_qtt]["id"];
-                                string terrain_x = json_request["data"][data_qtt]["pos_x"];
-                                string terrain_y = json_request["data"][data_qtt]["pos_y"];
+                                string terrain_x  = json_request["data"][data_qtt]["pos_x"];
+                                string terrain_y  = json_request["data"][data_qtt]["pos_y"];
                                 
                                 if (DataValidator::fValidate(terrain_x,    DataValidator::SQL_INJECTION) &&
                                     DataValidator::fValidate(terrain_y,    DataValidator::SQL_INJECTION))
@@ -1711,12 +1705,12 @@ void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request
                 json_response = "{\"status\":\"success\", \"boards_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string board_id = json_result["data"][rows_qtt]["id"];
-                    string board = json_result["data"][rows_qtt]["name"];
-                    string width = json_result["data"][rows_qtt]["width"];
-                    string height = json_result["data"][rows_qtt]["height"];
+                    string board_id    = json_result["data"][rows_qtt]["id"];
+                    string board       = json_result["data"][rows_qtt]["name"];
+                    string width       = json_result["data"][rows_qtt]["width"];
+                    string height      = json_result["data"][rows_qtt]["height"];
                     string description = json_result["data"][rows_qtt]["description"];
-                    string id_owner = json_result["data"][rows_qtt]["id_owner"];
+                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
                     json_response += "{\"board\": \"" + board + "\", \"id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
                     
                     if (rows_qtt)
@@ -1798,7 +1792,7 @@ void fSendClasses(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"success\", \"classes_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string id = json_result["data"][rows_qtt]["id"];
+                    string id   = json_result["data"][rows_qtt]["id"];
                     string name = json_result["data"][rows_qtt]["name"];
                     json_response += "{\"class\": \"" + name + "\", \"class_id\": \"" + id + "\"}";
                     if (rows_qtt)
@@ -1836,7 +1830,7 @@ void fSendRaces(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"success\", \"races_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string id = json_result["data"][rows_qtt]["id"];
+                    string id   = json_result["data"][rows_qtt]["id"];
                     string name = json_result["data"][rows_qtt]["name"];
                     json_response += "{\"race\": \"" + name + "\", \"race_id\": \"" + id + "\"}";
                     if (rows_qtt)
@@ -1875,7 +1869,7 @@ void fSendNpcTypes(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"success\", \"types_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string id = json_result["data"][rows_qtt]["id"];
+                    string id   = json_result["data"][rows_qtt]["id"];
                     string name = json_result["data"][rows_qtt]["name"];
                     json_response += "{\"type\": \"" + name + "\", \"type_id\": \"" + id + "\"}";
                     if (rows_qtt)
@@ -1913,7 +1907,7 @@ void fSendTerrainTypes(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"success\", \"types_quantity\":\"" + rows + "\", \"list\": [";
                 while (rows_qtt--)
                 {
-                    string id = json_result["data"][rows_qtt]["id"];
+                    string id   = json_result["data"][rows_qtt]["id"];
                     string name = json_result["data"][rows_qtt]["name"];
                     json_response += "{\"type\": \"" + name + "\", \"type_id\": \"" + id + "\"}";
                     if (rows_qtt)
