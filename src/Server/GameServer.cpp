@@ -8,7 +8,7 @@
 // fbt.ksnv@gmail.com, olhalesk@gmail.com
 //
 
-#include "Includes/stdafx.hpp"a
+#include "Includes/stdafx.hpp"
 #include "Includes/HttpServer.hpp"
 #include "Includes/IniParser.hpp"
 #include "Includes/DataBase.hpp"
@@ -29,6 +29,7 @@ void fSendMyNpc(std::string &json_response, nlohmann::json &json_request);
 void fEditNpc(std::string &json_response, nlohmann::json &json_request);
 void fDeleteNpc(std::string &json_response, nlohmann::json &json_request);
 void fSendTerrain(std::string &json_response, nlohmann::json &json_request);
+void fDeleteTerrain(std::string &json_response, nlohmann::json &json_request);
 void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnCharacterList(std::string &json_response, nlohmann::json &json_request);
@@ -144,6 +145,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                         fSaveTerrain(response, json_request);
                     else if (path.find("/api/loadterrain") != string::npos)
                         fSendTerrain(response, json_request);
+                    else if (path.find("/api/deleteterrain") != string::npos)
+                        fDeleteTerrain(response, json_request);
                     else if (path.find("/api/loaddefinedterrains") != string::npos)
                         fSendDefinedTerrains(response, json_request);
                     else if (path.find("/api/loadmyterrainslist") != string::npos)
@@ -464,6 +467,44 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"terrain is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fDeleteTerrain(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string terrain_id = json_request["terrain_id"];
+        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE t.id = " + terrain_id + " AND t.id_type = type.id;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            if (stoi(rows) > 0)
+            {
+                query = "DELETE FROM Terrain WHERE id_owner = '" + id_user + "' AND id = '" + terrain_id + "' LIMIT 1;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                string query_result = json_result["result"];
+                
+                if (query_result == "success")
+                    json_response = "{\"status\":\"success\", \"message\": \"your terrain with this id was deleted\"}";
+                else
+                    json_response = "{\"status\":\"fail\", \"message\": \"terrain is not deleted, sql query execution failed\"}";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"there is no your terrain with this id\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1041,7 +1082,7 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
     string id_owner;
     if (fRetrieveUserId(id_owner, session_id))
     {
-        std::string id_board = json _request["id_board"];
+        std::string id_board = json_request["id_board"];
         string data_count    = json_request["data_count"];
         int data_qtt = stoi(data_count);
         if (data_qtt > 0)
@@ -1458,6 +1499,7 @@ void fSendOwnBoard(std::string &json_response, nlohmann::json &json_request)
                 cout << "data_count " << data_count << endl;
                 if (npc_rows_qtt > 0 || terrain_rows_qtt > 0)
                     json_response += "], \"data_count\":\"" + to_string(data_count) + "\"";
+                 json_response += "}";
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"no board that you own with the specified id\"}";
