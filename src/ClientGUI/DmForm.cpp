@@ -38,9 +38,15 @@ void DMForm::fInitUIElements()
     _btn_NPC->setText("NPC menu");
     _gui.add(_btn_NPC);
 
+    _btn_Board = _theme->load("Button");
+    _btn_Board->setSize(275, 50);
+    _btn_Board->setPosition(145, 430);
+    _btn_Board->setText("Board menu");
+    _gui.add(_btn_Board);
+
     _btn_back = _theme->load("Button");
     _btn_back->setSize(275, 50);
-    _btn_back->setPosition(145, 430);
+    _btn_back->setPosition(145, 510);
     _btn_back->setText("Back");
     _gui.add(_btn_back);
 
@@ -93,7 +99,6 @@ void DMForm::fUpdate(sf::RenderWindow  &window)
             {
                 if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
                 {
-                 //   terrain_menu_window = new TerrainForm(_event, window, _game_session, _http_client);
                     _menu_option = DMForm::BOARD_MENU;
                 }
             }
