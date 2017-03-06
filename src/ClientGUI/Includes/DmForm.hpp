@@ -14,6 +14,7 @@ class DMForm
         NONE,
         TERRAIN_MENU,
         NPC_MENU,
+        BOARD_MENU,
         BACK,
     };
 
@@ -29,7 +30,9 @@ class DMForm
     tgui::Picture::Ptr  _logo;
     tgui::Button::Ptr   _btn_Terrain;
     tgui::Button::Ptr   _btn_NPC;
-    tgui::Button::Ptr   _btn_back;
+    tgui::Button::Ptr   _btn_Board;
+    tgui::Button::Ptr   _btn_back; 
+
     std::string         _game_session;
 
     _selected_menu _menu_option;

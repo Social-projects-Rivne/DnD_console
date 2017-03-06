@@ -88,6 +88,16 @@ void DMForm::fUpdate(sf::RenderWindow  &window)
                     _menu_option = DMForm::TERRAIN_MENU;
                 }
             }
+
+            if (_btn_Board->mouseOnWidget(_event.mouseButton.x, _event.mouseButton.y))
+            {
+                if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
+                {
+                 //   terrain_menu_window = new TerrainForm(_event, window, _game_session, _http_client);
+                    _menu_option = DMForm::BOARD_MENU;
+                }
+            }
+
             _gui.handleEvent(_event);
         }
     }
@@ -100,6 +110,11 @@ void DMForm::fUpdate(sf::RenderWindow  &window)
     case DMForm::NPC_MENU:
     {
         npc_menu_window->fUpdate(window);
+    }
+    break;
+    case DMForm::BOARD_MENU:
+    {
+
     }
     break;
     case DMForm::BACK:
@@ -135,6 +150,11 @@ void DMForm::fDraw(sf::RenderWindow & window)
             delete terrain_menu_window;
             _menu_option = DMForm::NONE;
         }
+    }
+    break;
+    case DMForm::BOARD_MENU:
+    {
+
     }
     break;
     }
