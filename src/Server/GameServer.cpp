@@ -36,6 +36,7 @@ void fUserRegistration(std::string &json_response, nlohmann::json &json_request)
 void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_request);
 void fSaveBoard(std::string &json_response, nlohmann::json &json_request);
 void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_request);
+void fSendOwnBoard(std::string &json_response, nlohmann::json &json_request);
 void fSendBoard(std::string &json_response, nlohmann::json &json_request);
 void fEditBoard(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request);
@@ -172,6 +173,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                         fSaveBoard(response, json_request);
                     else if (path.find("/api/addobjectonboard") != string::npos)
                         fSaveObjectsOnBoard(response, json_request);
+                    else if (path.find("/api/loadmyboard") != string::npos)
+                        fSendOwnBoard(response, json_request);
                     else if (path.find("/api/loadboard") != string::npos)
                         fSendBoard(response, json_request);
                     else if (path.find("/api/editboard") != string::npos)
@@ -1362,7 +1365,7 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
 }
 
-void fSendBoard(std::string &json_response, nlohmann::json &json_request)
+void fSendOwnBoard(std::string &json_response, nlohmann::json &json_request)
 {
     string session_id = json_request["session_id"];
     string id_user;
@@ -1458,6 +1461,109 @@ void fSendBoard(std::string &json_response, nlohmann::json &json_request)
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"no board that you own with the specified id\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"board is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendBoard(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string board_id = json_request["board_id"];
+        string query = "SELECT b.name, b.width, b.height, b.spawn_x, b.spawn_y, b.description, b.id_owner FROM Boards b WHERE b.id = '" + board_id + "';";
+        json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            if (stoi(rows) > 0)
+            {
+                string board       = json_result["data"][0]["name"];
+                string width       = json_result["data"][0]["width"];
+                string height      = json_result["data"][0]["height"];
+                string spawn_x     = json_result["data"][0]["spawn_x"];
+                string spawn_y     = json_result["data"][0]["spawn_y"];
+                string description = json_result["data"][0]["description"];
+                json_response = "{\"status\":\"success\", \"board\": \"" + board + "\", \"board_id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"spawn_x\": \"" + spawn_x + "\", \"spawn_y\": \"" + spawn_y + "\", \"description\": \"" + description + "\"";
+                
+                query = "SELECT n.id_npc, n.npc_x, n.npc_y FROM Boards b, BN_Map n WHERE b.id = '" + board_id + "' AND n.id_board = b.id;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                
+                int npc_rows_qtt = 0;
+                if (query_result == "success")
+                {
+                    rows = json_result["rows"];
+                    npc_rows_qtt = stoi(rows);
+                    int rows_qtt = stoi(rows);
+                    if (rows_qtt > 0)
+                    {
+                        json_response += ", \"data\": [";
+                        
+                        while (rows_qtt--)
+                        {
+                            string type   = "npc";
+                            string id_npc = json_result["data"][rows_qtt]["id_npc"];
+                            string npc_x  = json_result["data"][rows_qtt]["npc_x"];
+                            string npc_y  = json_result["data"][rows_qtt]["npc_y"];
+                            
+                            json_response += "{\"type\": \"" + type + "\", \"id\": \"" + id_npc + "\", \"pos_x\": \"" + npc_x + "\", \"pos_y\": \"" + npc_y + "\"}";
+                            
+                            if (rows_qtt)
+                                json_response += ",";
+                        }
+                    }
+                }
+                
+                query = "SELECT t.id_terrain, t.terrain_x, t.terrain_y FROM Boards b, BT_Map t WHERE b.id = '" + board_id + "' AND t.id_board = b.id;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                
+                int terrain_rows_qtt = 0;
+                if (query_result == "success")
+                {
+                    rows = json_result["rows"];
+                    terrain_rows_qtt = stoi(rows);
+                    int rows_qtt = stoi(rows);
+                    if (rows_qtt > 0)
+                    {
+                        if (npc_rows_qtt <= 0)
+                            json_response += ", \"data\": [";
+                        
+                        while (rows_qtt--)
+                        {
+                            string type       = "npc";
+                            string id_terrain = json_result["data"][rows_qtt]["id_terrain"];
+                            string terrain_x  = json_result["data"][rows_qtt]["terrain_x"];
+                            string terrain_y  = json_result["data"][rows_qtt]["terrain_y"];
+                            
+                            json_response += "{\"type\": \"" + type + "\", \"id\": \"" + id_terrain + "\", \"pos_x\": \"" + terrain_x + "\", \"pos_y\": \"" + terrain_y + "\"}";
+                            
+                            if (rows_qtt)
+                                json_response += ",";
+                        }
+                    }
+                }
+                int data_count = npc_rows_qtt + terrain_rows_qtt;
+                cout << "npc_rows_qtt " << npc_rows_qtt << endl;
+                cout << "terrain_rows_qtt " << terrain_rows_qtt << endl;
+                cout << "data_count " << data_count << endl;
+                if (npc_rows_qtt > 0 || terrain_rows_qtt > 0)
+                    json_response += "], \"data_count\":\"" + to_string(data_count) + "\"";
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"no board with the specified id\"}";
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"board is not loaded, sql query execution failed\"}";
