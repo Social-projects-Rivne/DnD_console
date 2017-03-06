@@ -40,6 +40,7 @@ void fSendOwnBoard(std::string &json_response, nlohmann::json &json_request);
 void fSendBoard(std::string &json_response, nlohmann::json &json_request);
 void fEditBoard(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request);
+void fSendBoardsList(std::string &json_response, nlohmann::json &json_request);
 void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request);
 void fEditCharacter(std::string &json_response, nlohmann::json &json_request);
 void fSendClasses(std::string &json_response, nlohmann::json &json_request);
@@ -181,6 +182,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                         fEditBoard(response, json_request);
                     else if (path.find("/api/loadmyboardslist") != string::npos)
                         fSendOwnBoardsList(response, json_request);
+                    else if (path.find("/api/loadboardslist") != string::npos)
+                        fSendBoardsList(response, json_request);
                     else if (path.find("/api/loadclasses") != string::npos)
                         fSendClasses(response, json_request);
                     else if (path.find("/api/loadraces") != string::npos)
@@ -1726,6 +1729,50 @@ void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request
         }
         else
             json_response = "{\"status\":\"fail\", \"message\": \"list of your boards is not loaded, sql query execution failed\"}";
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendBoardsList(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name, width, height, description, id_owner FROM Boards;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"boards_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string board_id    = json_result["data"][rows_qtt]["id"];
+                    string board       = json_result["data"][rows_qtt]["name"];
+                    string width       = json_result["data"][rows_qtt]["width"];
+                    string height      = json_result["data"][rows_qtt]["height"];
+                    string description = json_result["data"][rows_qtt]["description"];
+                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
+                    json_response += "{\"board\": \"" + board + "\", \"id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+                    
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of boards is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of boards is not loaded, sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
