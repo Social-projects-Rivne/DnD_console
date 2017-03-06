@@ -8,7 +8,7 @@
 // fbt.ksnv@gmail.com, olhalesk@gmail.com
 //
 
-#include "Includes/stdafx.hpp"
+#include "Includes/stdafx.hpp"a
 #include "Includes/HttpServer.hpp"
 #include "Includes/IniParser.hpp"
 #include "Includes/DataBase.hpp"
