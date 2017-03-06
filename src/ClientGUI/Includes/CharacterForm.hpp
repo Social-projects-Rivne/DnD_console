@@ -61,7 +61,8 @@ class CharacterForm
     std::string _data_hitpoints;
     std::string _data_level;
     std::string _data_experience;
-    
+    std::string _character_id;
+
     std::string _game_session;
     json _character_data;
     json _character_races;
@@ -70,6 +71,8 @@ class CharacterForm
     bool _updated;
     bool _combo_box;
     bool _create_button_click;
+    bool _save_changes_click;
+    bool _edit_btn_click;
     bool _is_loaded;
 
     std::string fSetAbilityMod(std::string ability);
@@ -82,6 +85,7 @@ class CharacterForm
     void fLoadRaces();
     void fRefresh();
     void fDisable();
+    void fSaveChanges(tgui::ListBox::Ptr character_list);
 public:
     bool display_window;
     CharacterForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client);

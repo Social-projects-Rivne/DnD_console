@@ -21,6 +21,7 @@ void CharacterForm::fInitUIElements()
     _character_name->setPosition(windowWidth/2+50, 105);
     _character_name->setSize(180, 40);
     _character_name->setDefaultText("Name");
+    _character_name->setInputValidator("[0-9]{1,5}");
     _gui.add(_character_name);
 
     _class_l = _theme->load("Label");
@@ -177,6 +178,7 @@ void CharacterForm::fInitUIElements()
     _save_chg->setSize(160, 50);
     _save_chg->setPosition(windowWidth / 2 + 490, _wisdom_l->getSize().y + 575);
     _save_chg->setText("Save Changes");
+    _save_chg->hide();
     _gui.add(_save_chg);
 
     _back_btn = _theme->load("Button");
@@ -220,9 +222,9 @@ void CharacterForm::fInitUIElements()
 
     _combo_box = true;
 
-    _save_chg->hide();
     _create_btn->connect("pressed", &CharacterForm::fCreateCharacter, this, _character_name);
     _refresh_btn->connect("pressed", &CharacterForm::fRefresh, this);
+    _save_chg->connect("pressed", &CharacterForm::fSaveChanges, this, _character_list);
     _delete_btn->connect("pressed", &CharacterForm::fDeleteCharacter, this, _character_list);
     _edit_btn->connect("pressed", &CharacterForm::fEditCharacter, this, _character_list);
     _back_btn->connect("pressed", &CharacterForm::fDisable, this);
@@ -286,12 +288,17 @@ void CharacterForm::fDeleteCharacter(tgui::ListBox::Ptr character_list)
     _http_client->fSendRequest(HttpClient::_POST, "/api/deletecharacter", request);
     _http_client->fGetResponse(response);
     std::cout << response;
+ 
+    if (response.find("success"))
+    {
+        fRefresh();
+    }
 }
 
 void CharacterForm::fEditCharacter(tgui::ListBox::Ptr character_list)
 {
-
-    //_create_btn->setText("Save Changes");
+    _create_btn->hide();
+    _save_chg->show();
 
     json request;
     request["session_id"] = _game_session;
@@ -302,36 +309,34 @@ void CharacterForm::fEditCharacter(tgui::ListBox::Ptr character_list)
     _http_client->fSendRequest(HttpClient::_POST, "/api/loaddefinedcharacter", request.dump());
     _http_client->fGetResponse(response);
     std::cout << response;
-   
+
     json temp_character;
    
-    temp_character = json::parse(response);
+    temp_character = json::parse(response.c_str());
    
-    //_character_name->setText("test");
+    _character_name->setText(temp_character["character"]);
+    _character_race_cbox->setSelectedItem(temp_character["race"]);
+    _character_class_cbox->setSelectedItem(temp_character["class"]);
+    _strength->setSelectedItem(temp_character["strength"]);
+    _dexterity->setSelectedItem(temp_character["dexterity"]);
+    _constitution->setSelectedItem(temp_character["constitution"]);
+    _inteligence->setSelectedItem(temp_character["intelligence"]);
+    _wisdom->setSelectedItem(temp_character["wisdom"]);
+    _charisma->setSelectedItem(temp_character["charisma"]);
 
 }
 
 void CharacterForm::fLoadCharacterListBox()
 {
-//    fLoadRaces();
-//    fLoadClasses();
-
-    //IniParser pIni_parser("config.ini");
-    //auto params = pIni_parser.fGetParams();
-    //boost::asio::io_service io_service;
-    //
-    //HttpClient *http_client = new HttpClient(io_service, params["client.host"], params["client.port"]);
-    HttpClient &test = *_http_client;
-
    std::string response;
-   
    auto request = UserActions::fLoadMyCharacters(_game_session).dump();
-    
-   test.fSendRequest(HttpClient::_POST, "/api/loadmycharacterslist", request);
-   test.fGetResponse(response);
+   _http_client->fSendRequest(HttpClient::_POST, "/api/loadmycharacterslist", request);
+   _http_client->fGetResponse(response);
    _character_data = json::parse(response.c_str());
+   std::cout << _character_data;
+   fLoadRaces();
+   fLoadClasses();
    _updated = false;
-   //std::cout << _character_data;
 }
 void CharacterForm::fLoadRaces()
 {
@@ -341,7 +346,7 @@ void CharacterForm::fLoadRaces()
     std::cout << request.dump();
     _http_client->fSendRequest(HttpClient::_POST, "/api/loadraces", request.dump());
     _http_client->fGetResponse(response);
-    _character_races = json::parse(response);
+    _character_races = json::parse(response.c_str());
     std::cout << _character_races;
 }
 
@@ -353,17 +358,39 @@ void CharacterForm::fLoadClasses()
     std::cout << request.dump();
     _http_client->fSendRequest(HttpClient::_POST, "/api/loadclasses", request.dump());
     _http_client->fGetResponse(response);
-    _character_classes = json::parse(response);
-   // std::cout << _character_classes;
+    _character_classes = json::parse(response.c_str());
+    std::cout << _character_classes;
 }
 
 void CharacterForm::fRefresh()
 {
-    fLoadCharacterListBox();
     _character_list->removeAllItems();
-    _updated = false;
+    _character_race_cbox->removeAllItems();
+    _character_class_cbox->removeAllItems();
+    _http_thread.launch();
 }
 
+void CharacterForm::fSaveChanges(tgui::ListBox::Ptr character_list)
+{
+    json request;
+    std::string response;
+    Character character(_character_name->getText().toAnsiString(), _data_race, _data_class, _data_experience, _data_hitpoints, _data_level, _data_strength, _data_dexterity, _data_constitution, _data_intelligence, _data_wisdom, _data_charisma, _game_session);
+    request = character.fToJson();
+    request["character_id"] = _character_id;
+    std::cout << request;
+    _http_client->fSendRequest(HttpClient::_POST, "/api/editcharacter", request.dump());
+    _http_client->fGetResponse(response);
+     std::cout << response;
+
+     if (response.find("success"))
+     {
+         _save_chg->hide();
+         _create_btn->show();
+         fRefresh();
+     }
+     _combo_box = false;
+
+}
 void CharacterForm::fDisable()
 {
     display_window = false;
@@ -373,16 +400,12 @@ void CharacterForm::fDisable()
 CharacterForm::CharacterForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client)
     : _http_thread(&CharacterForm::fLoadCharacterListBox, this)
 {
-    _is_loaded = false;
-    this->_http_client = http_client;
     display_window = true;
     _gui.setWindow(window);
     _game_session = game_session;
-    _updated = false;
+    _http_client = http_client;
+    _updated = true;
     fInitUIElements();
-    //fLoadRaces();
-    //fLoadCharacterListBox();
-    //fLoadClasses();
     this->_event = event;
     _http_thread.launch();
 }
@@ -392,48 +415,83 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
 
     while (window.pollEvent(_event))
     {
-    if (_combo_box)
-    {
-        _data_strength = _strength->getSelectedItem();
-        _data_dexterity = _dexterity->getSelectedItem();
-        _data_constitution = _constitution->getSelectedItem();
-        _data_intelligence = _inteligence->getSelectedItem();
-        _data_wisdom = _wisdom->getSelectedItem();
-        _data_charisma = _charisma->getSelectedItem();
-        _data_race = _character_race_cbox->getSelectedItem();
-        _data_class = _character_class_cbox->getSelectedItem();
-        
-        if (_data_strength.size() > 0)
+
+        try
         {
-            _strength_mod->setText(fSetAbilityMod(_data_strength));
+            if (_character_data["status"] == "success"&& _character_races["status"] == "success" && _character_classes["status"] == "success" && !_updated)
+            {
+
+                std::string race_quan = _character_races["races_quantity"];
+                for (int i = 0; i < std::stoi(race_quan); i++)
+                {
+                    _character_race_cbox->addItem(_character_races["list"][i]["race"], _character_races["list"][i]["race_id"]);
+                }
+
+                std::string class_quan = _character_classes["classes_quantity"];
+
+                for (int i = 0; i < std::stoi(class_quan); i++)
+                {
+                    _character_class_cbox->addItem(_character_classes["list"][i]["class"], _character_classes["list"][i]["class_id"]);
+                }
+
+
+                std::string quan = _character_data["character_quantity"];
+                for (int i = 0; i < std::stoi(quan); i++)
+                {
+                    _character_list->addItem(_character_data["list"][i]["character"], _character_data["list"][i]["character_id"]);
+                }
+
+                _updated = true;
+            }
+        }
+        catch (const std::exception&)
+        {
+
         }
 
-        if (_data_dexterity.size() > 0)
+        if (_combo_box)
         {
-            _dexterity_mod->setText(fSetAbilityMod(_data_dexterity));
-        }
+            _data_strength = _strength->getSelectedItem();
+            _data_dexterity = _dexterity->getSelectedItem();
+            _data_constitution = _constitution->getSelectedItem();
+            _data_intelligence = _inteligence->getSelectedItem();
+            _data_wisdom = _wisdom->getSelectedItem();
+            _data_charisma = _charisma->getSelectedItem();
+            _data_race = _character_race_cbox->getSelectedItem();
+            _data_class = _character_class_cbox->getSelectedItem();
+            _character_id = _character_list->getSelectedItemId();
+           
+            if (_data_strength.size() > 0)
+            {
+                _strength_mod->setText(fSetAbilityMod(_data_strength));
+            }
 
-        if (_data_constitution.size() > 0)
-        {
-            _constitution_mod->setText(fSetAbilityMod(_data_constitution));
-        }
+            if (_data_dexterity.size() > 0)
+            {
+                _dexterity_mod->setText(fSetAbilityMod(_data_dexterity));
+            }
 
-        if (_data_intelligence.size() > 0)
-        {
-            _inteligence_mod->setText(fSetAbilityMod(_data_intelligence));
-        }
+            if (_data_constitution.size() > 0)
+            {
+                _constitution_mod->setText(fSetAbilityMod(_data_constitution));
+            }
 
-        if (_data_wisdom.size() > 0)
-        {
-            _wisdom_mod->setText(fSetAbilityMod(_data_wisdom));
-        }
+            if (_data_intelligence.size() > 0)
+            {
+                _inteligence_mod->setText(fSetAbilityMod(_data_intelligence));
+            }
 
-        if (_data_charisma.size() > 0)
-        {
-            _charisma_mod->setText(fSetAbilityMod(_data_charisma));
+            if (_data_wisdom.size() > 0)
+            {
+                _wisdom_mod->setText(fSetAbilityMod(_data_wisdom));
+            }
+
+            if (_data_charisma.size() > 0)
+            {
+                _charisma_mod->setText(fSetAbilityMod(_data_charisma));
+            }
+
         }
-        
-    }
         else
         {
             _strength->deselectItem();
@@ -443,43 +501,17 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
             _wisdom->deselectItem();
             _charisma->deselectItem();
             _character_name->setText("");
+            _strength_mod->setText("");
+            _dexterity_mod->setText("");
+            _constitution_mod->setText("");
+            _inteligence_mod->setText("");
+            _wisdom_mod->setText("");
+            _charisma_mod->setText("");
             _character_race_cbox->deselectItem();
             _character_class_cbox->deselectItem();
             _combo_box = true;
-
         }
 
-        try
-        {
-            if (_character_data["status"] == "success"&&/*&& _character_races["status"] == "success" && _character_classes["status"]=="success" &&*/ !_updated)
-            {
-                std::string quan = _character_data["character_quantity"];
-                for (int i = 0; i < std::stoi(quan); i++)
-                {
-                
-                    _character_list->addItem(_character_data["list"][i]["character"], _character_data["list"][i]["character_id"]);
-                }
-                
-                //std::string race_quan = _character_races["races_quantity"];
-                //for (int i = 0; i < std::stoi(race_quan); i++)
-                //{
-                //    _character_race_cbox->addItem(_character_races["list"][i]["race"], _character_races["list"][i]["race_id"]);
-                //}
-                //
-                //std::string class_quan = _character_classes["classes_quantity"];
-                //
-                //for (int i = 0; i < std::stoi(class_quan); i++)
-                //{
-                //    _character_class_cbox->addItem(_character_classes["list"][i]["class"], _character_classes["list"][i]["class_id"]);
-                //}
-                
-                _updated = true;
-            }
-        }
-        catch (const std::exception&)
-        {
-
-        }
 
         if (_event.type == sf::Event::Closed)
             window.close();

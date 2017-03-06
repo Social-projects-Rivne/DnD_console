@@ -163,7 +163,7 @@ TerrainForm::TerrainForm(const sf::Event &event, sf::RenderWindow &window, std::
     _game_session = game_session;
     _http_client = http_client;
     _gui.setWindow(window);
-    _updated = false;
+    _updated = true;
     fInitUIElements();
     this->_event = event;
     _load_terrains_data.launch();
