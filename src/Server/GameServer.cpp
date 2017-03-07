@@ -1,7 +1,7 @@
 // GameServer.cpp
 //
 // server
-// for 
+// for
 // SoftServe ITA
 //
 // Nicholas Tsaruk and Olha Leskovska
@@ -13,6 +13,7 @@
 #include "Includes/IniParser.hpp"
 #include "Includes/DataBase.hpp"
 #include "Includes/DataValidator.hpp"
+#include "Includes/Logger.hpp"
 
 using namespace std;
 
@@ -29,6 +30,7 @@ void fSendMyNpc(std::string &json_response, nlohmann::json &json_request);
 void fEditNpc(std::string &json_response, nlohmann::json &json_request);
 void fDeleteNpc(std::string &json_response, nlohmann::json &json_request);
 void fSendTerrain(std::string &json_response, nlohmann::json &json_request);
+void fDeleteTerrain(std::string &json_response, nlohmann::json &json_request);
 void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_request);
 void fSendOwnCharacterList(std::string &json_response, nlohmann::json &json_request);
@@ -56,51 +58,51 @@ DataBase data_base;
 int main(int argc, char* argv[])
 {
     // read data from config.ini file
-        cout << "(1/3) The following keys were parsed out from the configuration file:\n";
-        IniParser pIni_parser("config.ini");
-        auto params = pIni_parser.fGetParams();
-        for (auto & param: params)
-    	    cout << "\t" << param.first + ":" + param.second + "\n";
-        cout << "\n";
-
+    cout << "(1/3) The following keys were parsed out from the configuration file:\n";
+    IniParser pIni_parser("config.ini");
+    auto params = pIni_parser.fGetParams();
+    for (auto & param: params)
+        cout << "\t" << param.first + ":" + param.second + "\n";
+    cout << "\n";
+    
     // check for DB connection
-        cout << "(2/3) ";
-        nlohmann::json json_result = data_base.fConnection(params["database.host"], params["database.username"], params["database.password"], params["database.name"]);
-        string db_connection_result = json_result["result"];
-        if (db_connection_result == "error")
-        {
-            string db_connection_message = json_result["message"];
-            cout << "Unable to connect to DB: " << db_connection_message << endl;
-            return -10;
-        }
-        cout << "DB connection is available\n\n";
-
+    cout << "(2/3) ";
+    nlohmann::json json_result = data_base.fConnection(params["database.host"], params["database.username"], params["database.password"], params["database.name"]);
+    string db_connection_result = json_result["result"];
+    if (db_connection_result == "error")
+    {
+        string db_connection_message = json_result["message"];
+        cout << "Unable to connect to DB: " << db_connection_message << endl;
+        return -10;
+    }
+    cout << "DB connection is available\n\n";
+    
     // start HTTP server with correct termination
-        cout << "(3/3) ";
-        pHttp_server = new HttpServer(stoi(params["server.port"]), params["server.root"]);
-        // pHttp_server = new HttpServer(15000, "Root/");
-        if (pHttp_server->state_error)
-        {
-            cout << "Unable to create HTTP server: " << pHttp_server->state_info << endl;
-            return -20;
-        }
-        pHttp_server->fGenerateResponse = &fParseRequest; // assign callback function
-        signal(SIGINT, fHandler); // listen for SIGINT (aka control-c), if it comes call function named fHandler
-        cout << "HTTP server is started:\n" << pHttp_server->state_info << endl;
-        pHttp_server->state_info = "";
-
-        pHttp_server->fRun(); // blocking function. Server's loop waits for user connections
-
+    cout << "(3/3) ";
+    pHttp_server = new HttpServer(stoi(params["server.port"]), params["server.root"]);
+    // pHttp_server = new HttpServer(15000, "Root/");
+    if (pHttp_server->state_error)
+    {
+        cout << "Unable to create HTTP server: " << pHttp_server->state_info << endl;
+        return -20;
+    }
+    pHttp_server->fGenerateResponse = &fParseRequest; // assign callback function
+    signal(SIGINT, fHandler); // listen for SIGINT (aka control-c), if it comes call function named fHandler
+    cout << "HTTP server is started:\n" << pHttp_server->state_info << endl;
+    pHttp_server->state_info = "";
+    
+    pHttp_server->fRun(); // blocking function. Server's loop waits for user connections
+    
     // clear memory and close socets (via destructors, etc.)
-        delete pHttp_server;
+    delete pHttp_server;
 }
 
 
 
 
 /**
-* Handles user, OS signals.
-*/
+ * Handles user, OS signals.
+ */
 void fHandler(int signal)
 {
     if (signal == SIGINT) // signal == Ctrl+C
@@ -111,8 +113,8 @@ void fHandler(int signal)
 }
 
 /**
-* parses request string
-*/
+ * parses request string
+ */
 void fParseRequest(std::string &path, std::map <std::string, std::string> &http_headers)
 {
     cout << "\n\nAPI call:\n";
@@ -121,11 +123,11 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
         response = "{\"error\": \"incorrect api call\"}";
     else
     {
-    	if (http_headers.find((string)"Content") == http_headers.end())
+        if (http_headers.find((string)"Content") == http_headers.end())
             response = "{\"status\": \"fail\",\"message\": \"Unable to gain content from http request.\"}";
-    	else
-    	{
-        	string request_data_content = http_headers[(string)"Content"];
+        else
+        {
+            string request_data_content = http_headers[(string)"Content"];
             if (!request_data_content.length())
                 response = "{\"error\": \"request content is empty\"}";
             else
@@ -133,7 +135,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                 try
                 {
                     nlohmann::json json_request = json::parse(request_data_content.c_str());
-
+                    
                     if (path.find("/api/userlogin") != string::npos)
                         fUserLogIn(response, json_request);
                     else if (path.find("/api/userregister") != string::npos)
@@ -144,6 +146,8 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                         fSaveTerrain(response, json_request);
                     else if (path.find("/api/loadterrain") != string::npos)
                         fSendTerrain(response, json_request);
+                    else if (path.find("/api/deleteterrain") != string::npos)
+                        fDeleteTerrain(response, json_request);
                     else if (path.find("/api/loaddefinedterrains") != string::npos)
                         fSendDefinedTerrains(response, json_request);
                     else if (path.find("/api/loadmyterrainslist") != string::npos)
@@ -174,7 +178,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                         fSaveBoard(response, json_request);
                     else if (path.find("/api/addobjectonboard") != string::npos)
                         fSaveObjectsOnBoard(response, json_request);
-                    else if (path.find("/api/loadmyboard") != string::npos)
+                    else if (path == ("/api/loadmyboard"))
                         fSendOwnBoard(response, json_request);
                     else if (path.find("/api/loadboard") != string::npos)
                         fSendBoard(response, json_request);
@@ -193,22 +197,22 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                     else if (path.find("/api/loadtypesterrain") != string::npos)
                         fSendTerrainTypes(response, json_request);
                     else
-                    	response = "{\"status\": \"fail\",\"message\": \"requested API is not implemented\"}";
+                        response = "{\"status\": \"fail\",\"message\": \"requested API is not implemented\"}";
                 }
                 catch (const exception &)
                 {
                     response = "{\"status\": \"fail\",\"message\": \"JSON parse failed or JSON keys are invalid\"}";
                 }
             }
-    	}
+        }
     }
     cout << "RESPONSE:\n" << response << endl;
     pHttp_server->fSetResponse(response.data(), response.length(), "JSON");
 }
 
 /**
-* parses request string
-*/
+ * parses request string
+ */
 void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
 {
     string username = json_request["username"];
@@ -216,53 +220,65 @@ void fUserLogIn(std::string &json_response, nlohmann::json &json_request)
     if (DataValidator::fValidate(username, DataValidator::NAME) &&
         DataValidator::fValidate(password, DataValidator::PASSWORD)) // checks data
     {
-		string query = "SELECT id, username, password FROM Users WHERE username='" + username + "' AND password='" + password + "';";
-		nlohmann::json json_result = data_base.fExecuteQuery(query);
-		cout << query << "\nRESULT:\n" << json_result << endl;
-		string query_result = json_result["result"];
-		if (query_result == "success")
-		{
-			string rows = json_result["rows"];
-			if (stoi(rows) > 0)
-			{
-				string id_user = json_result["data"][0]["id"];
-
-				query = "SELECT id FROM Sessions WHERE id_user=" + id_user + ";";
-				json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				query_result = json_result["result"];
-
-				if (query_result == "success")
-				{
-					rows = json_result["rows"];
-					if (stoi(rows) > 0) // get current active session
-					{
-						string session_id = json_result["data"][0]["id"];
-						json_response = "{\"status\":\"already logged in\", \"session_id\": \"" + session_id + "\"}";
-					}
-					else // create new session
-					{
-						query = "INSERT INTO Sessions (id_user) VALUES (" + id_user + ");";
-						json_result = data_base.fExecuteQuery(query);
-						cout << query << "\nRESULT:\n" << json_result << endl;
-						query = "SELECT LAST_INSERT_ID() AS id";
-						json_result = data_base.fExecuteQuery(query);
-						cout << query << "\nRESULT:\n" << json_result << endl;
-						string session_id = json_result["data"][0]["id"];
-						json_response = "{\"status\":\"success\", \"session_id\": \"" + session_id + "\"}";
-					}
-				}
-				else
-					json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
-			}
-			else
-				json_response = "{\"status\":\"fail\", \"message\": \"no such user or provided password is incorrect\"}";
-		}
-		else
-			json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+        string query = "SELECT id, username, password FROM Users WHERE username='" + username + "' AND password='" + password + "';";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            if (stoi(rows) > 0)
+            {
+                string id_user = json_result["data"][0]["id"];
+                
+                query = "SELECT id FROM Sessions WHERE id_user=" + id_user + ";";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                
+                if (query_result == "success")
+                {
+                    rows = json_result["rows"];
+                    if (stoi(rows) > 0) // get current active session
+                    {
+                        string session_id = json_result["data"][0]["id"];
+                        json_response = "{\"status\":\"already logged in\", \"session_id\": \"" + session_id + "\"}";
+                    }
+                    else // create new session
+                    {
+                        query = "INSERT INTO Sessions (id_user) VALUES (" + id_user + ");";
+                        json_result = data_base.fExecuteQuery(query);
+                        cout << query << "\nRESULT:\n" << json_result << endl;
+                        query = "SELECT LAST_INSERT_ID() AS id";
+                        json_result = data_base.fExecuteQuery(query);
+                        cout << query << "\nRESULT:\n" << json_result << endl;
+                        string session_id = json_result["data"][0]["id"];
+                        json_response = "{\"status\":\"success\", \"session_id\": \"" + session_id + "\"}";
+                    }
+                }
+                else
+                {
+                    json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+                    Logger::fLog("database error (fUserLogIn)", Logger::type::error);
+                }
+            }
+            else
+            {
+                json_response = "{\"status\":\"fail\", \"message\": \"no such user or provided password is incorrect\"}";
+                Logger::fLog("no user with name " + username + " or provided password is incorrect (fUserLogIn)", Logger::type::warning);
+            }
+        }
+        else
+        {
+            json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+            Logger::fLog("database error (fUserLogIn)", Logger::type::error);
+        }
     }
     else
+    {
         json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+        Logger::fLog("invalid data passed from user " + username + " (fUserLogIn)", Logger::type::warning);
+    }
 }
 
 void fUserRegistration(std::string &json_response, nlohmann::json &json_request)
@@ -270,7 +286,7 @@ void fUserRegistration(std::string &json_response, nlohmann::json &json_request)
     string username = json_request["username"];
     string password = json_request["password"];
     string email    = json_request["email"];
-
+  
     if (DataValidator::fValidate(username, DataValidator::NAME) &&
         DataValidator::fValidate(password, DataValidator::PASSWORD) &&
         DataValidator::fValidate(email, DataValidator::EMAIL)) // checks data
@@ -280,31 +296,40 @@ void fUserRegistration(std::string &json_response, nlohmann::json &json_request)
         cout << json_result << endl;
         string query_result = json_result["result"];
         if (query_result == "success")
+        {
             json_response = "{\"status\":\"success\", \"message\": \"registered\"}";
+            Logger::fLog("user " + username + " is registered (fUserRegistration)", Logger::type::info);
+        }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+            Logger::fLog("database error (fUserRegistration)", Logger::type::error);
+        }
     }
     else
+    {
         json_response = "{\"status\":\"fail\", \"message\": \"invalid data\"}";
+        Logger::fLog("invalid data passed from user " + username + " (fUserRegistration)", Logger::type::warning);
+    }
 }
 
 bool fRetrieveUserId(std::string &id_user, std::string &session_id)
 {
     if (DataValidator::fValidate(session_id,     DataValidator::SQL_INJECTION)) // checks data
     {
-		string query = "SELECT id_user FROM Sessions WHERE id = " + session_id;
-		nlohmann::json json_result = data_base.fExecuteQuery(query);
-		cout << query << "\nRESULT:\n" << json_result << endl;
-		string query_result = json_result["result"];
-		if (query_result == "success")
-		{
-			string rows = json_result["rows"];
-			if (stoi(rows) > 0)
-			{
-				id_user = json_result["data"][0]["id_user"];
-				return 1;
-			}
-		}
+        string query = "SELECT id_user FROM Sessions WHERE id = " + session_id;
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            if (stoi(rows) > 0)
+            {
+                id_user = json_result["data"][0]["id_user"];
+                return 1;
+            }
+        }
     }
     return 0;
 }
@@ -324,7 +349,10 @@ void fUserLogOut(std::string &json_response, nlohmann::json &json_request)
         if (query_result == "success")
             json_response = "{\"status\":\"success\", \"message\": \"you are logged out\"}";
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"you are not logged out, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fUserLogOut)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -333,7 +361,7 @@ void fUserLogOut(std::string &json_response, nlohmann::json &json_request)
 void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
 {
     string session_id = json_request["session_id"];
-
+    
     string id_user;
     if (fRetrieveUserId(id_user, session_id))
     {
@@ -342,12 +370,12 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
         string width       = json_request["width"];
         string height      = json_request["height"];
         string description = json_request["description"];
-
+        
         if (DataValidator::fValidate(name,        DataValidator::SQL_INJECTION) &&
-        	DataValidator::fValidate(type,        DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(width,       DataValidator::LENGTH) &&
-			DataValidator::fValidate(height,      DataValidator::LENGTH) &&
-			DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
+            DataValidator::fValidate(type,        DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(width,       DataValidator::LENGTH) &&
+            DataValidator::fValidate(height,      DataValidator::LENGTH) &&
+            DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
         {
             string query = "SELECT id, name From TerrainTypes WHERE name = '" + type + "';";
             nlohmann::json json_result = data_base.fExecuteQuery(query);
@@ -368,15 +396,22 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
                     cout << query << "\nRESULT:\n" << json_result << endl;
                     string terrain_id = json_result["data"][0]["id"];
                     json_response = "{\"status\":\"success\", \"terrain_id\": \"" + terrain_id + "\"}";
+                    Logger::fLog("new terrain was added by user with id " + id_user, Logger::type::info);
                 }
                 else
+                {
                     json_response = "{\"status\":\"fail\", \"message\": \"terrain is not added, sql query execution failed\"}";
+                    Logger::fLog("sql query execution failed (fSaveTerrain)", Logger::type::error);
+                }
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"no such Terrain's type\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+            Logger::fLog("invalid data passed from user with id " + id_user + " (fSaveTerrain)", Logger::type::warning);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -399,36 +434,43 @@ void fSaveNpc(std::string &json_response, nlohmann::json &json_request)
         string intelligence = json_request["intelligence"];
         string wisdom       = json_request["wisdom"];
         string charisma     = json_request["charisma"];
-
+        
         if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
-    		DataValidator::fValidate(id_type,      DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
-			DataValidator::fValidate(dexterity,    DataValidator::ABILITY) &&
-			DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
-			DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
-			DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
-			DataValidator::fValidate(charisma,     DataValidator::ABILITY)) // checks data
+            DataValidator::fValidate(id_type,      DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
+            DataValidator::fValidate(dexterity,    DataValidator::ABILITY) &&
+            DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
+            DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
+            DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
+            DataValidator::fValidate(charisma,     DataValidator::ABILITY)) // checks data
         {
-			string query = "INSERT INTO NPCs (name, id_type, hitpoints, level, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner) VALUES ('" + name + "', '" + id_type + "', '" + hitpoints + "', '" + level + "', '" + strength + "', '" + dexterity + "', '" + constitution + "', '" + intelligence + "', '" + wisdom + "', '" + charisma + "', '" + id_user + "');";
-			nlohmann::json json_result = data_base.fExecuteQuery(query);
-			cout << query << "\nRESULT:\n" << json_result << endl;
-			string query_result = json_result["result"];
-
-			if (query_result == "success")
-			{
-				query = "SELECT LAST_INSERT_ID() AS id";
-				json_result = data_base.fExecuteQuery(query);
-				cout << query << "\nRESULT:\n" << json_result << endl;
-				string npc_id = json_result["data"][0]["id"];
-				json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
-			}
-			else
-				json_response = "{\"status\":\"fail\", \"message\": \"npc is not added, sql query execution failed\"}";
+            string query = "INSERT INTO NPCs (name, id_type, hitpoints, level, strength, dexterity, constitution, intelligence, wisdom, charisma, id_owner) VALUES ('" + name + "', '" + id_type + "', '" + hitpoints + "', '" + level + "', '" + strength + "', '" + dexterity + "', '" + constitution + "', '" + intelligence + "', '" + wisdom + "', '" + charisma + "', '" + id_user + "');";
+            nlohmann::json json_result = data_base.fExecuteQuery(query);
+            cout << query << "\nRESULT:\n" << json_result << endl;
+            string query_result = json_result["result"];
+            
+            if (query_result == "success")
+            {
+                query = "SELECT LAST_INSERT_ID() AS id";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                string npc_id = json_result["data"][0]["id"];
+                json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
+                Logger::fLog("new npc was added by user with id " + id_user, Logger::type::info);
+            }
+            else
+            {
+                json_response = "{\"status\":\"fail\", \"message\": \"npc is not added, sql query execution failed\"}";
+                Logger::fLog("sql query execution failed (fSaveNpc)", Logger::type::error);
+            }
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+            Logger::fLog("invalid data passed from user with id " + id_user + " (fSaveNpc)", Logger::type::warning);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -445,7 +487,7 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
-
+        
         if (query_result == "success")
         {
             string rows = json_result["rows"];
@@ -463,7 +505,57 @@ void fSendTerrain(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"fail\", \"message\": \"no terrain that you own with the specified id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"terrain is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendTerrain)", Logger::type::error);
+        }
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fDeleteTerrain(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string terrain_id = json_request["terrain_id"];
+        string query = "SELECT t.id, t.name, type.name as type, t.width, t.height, t.description, t.id_owner FROM Terrain t, TerrainTypes type  WHERE t.id = " + terrain_id + " AND t.id_type = type.id;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            if (stoi(rows) > 0)
+            {
+                query = "DELETE FROM Terrain WHERE id_owner = '" + id_user + "' AND id = '" + terrain_id + "' LIMIT 1;";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                string query_result = json_result["result"];
+                
+                if (query_result == "success")
+                {
+                    json_response = "{\"status\":\"success\", \"message\": \"your terrain with this id was deleted\"}";
+                    Logger::fLog("terrain with id " + terrain_id + " was deleted by user with id " + id_user, Logger::type::info);
+                }
+                else
+                {
+                    json_response = "{\"status\":\"fail\", \"message\": \"terrain is not deleted, sql query execution failed\"}";
+                    Logger::fLog("sql query execution failed (fDeleteTerrain)", Logger::type::error);
+                }
+            }
+            else
+                json_response = "{\"status\":\"fail\", \"message\": \"there is no your terrain with this id\"}";
+        }
+        else
+        {
+            json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+            Logger::fLog("database error (fDeleteTerrain)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -481,7 +573,7 @@ void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_reque
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
-
+        
         if (query_result == "success")
         {
             string rows = json_result["rows"];
@@ -508,7 +600,10 @@ void fSendDefinedTerrains(std::string &json_response, nlohmann::json &json_reque
                 json_response = "{\"status\":\"warning\", \"message\": \"list of your terrains is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of your terrains is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendDefinedTerrains)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -524,7 +619,7 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
         nlohmann::json json_result = data_base.fExecuteQuery(query);
         cout << query << "\nRESULT:\n" << json_result << endl;
         string query_result = json_result["result"];
-
+        
         if (query_result == "success")
         {
             string rows = json_result["rows"];
@@ -551,7 +646,10 @@ void fSendOwnTerrainsList(std::string &json_response, nlohmann::json &json_reque
                 json_response = "{\"status\":\"warning\", \"message\": \"list of your terrains is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of your terrains is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendOwnTerrainsList)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -601,7 +699,10 @@ void fSendOwnNpcsList(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"warning\", \"message\": \"list of your npcs is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of your npcs is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendOwnNpcsList)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -644,7 +745,10 @@ void fSendNpc(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"fail\", \"message\": \"no your npc with this id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"npc is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendNpc)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -687,7 +791,10 @@ void fSendMyNpc(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"fail\", \"message\": \"no your npc with this id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"npc is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendMyNpc)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -742,7 +849,7 @@ void fEditNpc(std::string &json_response, nlohmann::json &json_request)
                         query = "UPDATE NPCs SET name = '" + name + "', id_type = '" + id_type + "', hitpoints = '" + hitpoints + "', level = '" + level + "', strength = '" + strength + "', dexterity = '" + dexterity + "', constitution = '" + constitution + "', intelligence = '" + intelligence + "', wisdom = '" + wisdom + "', charisma = '" + charisma + "' WHERE id_owner = '" + id_user + "' AND id = '" + npc_id + "';";
                         json_result = data_base.fExecuteQuery(query);
                         cout << query << "\nRESULT:\n" << json_result << endl;
-                    
+                        
                         if (json_result["result"] == "success")
                         {
                             query = "SELECT n.id, n.name, t.name as type, n.level, n.hitpoints, n.strength, n.dexterity, n.constitution, n.intelligence, n.wisdom, n.charisma, n.id_owner FROM NPCs n, NpcTypes t WHERE n.id = " + npc_id + " AND n.id_type = t.id AND id_owner = '" + id_user + "';";
@@ -752,19 +859,28 @@ void fEditNpc(std::string &json_response, nlohmann::json &json_request)
                             json_response = "{\"status\":\"success\", \"npc_id\": \"" + npc_id + "\"}";
                         }
                         else
+                        {
                             json_response = "{\"status\":\"fail\", \"message\": \"npc was not updated, sql query execution failed\"}";
+                            Logger::fLog("sql query execution failed (fEditNpc)", Logger::type::error);
+                        }
                     }
                     else
                         json_response = "{\"status\":\"fail\", \"message\": \"no such NPC's type\"}";
                 }
                 else
+                {
                     json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+                    Logger::fLog("invalid data passed from user with id " + id_user + " (fEditNpc)", Logger::type::warning);
+                }
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"there is no your npc with this id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+            Logger::fLog("database error (fEditNpc)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -794,15 +910,24 @@ void fDeleteNpc(std::string &json_response, nlohmann::json &json_request)
                 string query_result = json_result["result"];
                 
                 if (query_result == "success")
+                {
                     json_response = "{\"status\":\"success\", \"message\": \"your npc with this id was deleted\"}";
+                    Logger::fLog("npc with id " + npc_id + " was deleted by user with id " + id_user, Logger::type::info);
+                }
                 else
+                {
                     json_response = "{\"status\":\"fail\", \"message\": \"npc is not deleted, sql query execution failed\"}";
+                    Logger::fLog("sql query execution failed (fDeleteNpc)", Logger::type::error);
+                }
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"there is no your npc with this id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+            Logger::fLog("database error (fDeleteNpc)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -810,41 +935,41 @@ void fDeleteNpc(std::string &json_response, nlohmann::json &json_request)
 
 void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
 {
-	string session_id = json_request["session_id"];
-	string id_user;
-	if (fRetrieveUserId(id_user, session_id))
-	{
-		std::string name             = json_request["character"];
-		std::string race             = json_request["race"];
-		std::string c_class          = json_request["class"];
-		std::string experience       = json_request["experience"];
-		std::string hitpoints        = json_request["hitpoints"];
-		std::string level            = json_request["level"];
-		std::string strength         = json_request["strength"];
-		std::string strength_mod     = fSetAbilityMod(strength);
-		std::string dexterity        = json_request["dexterity"];
-		std::string dexterity_mod    = fSetAbilityMod(dexterity);
-		std::string constitution     = json_request["constitution"];
-		std::string constitution_mod = fSetAbilityMod(constitution);
-		std::string intelligence     = json_request["intelligence"];
-		std::string intelligence_mod = fSetAbilityMod(intelligence);
-		std::string charisma         = json_request["charisma"];
-		std::string charisma_mod     = fSetAbilityMod(charisma);
-		std::string wisdom           = json_request["wisdom"];
-		std::string wisdom_mod       = fSetAbilityMod(wisdom);
-
-		if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(race,         DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(c_class,      DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
-			DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
-			DataValidator::fValidate(dexterity,    DataValidator::ABILITY) &&
-			DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
-			DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
-			DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
-			DataValidator::fValidate(charisma,     DataValidator::ABILITY)) // checks data
-		{
+    string session_id = json_request["session_id"];
+    string id_user;
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        std::string name             = json_request["character"];
+        std::string race             = json_request["race"];
+        std::string c_class          = json_request["class"];
+        std::string experience       = json_request["experience"];
+        std::string hitpoints        = json_request["hitpoints"];
+        std::string level            = json_request["level"];
+        std::string strength         = json_request["strength"];
+        std::string strength_mod     = fSetAbilityMod(strength);
+        std::string dexterity        = json_request["dexterity"];
+        std::string dexterity_mod    = fSetAbilityMod(dexterity);
+        std::string constitution     = json_request["constitution"];
+        std::string constitution_mod = fSetAbilityMod(constitution);
+        std::string intelligence     = json_request["intelligence"];
+        std::string intelligence_mod = fSetAbilityMod(intelligence);
+        std::string charisma         = json_request["charisma"];
+        std::string charisma_mod     = fSetAbilityMod(charisma);
+        std::string wisdom           = json_request["wisdom"];
+        std::string wisdom_mod       = fSetAbilityMod(wisdom);
+        
+        if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(race,         DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(c_class,      DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(hitpoints,    DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(level,        DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(strength,     DataValidator::ABILITY) &&
+            DataValidator::fValidate(dexterity,    DataValidator::ABILITY) &&
+            DataValidator::fValidate(constitution, DataValidator::ABILITY) &&
+            DataValidator::fValidate(intelligence, DataValidator::ABILITY) &&
+            DataValidator::fValidate(wisdom,       DataValidator::ABILITY) &&
+            DataValidator::fValidate(charisma,     DataValidator::ABILITY)) // checks data
+        {
             string query = "SELECT id, name From Classes WHERE name = '" + c_class + "';";
             nlohmann::json json_result = data_base.fExecuteQuery(query);
             cout << query << "\nRESULT:\n" << json_result << endl;
@@ -870,7 +995,8 @@ void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
                         json_result = data_base.fExecuteQuery(query);
                         cout << query << "\nRESULT:\n" << json_result << endl;
                         string character_id = json_result["data"][0]["id"];
-                        json_response = "{\"status\":\"success\", \"character_id\": \"" + character_id + "\"}";
+                        json_response = "{\"status\":\"success\", \"character_id\": \"" + character_id + "\"";
+                        Logger::fLog("new character was added by user with id " + id_user, Logger::type::info);
                         
                         string query = "INSERT INTO ABILITIES (strength, str_mod, dexterity, dex_mod, constitution, con_mod, intelligence, int_mod, wisdom, wis_mod, charisma, cha_mod, id_character) VALUES ('" + strength + "', '" + strength_mod + "', '" + dexterity + "', '" + dexterity_mod + "', '" + constitution + "', '" + constitution_mod + "', '" + intelligence + "','" + intelligence_mod + "', '" + wisdom + "','" + wisdom_mod + "', '" + charisma + "','" + charisma_mod + "', '" + character_id + "');";
                         nlohmann::json json_result = data_base.fExecuteQuery(query);
@@ -883,108 +1009,120 @@ void fSaveCharacter(std::string &json_response, nlohmann::json &json_request)
                             json_result = data_base.fExecuteQuery(query);
                             cout << query << "\nRESULT:\n" << json_result << endl;
                             string ability_id = json_result["data"][0]["id"];
-                            //json_response = "{\"status\":\"success\", \"ability_id\": \"" + ability_id + "\"}";
+                            json_response += ", \"ability_id\": \"" + ability_id + "\"}";
                         }
                         else
-                            json_response += "{\"status\":\"fail\", \"message\": \"abilities is not added, sql query execution failed\"}";
+                        {
+                            json_response += ", \"message\": \"abilities is not added, sql query execution failed\"}";
+                            Logger::fLog("sql query execution failed (fSaveCharacter)", Logger::type::error);
+                        }
                     }
                     else
+                    {
                         json_response = "{\"status\":\"fail\", \"message\": \"character is not added, sql query execution failed\"}";
+                        Logger::fLog("sql query execution failed (fSaveCharacter)", Logger::type::error);
+                    }
                 }
                 else
                     json_response = "{\"status\":\"fail\", \"message\": \"no such Character's race\"}";
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"no such Character's class\"}";
-		}
-		else
-			json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
-	}
-	else
-		json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+        }
+        else
+        {
+            json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+            Logger::fLog("invalid data passed from user with id " + id_user + " (fSaveTerrain)", Logger::type::warning);
+        }
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
 }
 
 string fSetAbilityMod(std::string ability)
 {
-	int ability_ = std::stoi(ability);
-
-	if (ability_ >= 4 && ability_ <= 6)
-	{
-		return "-2";
-	}
-	else if (ability_ >= 7 && ability_ <= 9)
-	{
-		return "-1";
-	}
-	else if (ability_ == 10)
-	{
-		return "0";
-	}
-	else if (ability_ >= 11 && ability_ <= 13)
-	{
-		return "1";
-	}
-	else if (ability_ >= 14 && ability_ <= 16)
-	{
-		return "2";
-	}
-	else if (ability_ >= 17 && ability_ <= 19)
-	{
-		return "3";
-	}
-	else if (ability_ == 20)
-	{
-		return "5";
-	}
-	else
-	{
-		return "-3";
-	}
+    int ability_ = std::stoi(ability);
+    
+    if (ability_ >= 4 && ability_ <= 6)
+    {
+        return "-2";
+    }
+    else if (ability_ >= 7 && ability_ <= 9)
+    {
+        return "-1";
+    }
+    else if (ability_ == 10)
+    {
+        return "0";
+    }
+    else if (ability_ >= 11 && ability_ <= 13)
+    {
+        return "1";
+    }
+    else if (ability_ >= 14 && ability_ <= 16)
+    {
+        return "2";
+    }
+    else if (ability_ >= 17 && ability_ <= 19)
+    {
+        return "3";
+    }
+    else if (ability_ == 20)
+    {
+        return "5";
+    }
+    else
+    {
+        return "-3";
+    }
 }
 
 void fSendOwnCharacterList(std::string &json_response, nlohmann::json &json_request)
 {
-	string session_id = json_request["session_id"];
-	string id_user;
+    string session_id = json_request["session_id"];
+    string id_user;
     
-	if (fRetrieveUserId(id_user, session_id))
-	{
+    if (fRetrieveUserId(id_user, session_id))
+    {
         string query = "SELECT ch.id, ch.name, r.name as race, c.name as class, ch.experience, ch.hitpoints, ch.level, ch.id_user, a.strength, a.dexterity, a.constitution, a.intelligence, a.wisdom, a.charisma, a.id_character FROM Characters ch, Abilities a, Classes c, Races r WHERE ch.id_user = " + id_user + " AND ch.id = a.id_character AND ch.id_class = c.id AND ch.id_race = r.id;";
-		nlohmann::json json_result = data_base.fExecuteQuery(query);
-		cout << query << "\nRESULT:\n" << json_result << endl;
-		string query_result = json_result["result"];
-
-		if (query_result == "success")
-		{
-			string rows = json_result["rows"];
-			int rows_qtt = stoi(rows);
-			if (rows_qtt > 0)
-			{
-				json_response = "{\"status\":\"success\", \"character_quantity\":\"" + rows + "\", \"list\": [";
-				while (rows_qtt--)
-				{
-					string character_id = json_result["data"][rows_qtt]["id"];
-					string character    = json_result["data"][rows_qtt]["name"];
-					string race         = json_result["data"][rows_qtt]["race"];
-					string class_       = json_result["data"][rows_qtt]["class"];
-					string experience   = json_result["data"][rows_qtt]["experience"];
-					string hitpoints    = json_result["data"][rows_qtt]["hitpoints"];
-					string level        = json_result["data"][rows_qtt]["level"];
-					string id_owner     = json_result["data"][rows_qtt]["id_user"];
-					json_response += "{\"character\": \"" + character + "\", \"character_id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\"}";
-					if (rows_qtt)
-						json_response += ",";
-				}
-				json_response += "]}";
-			}
-			else
-				json_response = "{\"status\":\"warning\", \"message\": \"list of your characters is empty\"}";
-		}
-		else
-			json_response = "{\"status\":\"fail\", \"message\": \"list of your characters is not loaded, sql query execution failed\"}";
-	}
-	else
-		json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"character_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string character_id = json_result["data"][rows_qtt]["id"];
+                    string character    = json_result["data"][rows_qtt]["name"];
+                    string race         = json_result["data"][rows_qtt]["race"];
+                    string class_       = json_result["data"][rows_qtt]["class"];
+                    string experience   = json_result["data"][rows_qtt]["experience"];
+                    string hitpoints    = json_result["data"][rows_qtt]["hitpoints"];
+                    string level        = json_result["data"][rows_qtt]["level"];
+                    string id_owner     = json_result["data"][rows_qtt]["id_user"];
+                    json_response += "{\"character\": \"" + character + "\", \"character_id\": \"" + character_id + "\", \"race\": \"" + race + "\", \"class\": \"" + class_ + "\", \"experience\": \"" + experience + "\", \"hitpoints\": \"" + hitpoints + "\", \"level\": \"" + level + "\", \"id_owner\": \"" + id_owner + "\"}";
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of your characters is empty\"}";
+        }
+        else
+        {
+            json_response = "{\"status\":\"fail\", \"message\": \"list of your characters is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendOwnCharacterList)", Logger::type::error);
+        }
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
 }
 
 void fSaveBoard(std::string &json_response, nlohmann::json &json_request)
@@ -1004,7 +1142,7 @@ void fSaveBoard(std::string &json_response, nlohmann::json &json_request)
             spawn_x = json_request["spawn_x"];
         if (json_request.count("spawn_y") > 0)
             spawn_y = json_request["spawn_y"];
-   
+
         if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
             DataValidator::fValidate(width,        DataValidator::SQL_INJECTION) &&
             DataValidator::fValidate(height,       DataValidator::SQL_INJECTION) &&
@@ -1024,12 +1162,19 @@ void fSaveBoard(std::string &json_response, nlohmann::json &json_request)
                 cout << query << "\nRESULT:\n" << json_result << endl;
                 string board_id = json_result["data"][0]["id"];
                 json_response = "{\"status\":\"success\", \"board_id\": \"" + board_id + "\"}";
+                Logger::fLog("new board was added by user with id " + id_owner, Logger::type::info);
             }
             else
+            {
                 json_response = "{\"status\":\"fail\", \"message\": \"board is not added, sql query execution failed\"}";
+                Logger::fLog("sql query execution failed (fSaveBoard)", Logger::type::error);
+            }
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+            Logger::fLog("invalid data passed from user with id " + id_owner + " (fSaveBoard)", Logger::type::warning);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1041,7 +1186,7 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
     string id_owner;
     if (fRetrieveUserId(id_owner, session_id))
     {
-        std::string id_board = json _request["id_board"];
+        std::string id_board = json_request["id_board"];
         string data_count    = json_request["data_count"];
         int data_qtt = stoi(data_count);
         if (data_qtt > 0)
@@ -1078,14 +1223,23 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                                 if (query_result == "success")
                                     json_response += "{\"status\":\"success\", \"message\": \"npc with id " + id_npc + " is added\"}";
                                 else
+                                {
                                     json_response += "{\"status\":\"fail\", \"message\": \"npc with id " + id_npc + " is not added, sql query execution failed\"}";
+                                    Logger::fLog("sql query execution failed (fSaveObjectsOnBoard)", Logger::type::error);
+                                }
                             }
                         }
                         else
+                        {
                             json_response += "{\"status\":\"fail\", \"message\": \"database error\"}";
+                            Logger::fLog("database error (fSaveObjectsOnBoard)", Logger::type::error);
+                        }
                     }
                     else
+                    {
                         json_response += "{\"status\":\"fail\", \"message\": \"invalid npc's data passed\"}";
+                        Logger::fLog("invalid data passed from user with id " + id_owner + " (fSaveObjectsOnBoard)", Logger::type::warning);
+                    }
                 }
                 else if (json_request["data"][data_qtt]["type"] == "terrain")
                 {
@@ -1117,14 +1271,23 @@ void fSaveObjectsOnBoard(std::string &json_response, nlohmann::json &json_reques
                                 if (query_result == "success")
                                     json_response += "{\"status\":\"success\", \"message\": \"terrain with id " + id_terrain + " is added\"}";
                                 else
+                                {
                                     json_response += "{\"status\":\"fail\", \"message\": \"terrain with id " + id_terrain + " is not added, sql query execution failed\"}";
+                                    Logger::fLog("sql query execution failed (fSaveObjectsOnBoard)", Logger::type::error);
+                                }
                             }
                         }
                         else
+                        {
                             json_response += "{\"status\":\"fail\", \"message\": \"database error\"}";
+                            Logger::fLog("database error (fSaveObjectsOnBoard)", Logger::type::error);
+                        }
                     }
                     else
+                    {
                         json_response += "{\"status\":\"fail\", \"message\": \"invalid terrain's data passed\"}";
+                        Logger::fLog("invalid data passed from user with id " + id_owner + " (fSaveObjectsOnBoard)", Logger::type::warning);
+                    }
                 }
             }
         }
@@ -1175,7 +1338,10 @@ void fSendDefinedCharacter(std::string &json_response, nlohmann::json &json_requ
                 json_response = "{\"status\":\"warning\", \"message\": \"you have no such character\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendDefinedCharacter)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1219,15 +1385,24 @@ void fDeleteCharacter(std::string &json_response, nlohmann::json &json_request)
                 query_result = json_result["result"];
                 
                 if (query_result == "success")
+                {
                     json_response = "{\"status\":\"success\", \"message\": \"your character with this id was deleted\"}";
+                    Logger::fLog("character with id " + character_id + " was deleted by user with id " + id_user + " (fSendDefinedCharacter)", Logger::type::info);
+                }
                 else
+                {
                     json_response = "{\"status\":\"fail\", \"message\": \"character is not deleted, sql query execution failed\"}";
+                    Logger::fLog("sql query execution failed (fDeleteCharacter)", Logger::type::error);
+                }
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"you have no such character\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fDeleteCharacter)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1338,13 +1513,22 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
                                         }
                                     }
                                     else
+                                    {
                                         json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
+                                        Logger::fLog("sql query execution failed (fEditCharacter)", Logger::type::error);
+                                    }
                                 }
                                 else
+                                {
                                     json_response = "{\"status\":\"fail\", \"message\": \"sql query execution failed\"}";
+                                    Logger::fLog("sql query execution failed (fEditCharacter)", Logger::type::error);
+                                }
                             }
                             else
+                            {
                                 json_response = "{\"status\":\"fail\", \"message\": \"character was not updated, sql query execution failed\"}";
+                                Logger::fLog("sql query execution failed (fEditCharacter)", Logger::type::error);
+                            }
                         }
                         else
                             json_response = "{\"status\":\"fail\", \"message\": \"no such Character's class\"}";
@@ -1353,13 +1537,19 @@ void fEditCharacter(std::string &json_response, nlohmann::json &json_request)
                         json_response = "{\"status\":\"fail\", \"message\": \"no such Character's race\"}";
                 }
                 else
+                {
                     json_response = "{\"status\":\"fail\", \"message\": \"invalid data passed\"}";
+                    Logger::fLog("invalid data passed from user with id " + id_user + " (fEditCharacter)", Logger::type::warning);
+                }
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"there is no your character with this id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"database error\"}";
+            Logger::fLog("database error (fEditCharacter)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1458,12 +1648,16 @@ void fSendOwnBoard(std::string &json_response, nlohmann::json &json_request)
                 cout << "data_count " << data_count << endl;
                 if (npc_rows_qtt > 0 || terrain_rows_qtt > 0)
                     json_response += "], \"data_count\":\"" + to_string(data_count) + "\"";
+                json_response += "}";
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"no board that you own with the specified id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"board is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendOwnBoard)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1563,7 +1757,10 @@ void fSendBoard(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"fail\", \"message\": \"no board with the specified id\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"board is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendBoard)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1576,110 +1773,110 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
     
     if (fRetrieveUserId(id_user, session_id))
     {
-        string board_id = json_request["board_id"];
-        string query = "SELECT b.name, b.width, b.height, b.description, b.id_owner FROM Boards b WHERE b.id = '" + board_id + "' AND b.id_owner = '" + id_user + "';";
-        nlohmann::json json_result = data_base.fExecuteQuery(query);
-        cout << query << "\nRESULT:\n" << json_result << endl;
-        string query_result = json_result["result"];
-        
-        if (query_result == "success")
+        if (json_request.find("spawn_x") != json_request.end())
         {
-            string data_count = json_request["data_count"];
-            int data_qtt = stoi(data_count);
-            if (data_qtt > 0)
+            string board_id = json_request["board_id"];
+            string board    = json_request["name"];
+            string spawn_x  = json_request["spawn_x"];
+            string spawn_y  = json_request["spawn_y"];
+            
+            if (DataValidator::fValidate(board,      DataValidator::SQL_INJECTION) &&
+                DataValidator::fValidate(spawn_x,    DataValidator::SQL_INJECTION) &&
+                DataValidator::fValidate(spawn_y,    DataValidator::SQL_INJECTION))
             {
-                string board = json_request["name"];
+                string query = "SELECT b.name, b.width, b.height, b.description, b.spawn_x, b.spawn_y, b.id_owner FROM Boards b WHERE b.id = '" + board_id + "' AND b.id_owner = '" + id_user + "';";
+                nlohmann::json json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                string query_result = json_result["result"];
                 
-                if (DataValidator::fValidate(board, DataValidator::SQL_INJECTION))
+                query = "UPDATE Boards SET name = '" + board + "', spawn_x = '" + spawn_x + "', spawn_y = '" + spawn_y + "' WHERE id_owner = '" + id_user + "' AND id = '" + board_id + "';";
+                json_result = data_base.fExecuteQuery(query);
+                cout << query << "\nRESULT:\n" << json_result << endl;
+                query_result = json_result["result"];
+                
+                if (query_result == "success")
                 {
-                    query = "UPDATE Boards SET name = '" + board + "' WHERE id_owner = '" + id_user + "' AND id = '" + board_id + "';";
-                    json_result = data_base.fExecuteQuery(query);
-                    cout << query << "\nRESULT:\n" << json_result << endl;
-                    query_result = json_result["result"];
+                    json_response += "{\"status\":\"success\", \"message\": \"board is updated";
                     
-                    if (query_result == "success")
+                    string data_count = json_request["data_count"];
+                    int data_qtt = stoi(data_count);
+                    while (data_qtt--)
                     {
-                        json_response += "{\"status\":\"success\", \"message\": \"board is updated";
-
-                        while (data_qtt--)
+                        if (json_request["data"][data_qtt]["type"] == "npc")
                         {
-                            if (json_request["type"] == "npc")
+                            string id_npc = json_request["data"][data_qtt]["id"];
+                            string npc_x  = json_request["data"][data_qtt]["pos_x"];
+                            string npc_y  = json_request["data"][data_qtt]["pos_y"];
+                            
+                            if (DataValidator::fValidate(npc_x,    DataValidator::SQL_INJECTION) &&
+                                DataValidator::fValidate(npc_y,    DataValidator::SQL_INJECTION))
                             {
-                                string id_npc = json_request["data"][data_qtt]["id"];
-                                string npc_x  = json_request["data"][data_qtt]["pos_x"];
-                                string npc_y  = json_request["data"][data_qtt]["pos_y"];
+                                query = "DELETE FROM BN_Map WHERE id_board = " + board_id;
+                                query = "INSERT INTO BN_Map (id_board, id_npc, npc_x, npc_y) VALUES ('" + board_id + "', '" + id_npc + "', '" + npc_x + "', '" + npc_y + "');";
+                                json_result = data_base.fExecuteQuery(query);
+                                cout << query << "\nRESULT:\n" << json_result << endl;
+                                query_result = json_result["result"];
                                 
-                                if (DataValidator::fValidate(npc_x,    DataValidator::SQL_INJECTION) &&
-                                    DataValidator::fValidate(npc_y,    DataValidator::SQL_INJECTION))
-                                {
-                                    query = "UPDATE BN_Map SET id_npc = '" + id_npc + "', npc_x = '" + npc_x + "', npc_y = '" + npc_y + "' WHERE id_board = '" + board_id + "' AND id_npc = '" + id_npc + "';";
-                                    json_result = data_base.fExecuteQuery(query);
-                                    cout << query << "\nRESULT:\n" << json_result << endl;
-                                    query_result = json_result["result"];
-                                    
-                                    if (query_result == "success")
-                                        json_response += ", npc with id " + id_npc + " is updated";
-                                    else
-                                        json_response += ", npc with id " + id_npc + " is not updated, sql query execution failed";
-                                }
+                                if (query_result == "success")
+                                    json_response += ", npc with id " + id_npc + " is updated";
                                 else
-                                    json_response += ", invalid npc's data passed";
+                                {
+                                    json_response += ", npc with id " + id_npc + " is not updated, sql query execution failed";
+                                    Logger::fLog("sql query execution failed (fEditBoard)", Logger::type::error);
+                                }
                             }
-                            else if (json_request["type"] == "terrain")
+                            else
                             {
-                                string id_terrain = json_request["data"][data_qtt]["id"];
-                                string terrain_x  = json_request["data"][data_qtt]["pos_x"];
-                                string terrain_y  = json_request["data"][data_qtt]["pos_y"];
-                                
-                                if (DataValidator::fValidate(terrain_x,    DataValidator::SQL_INJECTION) &&
-                                    DataValidator::fValidate(terrain_y,    DataValidator::SQL_INJECTION))
-                                {
-                                    query = "UPDATE BT_Map SET id_terrain = '" + id_terrain + "', terrain_x = '" + terrain_x + "', terrain_y = '" + terrain_y + "' WHERE id_board = '" + board_id + "' AND id_terrain = '" + id_terrain + "';";
-                                    json_result = data_base.fExecuteQuery(query);
-                                    cout << query << "\nRESULT:\n" << json_result << endl;
-                                    query_result = json_result["result"];
-                                    
-                                    if (query_result == "success")
-                                        json_response += ", terrain with id " + id_terrain + " is updated";
-                                    else
-                                        json_response += ", terrain with id " + id_terrain + " is not updated, sql query execution failed";
-                                }
-                                else
-                                    json_response += ", invalid terrain's data passed";
-                            }
-                            else if (json_request["type"] == "spawn")
-                            {
-                                string spawn_x = json_request["data"][data_qtt]["pos_x"];
-                                string spawn_y = json_request["data"][data_qtt]["pos_y"];
-                                
-                                if (DataValidator::fValidate(spawn_x,    DataValidator::SQL_INJECTION) &&
-                                    DataValidator::fValidate(spawn_y,    DataValidator::SQL_INJECTION))
-                                {
-                                    query = "UPDATE Boards SET spawn_x = '" + spawn_x + "', spawn_y = '" + spawn_y + "' WHERE id_owner = '" + id_user + "' AND id = '" + board_id + "';";
-                                    json_result = data_base.fExecuteQuery(query);
-                                    cout << query << "\nRESULT:\n" << json_result << endl;
-                                    query_result = json_result["result"];
-                                    
-                                    if (query_result == "success")
-                                        json_response += ", spawn point is updated";
-                                    else
-                                        json_response += ", spawn point is not updated, sql query execution failed";
-                                }
-                                else
-                                    json_response += ", invalid spawn point's data passed";
+                                json_response += ", invalid npc's data passed";
+                                Logger::fLog("invalid data passed from user with id " + id_user + " (fEditBoard)", Logger::type::warning);
                             }
                         }
-                        json_response += "\"}";
+                        else if (json_request["data"][data_qtt]["type"] == "terrain")
+                        {
+                            string id_terrain = json_request["data"][data_qtt]["id"];
+                            string terrain_x  = json_request["data"][data_qtt]["pos_x"];
+                            string terrain_y  = json_request["data"][data_qtt]["pos_y"];
+                            
+                            if (DataValidator::fValidate(terrain_x,    DataValidator::SQL_INJECTION) &&
+                                DataValidator::fValidate(terrain_y,    DataValidator::SQL_INJECTION))
+                            {
+                                query = "DELETE FROM BT_Map WHERE id_board = " + board_id;
+                                query = "INSERT INTO BT_Map (id_board, id_terrain, terrain_x, terrain_y) VALUES ('" + board_id + "', '" + id_terrain + "', '" + terrain_x + "', '" + terrain_y + "');";
+                                json_result = data_base.fExecuteQuery(query);
+                                cout << query << "\nRESULT:\n" << json_result << endl;
+                                query_result = json_result["result"];
+                                
+                                if (query_result == "success")
+                                    json_response += ", terrain with id " + id_terrain + " is updated";
+                                else
+                                {
+                                    json_response += ", terrain with id " + id_terrain + " is not updated, sql query execution failed";
+                                    Logger::fLog("sql query execution failed (fEditBoard)", Logger::type::error);
+                                }
+                            }
+                            else
+                            {
+                                json_response += ", invalid terrain's data passed";
+                                Logger::fLog("invalid data passed from user with id " + id_user + " (fEditBoard)", Logger::type::warning);
+                            }
+                        }
                     }
-                    else
-                    json_response = "{\"status\":\"success\", \"message\": \"board is not updated, sql query execution failed\"}";
+                    json_response += "\"}";
                 }
                 else
-                    json_response = "{\"status\":\"fail\", \"message\": \"board is not updated, invalid data passed\"}";
+                {
+                    json_response += ", board's data are not updated, sql query execution failed";
+                    Logger::fLog("sql query execution failed (fEditBoard)", Logger::type::error);
+                }
+            }
+            else
+            {
+                json_response = "{\"status\":\"fail\", \"message\": \"board is not updated, invalid data passed\"}";
+                Logger::fLog("invalid data passed from user with id " + id_user + " (fEditBoard)", Logger::type::warning);
             }
         }
         else
-            json_response = "{\"status\":\"fail\", \"message\": \"board is not loaded, sql query execution failed\"}";
+            json_response = "{\"status\":\"fail\", \"message\": \"there is no spawn point\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1723,7 +1920,57 @@ void fSendOwnBoardsList(std::string &json_response, nlohmann::json &json_request
                 json_response = "{\"status\":\"warning\", \"message\": \"list of your boards is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of your boards is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendOwnBoardsList)", Logger::type::error);
+        }
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendBoardsList(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name, width, height, description, id_owner FROM Boards;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"boards_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string board_id    = json_result["data"][rows_qtt]["id"];
+                    string board       = json_result["data"][rows_qtt]["name"];
+                    string width       = json_result["data"][rows_qtt]["width"];
+                    string height      = json_result["data"][rows_qtt]["height"];
+                    string description = json_result["data"][rows_qtt]["description"];
+                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
+                    json_response += "{\"board\": \"" + board + "\", \"id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+                    
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of boards is empty\"}";
+        }
+        else
+        {
+            json_response = "{\"status\":\"fail\", \"message\": \"list of boards is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendBoardsList)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1805,7 +2052,10 @@ void fSendClasses(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"warning\", \"message\": \"list of classes is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of classes is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendClasses)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1843,7 +2093,10 @@ void fSendRaces(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"warning\", \"message\": \"list of races is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of races is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendRaces)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1882,7 +2135,10 @@ void fSendNpcTypes(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"warning\", \"message\": \"list of npc's types is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of npc's types is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendNpcTypes)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
@@ -1920,7 +2176,10 @@ void fSendTerrainTypes(std::string &json_response, nlohmann::json &json_request)
                 json_response = "{\"status\":\"warning\", \"message\": \"list of terrain types is empty\"}";
         }
         else
+        {
             json_response = "{\"status\":\"fail\", \"message\": \"list of terrain types is not loaded, sql query execution failed\"}";
+            Logger::fLog("sql query execution failed (fSendTerrainTypes)", Logger::type::error);
+        }
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
