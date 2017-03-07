@@ -37,14 +37,23 @@ void BoardEdit::fLoadElemsData()
     _client->fGetResponse(response);
     _terrain_data = json::parse(response.c_str());
     std::cout << _terrain_data << std::endl;
-    _is_loaded = true;
     response = "";
     _client->fSendRequest(HttpClient::_POST, "/api/loadboard", test);
     _client->fGetResponse(response);
+    response += "}";
     _old_board_data = json::parse(response.c_str());
     _board_name = _old_board_data["board"];
-    _board_name_box->setText(_board_name);
+    //_board_name_box->setText(_board_name);
     std::cout << std::setw(2) << _old_board_data;
+    try
+    {
+        fLoadOldElems();
+    }
+    catch (const std::exception&e)
+    {
+
+    }
+    _is_loaded = true;
 
 }
 
@@ -195,11 +204,11 @@ void BoardEdit::fUploadData()
         spawn_json["pos_y"] = std::to_string(_spawn_posY);
         spawn_json["type"]  = "spawn";
         elems_arr.push_back(spawn_json);
-        _upload_data["data_count"] = _elems_on_board.size()+1;
+        _upload_data["data_count"] = std::to_string(_elems_on_board.size() + 1);
     }
     else
     {
-        _upload_data["data_count"] = _elems_on_board.size();
+        _upload_data["data_count"] = std::to_string(_elems_on_board.size());
     }
     _upload_data["name"]       = _board_name_box->getText().toAnsiString();
     _upload_data["board_id"]   = _board_id;
@@ -218,6 +227,102 @@ void BoardEdit::fUploadData()
 
 }
 
+void BoardEdit::fLoadOldElems()
+{
+    std::string elem_quan = _old_board_data["data_count"];
+    for (int i = 0; i < std::stoi(elem_quan); i++)
+    {
+        if (_old_board_data["data"][i]["type"] == "npc")
+        {
+            std::cout << "npc";
+            std::string npc_id = _old_board_data["data"][i]["id"];
+            _elems_on_board.insert({ _elems_unique_id_on_board, _npc_spr[std::stoi(npc_id)-1] });
+            int posX, posY, ssX, ssY;
+            std::string x = _old_board_data["data"][i]["pos_x"];
+            std::string y = _old_board_data["data"][i]["pos_y"];
+            posX = std::stoi(x) - 1;
+            posY = std::stoi(y) - 1;
+
+
+            ssX = _board_sprite.getPosition().x + _cell_size*posX;
+            ssY = _board_sprite.getPosition().y + _cell_size*posY;
+            _elems_on_board[_elems_unique_id_on_board]
+                .position_on_board = sf::Vector2i(posX, posY);
+
+            _elems_on_board[_elems_unique_id_on_board]
+                .position = sf::Vector2i(ssX, ssY);
+
+            _elems_on_board[_elems_unique_id_on_board]
+                .elem_sprite.setPosition(ssX, ssY);
+
+            _elems_on_board[_elems_unique_id_on_board].elem_sprite.setScale
+                (_cell_size / _elems_on_board[_elems_unique_id_on_board].elem_sprite.getGlobalBounds().width *
+                    _elems_on_board[_elems_unique_id_on_board].elem_sprite.getScale().x,
+                    _cell_size / _elems_on_board[_elems_unique_id_on_board].elem_sprite.getGlobalBounds().height *
+                    _elems_on_board[_elems_unique_id_on_board].elem_sprite.getScale().y);
+
+            _elems_on_board[_elems_unique_id_on_board].type = "npc";
+            _elems_on_board[_elems_unique_id_on_board].is_on_board = true;
+            _elems_on_board[_elems_unique_id_on_board].elem_id = npc_id;
+
+            _elems_unique_id_on_board++;
+        }
+        else if (_old_board_data["data"][i]["type"] == "terrain")
+        {
+            std::cout << "terrain";
+            std::string terr_id = _old_board_data["data"][i]["id"];
+            _elems_on_board.insert({ _elems_unique_id_on_board, _terrain_spr[std::stoi(terr_id) - 1] });
+            int posX, posY, ssX, ssY;
+            std::string x = _old_board_data["data"][i]["pos_x"];
+            std::string y = _old_board_data["data"][i]["pos_y"];
+            posX = std::stoi(x) - 1;
+            posY = std::stoi(y) - 1;
+
+
+            ssX = _board_sprite.getPosition().x + _cell_size*posX;
+            ssY = _board_sprite.getPosition().y + _cell_size*posY;
+            _elems_on_board[_elems_unique_id_on_board]
+                .position_on_board = sf::Vector2i(posX, posY);
+
+            _elems_on_board[_elems_unique_id_on_board]
+                .position = sf::Vector2i(ssX, ssY);
+
+            _elems_on_board[_elems_unique_id_on_board]
+                .elem_sprite.setPosition(ssX, ssY);
+
+            _elems_on_board[_elems_unique_id_on_board].elem_sprite.setScale
+                (_cell_size / _elems_on_board[_elems_unique_id_on_board].elem_sprite.getGlobalBounds().width *
+                    _elems_on_board[_elems_unique_id_on_board].elem_sprite.getScale().x,
+                    _cell_size / _elems_on_board[_elems_unique_id_on_board].elem_sprite.getGlobalBounds().height *
+                    _elems_on_board[_elems_unique_id_on_board].elem_sprite.getScale().y);
+
+            _elems_on_board[_elems_unique_id_on_board].type = "npc";
+            _elems_on_board[_elems_unique_id_on_board].is_on_board = true;
+            _elems_on_board[_elems_unique_id_on_board].elem_id = terr_id;
+
+            _elems_unique_id_on_board++;
+        }
+    }
+    try
+    {
+        std::string sp_x = _old_board_data["spawn_x"];
+        std::string sp_y = _old_board_data["spawn_y"];
+        int spawn_x = std::stoi(sp_x) - 1;
+        int spawn_y = std::stoi(sp_y) - 1;
+        int ssX = _board_sprite.getPosition().x + _cell_size*spawn_x;
+        int ssY = _board_sprite.getPosition().y + _cell_size*spawn_y;
+        _spawn_posX = std::stoi(sp_x);
+        _spawn_posY = std::stoi(sp_y);
+        _spawn_point.setPosition(ssX, ssY);
+
+        _is_setted_spawn_point = true;
+    }
+    catch (const std::exception&)
+    {
+        _is_setted_spawn_point = false;
+    }
+}
+
 
 BoardEdit::BoardEdit(const int &height,
 		             const int & width,
@@ -234,6 +339,7 @@ BoardEdit::BoardEdit(const int &height,
     _client = cl;
     _gui.setWindow(window);
     _theme = tgui::Theme::create("sprites/Theme/Black.txt");
+    fLoadUiElems(window);
     _elems_unique_id_on_board = 0;
     this->_height = height;
     this->_width = width;
@@ -258,70 +364,84 @@ BoardEdit::BoardEdit(const int &height,
     _spawn_point.setPosition(-100, -100);
 
     _selected_elem_lbox = -1;
-    fLoadUiElems(window);
-    _load_data_thread.launch();
     fNPCTexturesLoader();
+    _load_data_thread.launch();
 }
 
 void BoardEdit::fUpdate(sf::RenderWindow & window)
 {
-    if (_is_loaded && _npc_data["status"] == "success")
+    try
     {
-        _elems_combo->addItem("NPC", "npc");
-        _elems_combo->addItem("Terrain", "terrain");
-        _elems_combo->setSelectedItemById("npc");
-        std::string quan = _npc_data["npcs_quantity"];
-        _elems_list_box->removeAllItems();
-        for (int i = 0; i < std::stoi(quan); i++)
+        if (_is_loaded && _npc_data["status"] == "success")
         {
-            _elems_list_box->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
-        }
-        _is_loaded = false;
-        _is_updated_list_box = true;
-        _selected_combo_option = _elems_combo->getSelectedItemId();
-    }
-
-    if (_elems_combo->getSelectedItemId() != _selected_combo_option)
-    {
-        _is_updated_list_box = false;
-        _selected_combo_option = _elems_combo->getSelectedItemId();
-    }
-
-    if (!_is_updated_list_box)
-    {
-        if (_selected_combo_option.toAnsiString() == "npc")
-        {
+            _elems_combo->addItem("NPC", "npc");
+            _elems_combo->addItem("Terrain", "terrain");
+            _elems_combo->setSelectedItemById("npc");
+            std::string quan = _npc_data["npcs_quantity"];
             _elems_list_box->removeAllItems();
-            if (_npc_data["status"] == "success")
+            for (int i = 0; i < std::stoi(quan); i++)
             {
-                std::string quan = _npc_data["npcs_quantity"];
-                for (int i = 0; i < std::stoi(quan); i++)
+                _elems_list_box->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
+            }
+            _is_loaded = false;
+            _is_updated_list_box = true;
+            _selected_combo_option = _elems_combo->getSelectedItemId();
+        }
+
+        if (_elems_combo->getSelectedItemId() != _selected_combo_option)
+        {
+            _is_updated_list_box = false;
+            _selected_combo_option = _elems_combo->getSelectedItemId();
+        }
+
+        if (!_is_updated_list_box)
+        {
+            if (_selected_combo_option.toAnsiString() == "npc")
+            {
+                _elems_list_box->removeAllItems();
+                if (_npc_data["status"] == "success")
                 {
-                    _elems_list_box->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
+                    std::string quan = _npc_data["npcs_quantity"];
+                    for (int i = 0; i < std::stoi(quan); i++)
+                    {
+                        _elems_list_box->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
+                    }
                 }
             }
-        }
-        else if (_selected_combo_option.toAnsiString() == "terrain")
-        {
-            _elems_list_box->removeAllItems();
-            if (_terrain_data["status"] == "success")
+            else if (_selected_combo_option.toAnsiString() == "terrain")
             {
-                std::string quan = _terrain_data["terrains_quantity"];
-                for (int i = 0; i < std::stoi(quan); i++)
+                _elems_list_box->removeAllItems();
+                if (_terrain_data["status"] == "success")
                 {
-                    _elems_list_box->addItem(_terrain_data["list"][i]["terrain"], std::to_string(i));
+                    std::string quan = _terrain_data["terrains_quantity"];
+                    for (int i = 0; i < std::stoi(quan); i++)
+                    {
+                        _elems_list_box->addItem(_terrain_data["list"][i]["terrain"], std::to_string(i));
+                    }
                 }
             }
+            _is_updated_list_box = true;
         }
-        _is_updated_list_box = true;
-    }
 
+    }
+    catch (const std::exception&)
+    {
+
+    }
     while (window.pollEvent(_event) && draw_window)
     {
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
         {
-        	_load_data_thread.terminate();
-        	_upload_thread.terminate();
+            try
+            {
+                _load_data_thread.terminate();
+                _upload_thread.terminate();
+            }
+            catch (const std::exception& e)
+            {
+                std::cout << e.what();
+            }
             draw_window = false;
         }
 
@@ -584,7 +704,6 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
             }
 
         }
-
         _gui.handleEvent(_event);
     }
     if (dragging)
@@ -595,7 +714,8 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
 
 void BoardEdit::fDraw(sf::RenderWindow & window)
 {
-    
+
+    _gui.draw();
     window.draw(_board_sprite);
     window.draw(_submit_sprite);
     for (auto& npc : _elems_on_board)
@@ -617,6 +737,6 @@ void BoardEdit::fDraw(sf::RenderWindow & window)
     if (_elems_on_board.size() > 0 && 
         _elems_on_board.find(_selected_elem_on_board) != _elems_on_board.end())
         window.draw(_elems_on_board[_selected_elem_on_board].elem_sprite);
-
-    _gui.draw();
 }
+
+

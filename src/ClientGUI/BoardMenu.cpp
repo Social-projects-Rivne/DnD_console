@@ -58,6 +58,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                 {
                     if (_board_id >= 0)
                     {
+                        _menu_option = _selected_menu::EDIT_BOARD;
                         std::string height = _board_data["list"][_board_id]["height"];
                         std::string width  = _board_data["list"][_board_id]["width"];
                         std::string id     = _board_data["list"][_board_id]["id"];
@@ -67,14 +68,13 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
 												   _event,
 												   window,
 												   _client);
-                        _menu_option = _selected_menu::EDIT_BOARD;
                     }
                 }
 
                 if (_create_board_btn_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
-                    create_board = new BoardCreate(_event, window, _client);
                     _menu_option = _selected_menu::CREATE_BOARD;
+                    create_board = new BoardCreate(_event, window, _client);
                 }
 
                 if (_refresh_list_btn_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
@@ -156,7 +156,14 @@ void BoardMenu::fDraw(sf::RenderWindow & window)
             edit_board->fDraw(window);
         else
         {
-            delete edit_board;
+            try
+            {
+               delete edit_board;
+            }
+            catch (const std::exception& e)
+            {
+                std::cout << "Exception: " << e.what();
+            }
             _menu_option = BoardMenu::NONE;
         }
     }

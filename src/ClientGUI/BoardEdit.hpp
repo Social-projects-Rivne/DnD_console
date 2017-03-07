@@ -16,7 +16,7 @@ private:
     //
 
     //// TGUI ELEMS
-    tgui::Gui           _gui;
+    tgui::Gui          _gui;
     tgui::Theme::Ptr    _theme;
     tgui::ListBox::Ptr  _elems_list_box;
     tgui::ComboBox::Ptr _elems_combo;
@@ -118,7 +118,7 @@ private:
     void fLoadNPCPreview();
     void fLoadPreview();
     void fUploadData();
-
+    void fLoadOldElems();
 
 public:
     bool draw_window;
@@ -132,7 +132,6 @@ public:
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);
 
-    //// Convert npcs and terrains on board to json
-    //json fToJson();
+
 };
 
