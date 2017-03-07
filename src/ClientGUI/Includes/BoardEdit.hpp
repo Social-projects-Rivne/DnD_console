@@ -14,9 +14,9 @@ private:
     //sfml event
     sf::Event _event;
     //
-
+    std::string         _session_id;
     //// TGUI ELEMS
-    tgui::Gui          _gui;
+    tgui::Gui           _gui;
     tgui::Theme::Ptr    _theme;
     tgui::ListBox::Ptr  _elems_list_box;
     tgui::ComboBox::Ptr _elems_combo;
@@ -64,8 +64,13 @@ private:
     bool               _is_setted_spawn_point;
 
     // buttons textures & sprites
+    sf::Font    _font;
     sf::Texture _submit_button;
     sf::Sprite  _submit_sprite;
+    sf::Text    _submit_txt;
+    sf::Texture _back_btn_tex;
+    sf::Sprite  _back_btn_spr;
+    sf::Text    _back_txt;
     //
 
     // preview elem texture & sprite
@@ -79,14 +84,15 @@ private:
     //
 
 
+
     ////// Texture loader
     // npc textures
-    sf::Texture _npc_text[8];
-    sf::Sprite  _npc_spr[8];
+    std::shared_ptr<sf::Texture> _npc_text[8];
+    std::shared_ptr<sf::Sprite>  _npc_spr[8];
 
     // terrain textres
-    sf::Texture  _terrain_text[6];
-    sf::Sprite   _terrain_spr[6];
+    std::shared_ptr<sf::Texture> _terrain_text[6];
+    std::shared_ptr<sf::Sprite>   _terrain_spr[6];
 
     int         _selected_prev_el;
     //
@@ -128,7 +134,8 @@ public:
 			  const std::string &id,
 			  const sf::Event &event,
 			  sf::RenderWindow &window,
-			  HttpClient* cl);
+			  HttpClient* cl,
+              const std::string &ses);
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);
 

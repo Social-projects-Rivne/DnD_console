@@ -16,6 +16,7 @@ private:
         EDIT_BOARD,
         BACK
     };
+    std::string _session_id;
 
     sf::Thread http_thread;
 
@@ -59,7 +60,7 @@ private:
     void fLoadUiElements(sf::RenderWindow &window);
     void fLoadBoardListBox();
 public:
-    BoardMenu(const sf::Event &event, sf::RenderWindow &window, HttpClient* cl);
+    BoardMenu(const sf::Event &event, sf::RenderWindow &window, HttpClient* cl, const std::string& ses);
 
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);

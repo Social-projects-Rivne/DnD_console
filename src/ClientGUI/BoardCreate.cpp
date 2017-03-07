@@ -1,11 +1,11 @@
-#include "BoardCreate.hpp"
+#include "Includes/BoardCreate.hpp"
 
 void BoardCreate::fSubmit()
 {
     if (_board_height->getText().toAnsiString() != "" &&
         _board_width->getText().toAnsiString() != "")
     {
-        _board_json["session_id"] = "1";
+        _board_json["session_id"] = _session_id;
         _board_json["board"] = _board_name->getText().toAnsiString();
         _board_json["height"] = _board_height->getText().toAnsiString();
         _board_json["width"] = _board_width->getText().toAnsiString();
@@ -21,8 +21,9 @@ void BoardCreate::fSubmit()
 
 }
 
-BoardCreate::BoardCreate(const sf::Event &event, sf::RenderWindow & window, HttpClient* cl)
+BoardCreate::BoardCreate(const sf::Event &event, sf::RenderWindow & window, HttpClient* cl, const std::string &ses)
 {
+    _session_id = ses;
     display_window = true;
     this->_event = event;
     gui.setWindow(window);

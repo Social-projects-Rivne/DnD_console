@@ -9,7 +9,7 @@ class BoardCreate
 {
     sf::Event _event;
     tgui::Gui gui;
-    
+    std::string _session_id;
 
     tgui::Theme::Ptr theme;
     tgui::EditBox::Ptr _board_name;
@@ -25,7 +25,7 @@ public:
 
     bool display_window;
 
-    BoardCreate(const sf::Event &event, sf::RenderWindow &window, HttpClient* cl);
+    BoardCreate(const sf::Event &event, sf::RenderWindow &window, HttpClient* cl, const std::string &ses);
 
     void fUpdate(sf::RenderWindow &window);
     void fDraw(sf::RenderWindow &window);

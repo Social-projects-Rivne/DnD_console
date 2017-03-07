@@ -1,4 +1,4 @@
-#include "BoardEdit.hpp"
+#include "Includes/BoardEdit.hpp"
 
 #include <iostream>
 
@@ -26,64 +26,102 @@ void BoardEdit::fLoadUiElems(sf::RenderWindow &window)
 
 void BoardEdit::fLoadElemsData()
 {
-    std::string response;
-    std::string test = "{\"session_id\":\"1\", \"board_id\": \""+_board_id+"\"}";
-    _client->fSendRequest(HttpClient::_POST, "/api/loadmynpcslist", test);
-    _client->fGetResponse(response);
-    _npc_data = json::parse(response.c_str());
-    std::cout << _npc_data << std::endl;
-    _client->fSendRequest(HttpClient::_POST, "/api/loadmyterrainslist", test);
-    response = "";
-    _client->fGetResponse(response);
-    _terrain_data = json::parse(response.c_str());
-    std::cout << _terrain_data << std::endl;
-    response = "";
-    _client->fSendRequest(HttpClient::_POST, "/api/loadboard", test);
-    _client->fGetResponse(response);
-    response += "}";
-    _old_board_data = json::parse(response.c_str());
-    _board_name = _old_board_data["board"];
-    //_board_name_box->setText(_board_name);
-    std::cout << std::setw(2) << _old_board_data;
     try
     {
-        fLoadOldElems();
+        std::string response;
+        std::string request = "{\"session_id\":\"" + _session_id + "\", \"board_id\": \"" + _board_id + "\"}";
+        _client->fSendRequest(HttpClient::_POST, "/api/loadmynpcslist", request);
+        _client->fGetResponse(response);
+        _npc_data = json::parse(response.c_str());
+        std::cout << _npc_data << std::endl;
+        _client->fSendRequest(HttpClient::_POST, "/api/loadmyterrainslist", request);
+        response = "";
+        _client->fGetResponse(response);
+        _terrain_data = json::parse(response.c_str());
+        std::cout << _terrain_data << std::endl;
+        response = "";
+        _client->fSendRequest(HttpClient::_POST, "/api/loadboard", request);
+        _client->fGetResponse(response);
+        response += "}";
+        _old_board_data = json::parse(response.c_str());
+        _board_name = _old_board_data["board"];
+        std::cout << _old_board_data << std::endl;
+        try
+        {
+            fLoadOldElems();
+        }
+        catch (const std::exception&e)
+        {
+
+        }
+        _is_loaded = true;
     }
     catch (const std::exception&e)
     {
-
+        std::cout << e.what() << std::endl;
     }
-    _is_loaded = true;
-
 }
 
 
 void BoardEdit::fNPCTexturesLoader()
 {
-    _npc_text[0].loadFromFile("sprites/Creatures250/Goblin250.png");
-    _npc_text[1].loadFromFile("sprites/Creatures250/Fairy250.png");
-    _npc_text[2].loadFromFile("sprites/Creatures250/Golem250.png");
-    _npc_text[3].loadFromFile("sprites/Creatures250/Dragon250.png");
-    _npc_text[4].loadFromFile("sprites/Creatures250/Gremlin250.png");
-    _npc_text[5].loadFromFile("sprites/Creatures250/Monk250.png");
-    _npc_text[6].loadFromFile("sprites/Creatures250/Archer250.png");
-    _npc_text[7].loadFromFile("sprites/Creatures250/Troglodyte.png");
+    sf::Texture gobl;
+    gobl.loadFromFile("sprites/Creatures250/Goblin250.png");
+    _npc_text[0] = std::make_shared<sf::Texture>(gobl);
+    sf::Texture fairy;
+    fairy.loadFromFile("sprites/Creatures250/Fairy250.png");
+    _npc_text[1] = std::make_shared<sf::Texture>(fairy);
+    sf::Texture golem;
+    golem.loadFromFile("sprites/Creatures250/Golem250.png");
+    _npc_text[2] = std::make_shared<sf::Texture>(golem);
+    sf::Texture dragon;
+    dragon.loadFromFile("sprites/Creatures250/Dragon250.png");
+    _npc_text[3] = std::make_shared<sf::Texture>(dragon);
+    sf::Texture gremlin;
+    gremlin.loadFromFile("sprites/Creatures250/Gremlin250.png");
+    _npc_text[4] = std::make_shared<sf::Texture>(gremlin);
+    sf::Texture monk;
+    monk.loadFromFile("sprites/Creatures250/Monk250.png");
+    _npc_text[5] = std::make_shared<sf::Texture>(monk);
+    sf::Texture archer;
+    archer.loadFromFile("sprites/Creatures250/Archer250.png");
+    _npc_text[6] = std::make_shared<sf::Texture>(archer);
+    sf::Texture trogl;
+    trogl.loadFromFile("sprites/Creatures250/Troglodyte.png");
+    _npc_text[7] = std::make_shared<sf::Texture>(trogl);
 
-    _terrain_text[0].loadFromFile("sprites/terrains/rock.png");
-    _terrain_text[1].loadFromFile("sprites/terrains/water.png");
-    _terrain_text[2].loadFromFile("sprites/terrains/snow.png");
-    _terrain_text[3].loadFromFile("sprites/terrains/lava.png");
-    _terrain_text[4].loadFromFile("sprites/terrains/shadow.png");
-    _terrain_text[5].loadFromFile("sprites/terrains/tree.png");
+
+    sf::Texture rock;
+    rock.loadFromFile("sprites/terrains/rock.png");
+    _terrain_text[0] = std::make_shared<sf::Texture>(rock);
+    sf::Texture water;
+    water.loadFromFile("sprites/terrains/water.png");
+    _terrain_text[1] = std::make_shared<sf::Texture>(water);
+    sf::Texture snow;
+    snow.loadFromFile("sprites/terrains/snow.png");
+    _terrain_text[2] = std::make_shared<sf::Texture>(snow);
+    sf::Texture lava;
+    lava.loadFromFile("sprites/terrains/lava.png");
+    _terrain_text[3] = std::make_shared<sf::Texture>(lava);
+    sf::Texture shadow;
+    shadow.loadFromFile("sprites/terrains/shadow.png");
+    _terrain_text[4] = std::make_shared<sf::Texture>(shadow);
+    sf::Texture tree;
+    tree.loadFromFile("sprites/terrains/tree.png");
+    _terrain_text[5] = std::make_shared<sf::Texture>(tree);
 
     for (int i = 0; i <= 7; i++)
     {
-        _npc_spr[i].setTexture(_npc_text[i]);
+        sf::Sprite s;
+        s.setTexture(*_npc_text[i]);
+        _npc_spr[i] = std::make_shared<sf::Sprite>(s);
     }
 
     for (int i = 0; i <= 6; i++)
     {
-        _terrain_spr[i].setTexture(_terrain_text[i]);
+        sf::Sprite s;
+        s.setTexture(*_terrain_text[i]);
+        _terrain_spr[i] = std::make_shared<sf::Sprite>(s);
     }
 
 
@@ -116,7 +154,7 @@ void BoardEdit::fLoadTerrPreview()
     {
         _selected_prev_el = 5;
     }
-    _preview_el_sprite.setTexture(_terrain_text[_selected_prev_el]);
+    _preview_el_sprite.setTexture(*_terrain_text[_selected_prev_el]);
     _preview_el_sprite.setPosition(_elems_list_box->getPosition().x, _elems_list_box->getPosition().y + _elems_list_box->getSize().y + 10);
 
 }
@@ -160,7 +198,7 @@ void BoardEdit::fLoadNPCPreview()
     {
         _selected_prev_el = 0;
     }
-    _preview_el_sprite.setTexture(_npc_text[_selected_prev_el]);
+    _preview_el_sprite.setTexture(*_npc_text[_selected_prev_el]);
     _preview_el_sprite.setPosition(_elems_list_box->getPosition().x, _elems_list_box->getPosition().y + _elems_list_box->getSize().y + 10);
     _preview_el_sprite.setScale(0.5, 0.5);
     
@@ -185,36 +223,33 @@ void BoardEdit::fUploadData()
 {
 	_load_data_thread.wait();
     json elems_arr;
+    int count = 0;
     for (auto &elems : _elems_on_board)
     {
         if (elems.second.is_on_board)
         {
+            if (elems.second.position_on_board.x <= 0 || elems.second.position_on_board.y <= 0)
+                continue;
             json elem;
             elem["id"]    = elems.second.elem_id;
             elem["pos_x"] = std::to_string(elems.second.position_on_board.x);
             elem["pos_y"] = std::to_string(elems.second.position_on_board.y);
             elem["type"]  = elems.second.type;
             elems_arr.push_back(elem);
+            count++;
         }
     }
     if (_is_setted_spawn_point)
     {
-        json spawn_json;
-        spawn_json["pos_x"] = std::to_string(_spawn_posX);
-        spawn_json["pos_y"] = std::to_string(_spawn_posY);
-        spawn_json["type"]  = "spawn";
-        elems_arr.push_back(spawn_json);
-        _upload_data["data_count"] = std::to_string(_elems_on_board.size() + 1);
+        _upload_data["spawn_x"] = std::to_string(_spawn_posX);
+        _upload_data["spawn_y"] = std::to_string(_spawn_posY);
     }
-    else
-    {
-        _upload_data["data_count"] = std::to_string(_elems_on_board.size());
-    }
+    _upload_data["data_count"] = std::to_string(count);
     _upload_data["name"]       = _board_name_box->getText().toAnsiString();
     _upload_data["board_id"]   = _board_id;
     _upload_data["data"] = elems_arr;
     std::cout << std::setw(2) << _upload_data;
-    _upload_data["session_id"] = "1";
+    _upload_data["session_id"] = _session_id;
 
 
     //// send to server
@@ -236,7 +271,7 @@ void BoardEdit::fLoadOldElems()
         {
             std::cout << "npc";
             std::string npc_id = _old_board_data["data"][i]["id"];
-            _elems_on_board.insert({ _elems_unique_id_on_board, _npc_spr[std::stoi(npc_id)-1] });
+            _elems_on_board.insert({ _elems_unique_id_on_board, *_npc_spr[std::stoi(npc_id)-1] });
             int posX, posY, ssX, ssY;
             std::string x = _old_board_data["data"][i]["pos_x"];
             std::string y = _old_board_data["data"][i]["pos_y"];
@@ -247,7 +282,7 @@ void BoardEdit::fLoadOldElems()
             ssX = _board_sprite.getPosition().x + _cell_size*posX;
             ssY = _board_sprite.getPosition().y + _cell_size*posY;
             _elems_on_board[_elems_unique_id_on_board]
-                .position_on_board = sf::Vector2i(posX, posY);
+                .position_on_board = sf::Vector2i(posX+1, posY+1);
 
             _elems_on_board[_elems_unique_id_on_board]
                 .position = sf::Vector2i(ssX, ssY);
@@ -271,7 +306,7 @@ void BoardEdit::fLoadOldElems()
         {
             std::cout << "terrain";
             std::string terr_id = _old_board_data["data"][i]["id"];
-            _elems_on_board.insert({ _elems_unique_id_on_board, _terrain_spr[std::stoi(terr_id) - 1] });
+            _elems_on_board.insert({ _elems_unique_id_on_board, *_terrain_spr[std::stoi(terr_id) - 1] });
             int posX, posY, ssX, ssY;
             std::string x = _old_board_data["data"][i]["pos_x"];
             std::string y = _old_board_data["data"][i]["pos_y"];
@@ -282,7 +317,7 @@ void BoardEdit::fLoadOldElems()
             ssX = _board_sprite.getPosition().x + _cell_size*posX;
             ssY = _board_sprite.getPosition().y + _cell_size*posY;
             _elems_on_board[_elems_unique_id_on_board]
-                .position_on_board = sf::Vector2i(posX, posY);
+                .position_on_board = sf::Vector2i(posX+1, posY+1);
 
             _elems_on_board[_elems_unique_id_on_board]
                 .position = sf::Vector2i(ssX, ssY);
@@ -309,11 +344,12 @@ void BoardEdit::fLoadOldElems()
         std::string sp_y = _old_board_data["spawn_y"];
         int spawn_x = std::stoi(sp_x) - 1;
         int spawn_y = std::stoi(sp_y) - 1;
-        int ssX = _board_sprite.getPosition().x + _cell_size*spawn_x;
-        int ssY = _board_sprite.getPosition().y + _cell_size*spawn_y;
-        _spawn_posX = std::stoi(sp_x);
-        _spawn_posY = std::stoi(sp_y);
-        _spawn_point.setPosition(ssX, ssY);
+        _spawn_abs_posX = _board_sprite.getPosition().x + _cell_size*spawn_x;
+        _spawn_abs_posY = _board_sprite.getPosition().y + _cell_size*spawn_y;
+        
+        _spawn_posX = std::stoi(sp_x)+1;
+        _spawn_posY = std::stoi(sp_y)+1;
+        _spawn_point.setPosition(_spawn_abs_posX, _spawn_abs_posY);
 
         _is_setted_spawn_point = true;
     }
@@ -329,9 +365,11 @@ BoardEdit::BoardEdit(const int &height,
 		             const std::string & board_id,
 					 const sf::Event & event,
 					 sf::RenderWindow &window,
-					 HttpClient* cl)
+					 HttpClient* cl,
+                     const std::string &ses)
     : _load_data_thread(&BoardEdit::fLoadElemsData, this), _upload_thread(&BoardEdit::fUploadData, this)
 {
+    _session_id = ses;
 	_board_id = board_id;
 	_is_uploaded = false;
     _is_loaded = false;
@@ -345,23 +383,52 @@ BoardEdit::BoardEdit(const int &height,
     this->_width = width;
     this->_event = event;
     draw_window = true;
+    _font.loadFromFile("arial.ttf");
     _board_texture.loadFromFile("sprites/Back/Grid001.png");
     _board_texture.setRepeated(true);
     _board_sprite.setTexture(_board_texture);
-    _cell_size = _board_sprite.getGlobalBounds().height/16.f;
+    _cell_size = _board_sprite.getGlobalBounds().height / 16.f;
 
     _board_sprite.setTextureRect(sf::IntRect(0, 0, _width*_cell_size, _height*_cell_size));
-    _board_sprite.setPosition(5,45);
+    _board_sprite.setPosition(5, 45);
 
     _submit_button.loadFromFile("sprites/Interface/Button/LongMenuButton.png");
     _submit_sprite.setTexture(_submit_button);
     _submit_sprite.setScale(0.5, 1);
     _submit_sprite.setPosition(window.getSize().x - _submit_sprite.getGlobalBounds().width,
-                               window.getSize().y - _submit_sprite.getGlobalBounds().height);
+        window.getSize().y - _submit_sprite.getGlobalBounds().height);
+
+    _back_btn_tex.loadFromFile("sprites/Interface/Button/LongMenuButton.png");
+    _back_btn_spr.setTexture(_back_btn_tex);
+    _back_btn_spr.setScale(0.5, 1);
+    _back_btn_spr.setPosition(0, window.getSize().y - _back_btn_spr.getGlobalBounds().height);
 
     _spawn_point.setSize(sf::Vector2f(_cell_size, _cell_size));
     _spawn_point.setFillColor(sf::Color(0, 255, 0, 133));
     _spawn_point.setPosition(-100, -100);
+
+    _submit_txt.setString("Submit");
+    _submit_txt.setCharacterSize(20);
+    _submit_txt.setFont(_font);
+    _back_txt.setString("Back");
+    _back_txt.setCharacterSize(20);
+    _back_txt.setFont(_font);
+    
+    _submit_txt.setPosition(_submit_sprite.getPosition().x +
+        _submit_sprite.getGlobalBounds().width / 2 -
+        _submit_txt.getGlobalBounds().width / 2,
+        _submit_sprite.getPosition().y +
+        _submit_sprite.getGlobalBounds().height / 2 -
+        _submit_txt.getGlobalBounds().height);
+
+    _back_txt.setPosition(_back_btn_spr.getPosition().x +
+        _back_btn_spr.getGlobalBounds().width / 2 -
+        _back_txt.getGlobalBounds().width / 2,
+        _back_btn_spr.getPosition().y +
+        _back_btn_spr.getGlobalBounds().height / 2 -
+        _back_txt.getGlobalBounds().height);
+
+
 
     _selected_elem_lbox = -1;
     fNPCTexturesLoader();
@@ -386,6 +453,7 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
             _is_loaded = false;
             _is_updated_list_box = true;
             _selected_combo_option = _elems_combo->getSelectedItemId();
+            _board_name_box->setText(_board_name);
         }
 
         if (_elems_combo->getSelectedItemId() != _selected_combo_option)
@@ -430,21 +498,6 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
     }
     while (window.pollEvent(_event) && draw_window)
     {
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
-        {
-            try
-            {
-                _load_data_thread.terminate();
-                _upload_thread.terminate();
-            }
-            catch (const std::exception& e)
-            {
-                std::cout << e.what();
-            }
-            draw_window = false;
-        }
-
         if (_event.type == sf::Event::Closed)
             window.close();
 
@@ -508,14 +561,14 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
             {
                 if (_selected_combo_option == "npc")
                 {
-                    _elems_on_board.insert({ _elems_unique_id_on_board, _npc_spr[_selected_prev_el] });
+                    _elems_on_board.insert({ _elems_unique_id_on_board, *_npc_spr[_selected_prev_el] });
                     _selected_elem_on_board = _elems_unique_id_on_board;
                     std::string id = _npc_data["list"][_selected_elem_lbox]["npc_id"];
                     _elems_on_board[_selected_elem_on_board].elem_id = id;
                 }
                 else if (_selected_combo_option == "terrain")
                 {
-                    _elems_on_board.insert({ _elems_unique_id_on_board, _terrain_spr[_selected_prev_el] });
+                    _elems_on_board.insert({ _elems_unique_id_on_board, *_terrain_spr[_selected_prev_el] });
                     _selected_elem_on_board = _elems_unique_id_on_board;
                     std::string id = _terrain_data["list"][_selected_elem_lbox]["terrain_id"];
                     _elems_on_board[_selected_elem_on_board].elem_id = id;
@@ -563,6 +616,19 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
         //LMB released
         if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
         {
+            if (_back_btn_spr.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
+            {
+                try
+                {
+                    _load_data_thread.terminate();
+                    _upload_thread.terminate();
+                }
+                catch (const std::exception& e)
+                {
+                    std::cout << e.what();
+                }
+                draw_window = false;
+            }
 
             if (_elems_list_box->getPosition().x <= _event.mouseButton.x &&
                 _elems_list_box->getPosition().x + _elems_list_box->getSize().x >= _event.mouseButton.x &&
@@ -717,7 +783,7 @@ void BoardEdit::fDraw(sf::RenderWindow & window)
 
     _gui.draw();
     window.draw(_board_sprite);
-    window.draw(_submit_sprite);
+
     for (auto& npc : _elems_on_board)
     {
         if (npc.first == _selected_elem_on_board) continue;
@@ -733,6 +799,12 @@ void BoardEdit::fDraw(sf::RenderWindow & window)
     {
         window.draw(_preview_el_sprite);
     }
+
+    window.draw(_back_btn_spr);
+    window.draw(_back_txt);
+
+    window.draw(_submit_sprite);
+    window.draw(_submit_txt);
 
     if (_elems_on_board.size() > 0 && 
         _elems_on_board.find(_selected_elem_on_board) != _elems_on_board.end())

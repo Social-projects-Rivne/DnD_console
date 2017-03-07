@@ -1,9 +1,10 @@
-#include "BoardMenu.hpp"
-#include "BoardEdit.hpp"
+#include "Includes/BoardMenu.hpp"
+#include "Includes/BoardEdit.hpp"
 
-BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window, HttpClient* client) :
+BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window, HttpClient* client, const std::string &ses) :
                                             http_thread(&BoardMenu::fLoadBoardListBox, this)
 {
+    _session_id = ses;
     this->_event = event;
     _gui.setWindow(window);
     _board_id = -1;
@@ -67,14 +68,15 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
 												   id,
 												   _event,
 												   window,
-												   _client);
+												   _client,
+                                                   _session_id);
                     }
                 }
 
                 if (_create_board_btn_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
                     _menu_option = _selected_menu::CREATE_BOARD;
-                    create_board = new BoardCreate(_event, window, _client);
+                    create_board = new BoardCreate(_event, window, _client, _session_id);
                 }
 
                 if (_refresh_list_btn_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
@@ -238,8 +240,8 @@ void BoardMenu::fLoadBoardListBox()
     //
     std::string response;
     //auto q = "{\"session_id\":\"1\", \"board\":\"temp5\", \"width\":\"15\", \"height\":\"15\", \"description\":\"desc\"}";
-    auto str = "{\"session_id\":\"1\"}";
-    _client->fSendRequest(HttpClient::_POST, "/api/loadmyboardslist", str);
+    auto request = "{\"session_id\":\""+_session_id+"\"}";
+    _client->fSendRequest(HttpClient::_POST, "/api/loadmyboardslist", request);
     _client->fGetResponse(response);
     _board_data = json::parse(response);
     std::cout << _board_data;
