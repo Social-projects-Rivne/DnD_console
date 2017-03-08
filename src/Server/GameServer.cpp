@@ -8,11 +8,10 @@
 // fbt.ksnv@gmail.com, olhalesk@gmail.com
 //
 
-#include "Includes/stdafx.hpp"
+#include "Includes/stdafx.hpp"a
 #include "Includes/HttpServer.hpp"
 #include "Includes/IniParser.hpp"
 #include "Includes/DataBase.hpp"
-#include "Includes/DataValidator.hpp"
 #include "Includes/DataValidator.hpp"
 #include "Includes/Logger.hpp"
 
@@ -287,7 +286,7 @@ void fUserRegistration(std::string &json_response, nlohmann::json &json_request)
     string username = json_request["username"];
     string password = json_request["password"];
     string email    = json_request["email"];
-    
+  
     if (DataValidator::fValidate(username, DataValidator::NAME) &&
         DataValidator::fValidate(password, DataValidator::PASSWORD) &&
         DataValidator::fValidate(email, DataValidator::EMAIL)) // checks data
@@ -1143,7 +1142,7 @@ void fSaveBoard(std::string &json_response, nlohmann::json &json_request)
             spawn_x = json_request["spawn_x"];
         if (json_request.count("spawn_y") > 0)
             spawn_y = json_request["spawn_y"];
-        
+
         if (DataValidator::fValidate(name,         DataValidator::SQL_INJECTION) &&
             DataValidator::fValidate(width,        DataValidator::SQL_INJECTION) &&
             DataValidator::fValidate(height,       DataValidator::SQL_INJECTION) &&
@@ -1972,6 +1971,50 @@ void fSendBoardsList(std::string &json_response, nlohmann::json &json_request)
             json_response = "{\"status\":\"fail\", \"message\": \"list of boards is not loaded, sql query execution failed\"}";
             Logger::fLog("sql query execution failed (fSendBoardsList)", Logger::type::error);
         }
+    }
+    else
+        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+}
+
+void fSendBoardsList(std::string &json_response, nlohmann::json &json_request)
+{
+    string session_id = json_request["session_id"];
+    string id_user;
+    
+    if (fRetrieveUserId(id_user, session_id))
+    {
+        string query = "SELECT id, name, width, height, description, id_owner FROM Boards;";
+        nlohmann::json json_result = data_base.fExecuteQuery(query);
+        cout << query << "\nRESULT:\n" << json_result << endl;
+        string query_result = json_result["result"];
+        
+        if (query_result == "success")
+        {
+            string rows = json_result["rows"];
+            int rows_qtt = stoi(rows);
+            if (rows_qtt > 0)
+            {
+                json_response = "{\"status\":\"success\", \"boards_quantity\":\"" + rows + "\", \"list\": [";
+                while (rows_qtt--)
+                {
+                    string board_id    = json_result["data"][rows_qtt]["id"];
+                    string board       = json_result["data"][rows_qtt]["name"];
+                    string width       = json_result["data"][rows_qtt]["width"];
+                    string height      = json_result["data"][rows_qtt]["height"];
+                    string description = json_result["data"][rows_qtt]["description"];
+                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
+                    json_response += "{\"board\": \"" + board + "\", \"id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+                    
+                    if (rows_qtt)
+                        json_response += ",";
+                }
+                json_response += "]}";
+            }
+            else
+                json_response = "{\"status\":\"warning\", \"message\": \"list of boards is empty\"}";
+        }
+        else
+            json_response = "{\"status\":\"fail\", \"message\": \"list of boards is not loaded, sql query execution failed\"}";
     }
     else
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
