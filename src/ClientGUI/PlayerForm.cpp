@@ -90,11 +90,12 @@ void PlayerForm::fUpdate(sf::RenderWindow  &window)
 
             if (_btn_character->mouseOnWidget(_event.mouseButton.x, _event.mouseButton.y))
             {
-                if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
-                {
-                    _character_window = new CharacterForm(_event, window, _game_session, _http_client);
-                    _menu_option = PlayerForm::Character_MENU;
-                }
+               
+                    if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
+                    {
+                        _menu_option = PlayerForm::Character_MENU;
+                        _character_window = new CharacterForm(_event, window, _game_session, _http_client);
+                    }
             }
             _gui.handleEvent(_event);
         }
@@ -136,7 +137,6 @@ void PlayerForm::fDraw(sf::RenderWindow & window)
         {
             delete _character_window;
             _menu_option = PlayerForm::NONE;
-            _character_button_click = false;
         }
     }
     break;
