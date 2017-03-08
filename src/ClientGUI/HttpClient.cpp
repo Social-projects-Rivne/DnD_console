@@ -19,8 +19,6 @@ HttpClient::HttpClient(boost::asio::io_service& io_service, const std::string &s
 
 
 /*
-
-
     Method for getting data from server.
 */
 void HttpClient::fGet(const std::string &path)
