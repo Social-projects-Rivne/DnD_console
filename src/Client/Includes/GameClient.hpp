@@ -19,7 +19,7 @@ private:
 	void fDisplayDmMenu(const std::string &user_session);
 	void fDisplayPlayerMenu(const std::string &user_session);
 	void fDisplayNPCMenu(const std::string &user_session);
-    void fDisplayTerrainMenu(const std::string &user_session);
-    void fDisplayBoardMenu(const std::string &user_session);
+  void fDisplayTerrainMenu(const std::string &user_session);
+  void fDisplayBoardMenu(const std::string &user_session);
 	void fSwitchMode(const std::string &user_session);
 };

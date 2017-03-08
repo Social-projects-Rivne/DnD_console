@@ -33,13 +33,14 @@ int main()
             return EXIT_FAILURE;
         }
 
-        sf::RenderWindow window(sf::VideoMode(1920,1080), "Dungeons & Dragons", sf::Style::Fullscreen);
+        sf::RenderWindow window(sf::VideoMode(1280,720), "Dungeons & Dragons"/*, sf::Style::Fullscreen*/);
         window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
         window.setFramerateLimit(60);
         sf::Event event;
         LoginForm menu(event, window, http_client);
         while (window.isOpen())
         {
+            window.clear(sf::Color(30, 40, 50));
             menu.fUpdate(window);
             menu.fDraw(window);
             window.display();

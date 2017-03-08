@@ -4,6 +4,7 @@
 #include <TGUI/TGUI.hpp>
 #include "TerrainForm.hpp"
 #include "NPCForm.hpp"
+#include "BoardMenu.hpp"
 
 
 class DMForm
@@ -40,6 +41,7 @@ class DMForm
 
     NPCForm *npc_menu_window;
     TerrainForm *terrain_menu_window;
+    BoardMenu *board_menu;
 
     void fDisable();
     void fInitUIElements();

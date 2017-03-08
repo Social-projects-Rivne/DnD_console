@@ -54,5 +54,4 @@ public:
     HttpClient(boost::asio::io_service& io_service, const std::string &server, const std::string &port);
     void fSendRequest(const Methods &method, const std::string &path, const std::string &data);
     void fGetResponse(std::string &response);
-
 };
