@@ -17,6 +17,7 @@ HttpClient::HttpClient(boost::asio::io_service& io_service, const std::string &s
 	_endpoint_iterator = _resolver.resolve(query);
 }
 
+
 /*
     Method for getting data from server.
 */
