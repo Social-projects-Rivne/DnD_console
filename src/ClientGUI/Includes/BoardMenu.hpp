@@ -9,6 +9,7 @@
 class BoardMenu
 {
 private:
+
     enum _selected_menu 
     {
         NONE,
@@ -60,6 +61,8 @@ private:
     void fLoadUiElements(sf::RenderWindow &window);
     void fLoadBoardListBox();
 public:
+    bool draw_window;
+
     BoardMenu(const sf::Event &event, sf::RenderWindow &window, HttpClient* cl, const std::string& ses);
 
     void fUpdate(sf::RenderWindow &window);
