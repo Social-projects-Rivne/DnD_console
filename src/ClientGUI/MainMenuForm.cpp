@@ -1,5 +1,15 @@
-#include "Includes/MeinMenuForm.hpp"
+// MainMenuForm.cpp
+//
+// GUI_Client
+// for 
+// SoftServe ITA
+//
+// Kopelyuk Vitaliy
+// vkopeluk@gmail.com
+//
 
+#include "Includes/MeinMenuForm.hpp"
+#include "Includes/Logger.hpp"
 
 void MeinMenuForm::fInitUIElements()
 {
@@ -52,6 +62,8 @@ void MeinMenuForm::fExit_clicked()
     _http_client->fSendRequest(HttpClient::_POST, "/api/userlogout", request.dump());
     _http_client->fGetResponse(response);
     std::cout << response;
+
+    Logger::fLog("User with session:" + _game_session+" logout", Logger::type::info);
 
     display_window = false;
 }
