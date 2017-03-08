@@ -35,8 +35,7 @@ class LoginForm
     tgui::EditBox::Ptr _password;
     tgui::Button::Ptr  _login_button;
     tgui::Button::Ptr  _register_button;
-    tgui::ListBox::Ptr _terrain_list;
-
+ 
     // avaliable menu options 
     RegisterForm *_registration_window;
     MeinMenuForm *_menu_window;
