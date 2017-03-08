@@ -100,6 +100,7 @@ void DMForm::fUpdate(sf::RenderWindow  &window)
                 if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
                 {
                     _menu_option = DMForm::BOARD_MENU;
+                    board_menu = new BoardMenu(_event, window, _http_client, _game_session);
                 }
             }
 
@@ -119,7 +120,8 @@ void DMForm::fUpdate(sf::RenderWindow  &window)
     break;
     case DMForm::BOARD_MENU:
     {
-
+        if (board_menu->draw_window)
+            board_menu->fUpdate(window);
     }
     break;
     case DMForm::BACK:
@@ -159,7 +161,13 @@ void DMForm::fDraw(sf::RenderWindow & window)
     break;
     case DMForm::BOARD_MENU:
     {
-
+        if (board_menu->draw_window)
+            board_menu->fDraw(window);
+        else
+        {
+            delete board_menu;
+            _menu_option = DMForm::NONE;
+        }
     }
     break;
     }
