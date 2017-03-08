@@ -1,3 +1,13 @@
+// HttpClient.hpp
+//
+// httpClient
+// for
+// SoftServe ITA
+//
+// Kopelyuk Vitaliy
+// vkopeluk@gmail.com
+//
+
 #pragma once
 
 #include <iostream>
@@ -32,7 +42,9 @@ private:
     void fConnect();
 
 public:
-    enum Methods {
+
+    enum Methods 
+    {
         _GET,
         _POST,
         _PUT,
