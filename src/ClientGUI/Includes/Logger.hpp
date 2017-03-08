@@ -4,6 +4,7 @@
 #include <fstream>
 #include <ctime>
 #include <string>
+
 class Logger
 {
 private:

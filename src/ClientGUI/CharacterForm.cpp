@@ -1,5 +1,7 @@
+
 #include "Includes/CharacterForm.hpp"
 #include "Includes/IniParser.hpp"
+#include "Includes/Logger.hpp"
 
 void CharacterForm::fInitUIElements()
 {
@@ -18,20 +20,19 @@ void CharacterForm::fInitUIElements()
     _gui.add(border);
 
     _character_name = _theme->load("EditBox");
-    _character_name->setPosition(windowWidth/2+50, 105);
+    _character_name->setPosition(windowWidth / 2 + 50, 105);
     _character_name->setSize(180, 40);
     _character_name->setDefaultText("Name");
-    _character_name->setInputValidator("[0-9]{1,5}");
     _gui.add(_character_name);
 
     _class_l = _theme->load("Label");
     _class_l->setText("Class: ");
     _class_l->setSize(60, 40);
-    _class_l->setPosition(windowWidth/2+440,95);
+    _class_l->setPosition(windowWidth / 2 + 440, 95);
     _gui.add(_class_l);
 
     _character_class_cbox = _theme->load("ComboBox");
-    _character_class_cbox->setPosition(windowWidth/2+500, 85);
+    _character_class_cbox->setPosition(windowWidth / 2 + 500, 85);
     _character_class_cbox->setSize(150, 40);
     _gui.add(_character_class_cbox);
 
@@ -42,7 +43,7 @@ void CharacterForm::fInitUIElements()
     _gui.add(_race_l);
 
     _character_race_cbox = _theme->load("ComboBox");
-    _character_race_cbox->setPosition(windowWidth/2+500, 145);
+    _character_race_cbox->setPosition(windowWidth / 2 + 500, 145);
     _character_race_cbox->setSize(150, 40);
     _gui.add(_character_race_cbox);
 
@@ -68,12 +69,12 @@ void CharacterForm::fInitUIElements()
     _gui.add(_level);
 
     _strength_l = _theme->load("Label");
-    _strength_l->setPosition(windowWidth/2+50, 235);
+    _strength_l->setPosition(windowWidth / 2 + 50, 235);
     _strength_l->setText("Strength");
     _gui.add(_strength_l);
 
     _dexterity_l = _theme->load("Label");
-    _dexterity_l->setPosition(windowWidth / 2 + 50, _strength_l->getSize().y+275);
+    _dexterity_l->setPosition(windowWidth / 2 + 50, _strength_l->getSize().y + 275);
     _dexterity_l->setText("Dexterity");
     _gui.add(_dexterity_l);
 
@@ -83,17 +84,17 @@ void CharacterForm::fInitUIElements()
     _gui.add(_constitution_l);
 
     _inteligence_l = _theme->load("Label");
-    _inteligence_l->setPosition(windowWidth / 2 + 50, _constitution_l->getSize().y+395);
+    _inteligence_l->setPosition(windowWidth / 2 + 50, _constitution_l->getSize().y + 395);
     _inteligence_l->setText("Intelligence");
     _gui.add(_inteligence_l);
 
     _wisdom_l = _theme->load("Label");
-    _wisdom_l->setPosition(windowWidth / 2 + 50, _inteligence_l->getSize().y+455);
+    _wisdom_l->setPosition(windowWidth / 2 + 50, _inteligence_l->getSize().y + 455);
     _wisdom_l->setText("Wisdom");
     _gui.add(_wisdom_l);
 
     _charisma_l = _theme->load("Label");
-    _charisma_l->setPosition(windowWidth / 2 + 50, _wisdom_l->getSize().y+515);
+    _charisma_l->setPosition(windowWidth / 2 + 50, _wisdom_l->getSize().y + 515);
     _charisma_l->setText("Charisma");
     _gui.add(_charisma_l);
 
@@ -101,27 +102,27 @@ void CharacterForm::fInitUIElements()
     _strength->setSize(80, 40);
     _strength->setPosition(windowWidth / 2 + 200, 225);
     _gui.add(_strength);
-    
+
     _dexterity = _theme->load("ComboBox");
     _dexterity->setSize(80, 40);
     _dexterity->setPosition(windowWidth / 2 + 200, 285);
     _gui.add(_dexterity);
-    
+
     _constitution = _theme->load("ComboBox");
     _constitution->setSize(80, 40);
     _constitution->setPosition(windowWidth / 2 + 200, 345);
     _gui.add(_constitution);
-    
+
     _inteligence = _theme->load("ComboBox");
     _inteligence->setSize(80, 40);
     _inteligence->setPosition(windowWidth / 2 + 200, 405);
     _gui.add(_inteligence);
-    
+
     _wisdom = _theme->load("ComboBox");
     _wisdom->setSize(80, 40);
     _wisdom->setPosition(windowWidth / 2 + 200, 465);
     _gui.add(_wisdom);
-    
+
     _charisma = _theme->load("ComboBox");
     _charisma->setSize(80, 40);
     _charisma->setPosition(windowWidth / 2 + 200, 525);
@@ -183,7 +184,7 @@ void CharacterForm::fInitUIElements()
 
     _back_btn = _theme->load("Button");
     _back_btn->setSize(160, 50);
-    _back_btn->setPosition(50, windowHeight-150);
+    _back_btn->setPosition(50, windowHeight - 150);
     _back_btn->setText("Back");
     _gui.add(_back_btn);
 
@@ -210,6 +211,16 @@ void CharacterForm::fInitUIElements()
     _character_list->setSize(400, 240);
     _gui.add(_character_list);
 
+    _rnd_btn = _theme->load("Button");
+    _rnd_btn->setPosition(windowWidth / 2 + 50, _wisdom_l->getSize().y + 575);
+    _rnd_btn->setSize(160, 50);
+    _rnd_btn->setText("Randomize Abilities");
+    _gui.add(_rnd_btn);
+
+    _points_l = _theme->load("Label");
+    _points_l->setPosition(windowWidth / 2 + 200, 585);
+
+    _gui.add(_points_l);
     for (int i = 1; i <= 20; ++i)
     {
         _strength->addItem(std::to_string(i));
@@ -227,7 +238,6 @@ void CharacterForm::fInitUIElements()
     _save_chg->connect("pressed", &CharacterForm::fSaveChanges, this, _character_list);
     _delete_btn->connect("pressed", &CharacterForm::fDeleteCharacter, this, _character_list);
     _edit_btn->connect("pressed", &CharacterForm::fEditCharacter, this, _character_list);
-    _back_btn->connect("pressed", &CharacterForm::fDisable, this);
 }
 
 std::string CharacterForm::fSetAbilityMod(std::string ability)
@@ -270,7 +280,7 @@ std::string CharacterForm::fSetAbilityMod(std::string ability)
 
 void CharacterForm::fCreateCharacter(tgui::EditBox::Ptr name)
 {
-    Character character(name->getText().toAnsiString(), _data_race, _data_class,_data_experience, _data_hitpoints, _data_level, _data_strength, _data_dexterity, _data_constitution, _data_intelligence, _data_wisdom, _data_charisma, _game_session);
+    Character character(name->getText().toAnsiString(), _data_race, _data_class, _data_experience, _data_hitpoints, _data_level, _data_strength, _data_dexterity, _data_constitution, _data_intelligence, _data_wisdom, _data_charisma, _game_session);
 
     std::string response;
     std::string request = character.fToJson().dump();
@@ -279,64 +289,88 @@ void CharacterForm::fCreateCharacter(tgui::EditBox::Ptr name)
     _http_client->fGetResponse(response);
     std::cout << response << std::endl;
     _combo_box = false;
-}
+    
+    Logger::fLog("Character: " + name->getText() + "seccessfully created by: " + _game_session, Logger::type::info);
 
-void CharacterForm::fDeleteCharacter(tgui::ListBox::Ptr character_list)
-{
-    auto request = UserActions::fDeleteCharacter(_game_session, character_list->getSelectedItemId().toAnsiString()).dump();
-    std::string response;
-    _http_client->fSendRequest(HttpClient::_POST, "/api/deletecharacter", request);
-    _http_client->fGetResponse(response);
-    std::cout << response;
- 
     if (response.find("success"))
     {
         fRefresh();
     }
 }
+#undef MessageBox
+
+void CharacterForm::fDeleteCharacter(tgui::ListBox::Ptr character_list)
+{
+    if (character_list->getSelectedItemId().isEmpty() || character_list->getSelectedItem().isEmpty())
+    {
+        //insert MessageBox
+    }
+    else
+    {
+        auto request = UserActions::fDeleteCharacter(_game_session, character_list->getSelectedItemId().toAnsiString()).dump();
+        std::string response;
+        _http_client->fSendRequest(HttpClient::_POST, "/api/deletecharacter", request);
+        _http_client->fGetResponse(response);
+        std::cout << response;
+
+        Logger::fLog("Character: " + character_list->getSelectedItem() + "seccessfully deleted", Logger::type::info);
+
+        if (response.find("success"))
+        {
+            fRefresh();
+        }
+    }
+}
 
 void CharacterForm::fEditCharacter(tgui::ListBox::Ptr character_list)
 {
-    _create_btn->hide();
-    _save_chg->show();
+    if (character_list->getSelectedItemId().isEmpty() || character_list->getSelectedItem().isEmpty())
+    {
+        //insert MessageBox
+    }
+    else
+    {
 
-    json request;
-    request["session_id"] = _game_session;
-    request["character"] = character_list->getSelectedItem().toAnsiString();
-    
-    std::string response;
-   
-    _http_client->fSendRequest(HttpClient::_POST, "/api/loaddefinedcharacter", request.dump());
-    _http_client->fGetResponse(response);
-    std::cout << response;
+        _create_btn->hide();
+        _save_chg->show();
 
-    json temp_character;
-   
-    temp_character = json::parse(response.c_str());
-   
-    _character_name->setText(temp_character["character"]);
-    _character_race_cbox->setSelectedItem(temp_character["race"]);
-    _character_class_cbox->setSelectedItem(temp_character["class"]);
-    _strength->setSelectedItem(temp_character["strength"]);
-    _dexterity->setSelectedItem(temp_character["dexterity"]);
-    _constitution->setSelectedItem(temp_character["constitution"]);
-    _inteligence->setSelectedItem(temp_character["intelligence"]);
-    _wisdom->setSelectedItem(temp_character["wisdom"]);
-    _charisma->setSelectedItem(temp_character["charisma"]);
+        json request;
+        request["session_id"] = _game_session;
+        request["character"] = character_list->getSelectedItem().toAnsiString();
 
+        std::string response;
+
+        _http_client->fSendRequest(HttpClient::_POST, "/api/loaddefinedcharacter", request.dump());
+        _http_client->fGetResponse(response);
+        std::cout << response;
+
+        json temp_character;
+
+        temp_character = json::parse(response.c_str());
+
+        _character_name->setText(temp_character["character"]);
+        _character_race_cbox->setSelectedItem(temp_character["race"]);
+        _character_class_cbox->setSelectedItem(temp_character["class"]);
+        _strength->setSelectedItem(temp_character["strength"]);
+        _dexterity->setSelectedItem(temp_character["dexterity"]);
+        _constitution->setSelectedItem(temp_character["constitution"]);
+        _inteligence->setSelectedItem(temp_character["intelligence"]);
+        _wisdom->setSelectedItem(temp_character["wisdom"]);
+        _charisma->setSelectedItem(temp_character["charisma"]);
+    }
 }
 
 void CharacterForm::fLoadCharacterListBox()
 {
-   std::string response;
-   auto request = UserActions::fLoadMyCharacters(_game_session).dump();
-   _http_client->fSendRequest(HttpClient::_POST, "/api/loadmycharacterslist", request);
-   _http_client->fGetResponse(response);
-   _character_data = json::parse(response.c_str());
-   std::cout << _character_data;
-   fLoadRaces();
-   fLoadClasses();
-   _updated = false;
+    std::string response;
+    auto request = UserActions::fLoadMyCharacters(_game_session).dump();
+    _http_client->fSendRequest(HttpClient::_POST, "/api/loadmycharacterslist", request);
+    _http_client->fGetResponse(response);
+    _character_data = json::parse(response.c_str());
+    std::cout << _character_data;
+    fLoadRaces();
+    fLoadClasses();
+    _updated = false;
 }
 void CharacterForm::fLoadRaces()
 {
@@ -348,6 +382,8 @@ void CharacterForm::fLoadRaces()
     _http_client->fGetResponse(response);
     _character_races = json::parse(response.c_str());
     std::cout << _character_races;
+    races_loaded = true;
+
 }
 
 void CharacterForm::fLoadClasses()
@@ -360,6 +396,7 @@ void CharacterForm::fLoadClasses()
     _http_client->fGetResponse(response);
     _character_classes = json::parse(response.c_str());
     std::cout << _character_classes;
+    classed_loaded = true;
 }
 
 void CharacterForm::fRefresh()
@@ -380,27 +417,26 @@ void CharacterForm::fSaveChanges(tgui::ListBox::Ptr character_list)
     std::cout << request;
     _http_client->fSendRequest(HttpClient::_POST, "/api/editcharacter", request.dump());
     _http_client->fGetResponse(response);
-     std::cout << response;
+    std::cout << response;
 
-     if (response.find("success"))
-     {
-         _save_chg->hide();
-         _create_btn->show();
-         fRefresh();
-     }
-     _combo_box = false;
+    Logger::fLog("Character: " + character_list->getSelectedItem() + "seccessfully editing", Logger::type::info);
+
+    if (response.find("success"))
+    {
+        _save_chg->hide();
+        _create_btn->show();
+        fRefresh();
+    }
+    _combo_box = false;
 
 }
-void CharacterForm::fDisable()
-{
-    display_window = false;
-}
-
 
 CharacterForm::CharacterForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client)
     : _http_thread(&CharacterForm::fLoadCharacterListBox, this)
 {
     display_window = true;
+    classed_loaded = false;
+    races_loaded = false;
     _gui.setWindow(window);
     _game_session = game_session;
     _http_client = http_client;
@@ -418,20 +454,27 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
 
         try
         {
-            if (_character_data["status"] == "success"&& _character_races["status"] == "success" && _character_classes["status"] == "success" && !_updated)
+            if ((_character_data["status"] == "success" || _character_races["status"] == "success" || _character_classes["status"] == "success") && !_updated)
             {
 
-                std::string race_quan = _character_races["races_quantity"];
-                for (int i = 0; i < std::stoi(race_quan); i++)
+                if (races_loaded)
                 {
-                    _character_race_cbox->addItem(_character_races["list"][i]["race"], _character_races["list"][i]["race_id"]);
+                    std::string race_quan = _character_races["races_quantity"];
+                    for (int i = 0; i < std::stoi(race_quan); i++)
+                    {
+                        _character_race_cbox->addItem(_character_races["list"][i]["race"], _character_races["list"][i]["race_id"]);
+                    }
+                    races_loaded = false;
                 }
-
-                std::string class_quan = _character_classes["classes_quantity"];
-
-                for (int i = 0; i < std::stoi(class_quan); i++)
+                if (classed_loaded)
                 {
-                    _character_class_cbox->addItem(_character_classes["list"][i]["class"], _character_classes["list"][i]["class_id"]);
+                    std::string class_quan = _character_classes["classes_quantity"];
+
+                    for (int i = 0; i < std::stoi(class_quan); i++)
+                    {
+                        _character_class_cbox->addItem(_character_classes["list"][i]["class"], _character_classes["list"][i]["class_id"]);
+                    }
+                    classed_loaded = false;
                 }
 
 
@@ -460,7 +503,7 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
             _data_race = _character_race_cbox->getSelectedItem();
             _data_class = _character_class_cbox->getSelectedItem();
             _character_id = _character_list->getSelectedItemId();
-           
+
             if (_data_strength.size() > 0)
             {
                 _strength_mod->setText(fSetAbilityMod(_data_strength));
@@ -490,7 +533,6 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
             {
                 _charisma_mod->setText(fSetAbilityMod(_data_charisma));
             }
-
         }
         else
         {
@@ -509,9 +551,108 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
             _charisma_mod->setText("");
             _character_race_cbox->deselectItem();
             _character_class_cbox->deselectItem();
+            _points_l->setText("");
             _combo_box = true;
         }
 
+        if (_back_btn->mouseOnWidget(_event.mouseButton.x, _event.mouseButton.y))
+        {
+            if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
+            {
+                _http_thread.terminate();
+                display_window = false;
+            }
+        }
+
+        if (_rnd_btn->mouseOnWidget(_event.mouseButton.x, _event.mouseButton.y))
+        {
+            if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
+            {
+                int sum;
+
+                do
+                {
+                    sum = 0;
+                    string strength;
+                    do
+                    {
+                        strength = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(strength, DataValidator::ABILITY))
+                        {
+                            _strength->setSelectedItem(strength);
+                            _strength_mod->setText(fSetAbilityMod(strength));
+                        }
+                    } while (!DataValidator::fValidate(strength, DataValidator::ABILITY));
+                    sum += stoi(strength);
+
+                    string dexterity;
+                    do
+                    {
+                        dexterity = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(dexterity, DataValidator::ABILITY))
+                        {
+                            _dexterity->setSelectedItem(dexterity);
+                            _dexterity_mod->setText(fSetAbilityMod(dexterity));
+                        }
+                    } while (!DataValidator::fValidate(dexterity, DataValidator::ABILITY));
+                    sum += stoi(dexterity);
+
+                    string constitution;
+                    do
+                    {
+                        constitution = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(constitution, DataValidator::ABILITY))
+                        {
+                            _constitution->setSelectedItem(constitution);
+                            _constitution_mod->setText(fSetAbilityMod(constitution));
+                        }
+                    } while (!DataValidator::fValidate(constitution, DataValidator::ABILITY));
+                    sum += stoi(constitution);
+
+                    string intelligence;
+                    do
+                    {
+                        intelligence = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(intelligence, DataValidator::ABILITY))
+                        {
+                            _inteligence->setSelectedItem(intelligence);
+                            _inteligence_mod->setText(fSetAbilityMod(intelligence));
+                        }
+                    } while (!DataValidator::fValidate(intelligence, DataValidator::ABILITY));
+                    sum += stoi(intelligence);
+
+                    string wisdom;
+                    do
+                    {
+                        wisdom = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(wisdom, DataValidator::ABILITY))
+                        {
+                            _wisdom->setSelectedItem(wisdom);
+                            _wisdom_mod->setText(fSetAbilityMod(wisdom));
+                        }
+                    } while (!DataValidator::fValidate(wisdom, DataValidator::ABILITY));
+                    sum += stoi(wisdom);
+
+                    string charisma;
+                    do
+                    {
+                        charisma = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(charisma, DataValidator::ABILITY))
+                        {
+                            _charisma->setSelectedItem(charisma);
+                            _charisma_mod->setText(fSetAbilityMod(charisma));
+                        }
+                    } while (!DataValidator::fValidate(charisma, DataValidator::ABILITY));
+                    sum += stoi(charisma);
+                } while (sum > max_abilitis_points);
+            }
+        }
 
         if (_event.type == sf::Event::Closed)
             window.close();
@@ -519,6 +660,7 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
         _gui.handleEvent(_event);
     }
 }
+
 void CharacterForm::fDraw(sf::RenderWindow & window)
 {
     _gui.draw();

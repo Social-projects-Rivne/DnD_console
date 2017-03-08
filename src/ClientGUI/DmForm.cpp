@@ -103,6 +103,11 @@ void DMForm::fUpdate(sf::RenderWindow  &window)
                     board_menu = new BoardMenu(_event, window, _http_client, _game_session);
                 }
             }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+            {
+                npc_menu_window = new NPCForm(_event, window, _game_session, _http_client);
+                _menu_option = DMForm::NPC_MENU;
+            }
 
             _gui.handleEvent(_event);
         }

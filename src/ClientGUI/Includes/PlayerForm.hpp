@@ -1,3 +1,13 @@
+// RegisterForm.hpp
+//
+// GUI_Client
+// for 
+// SoftServe ITA
+//
+// Kopelyuk Vitaliy
+// vkopeluk@gmail.com
+//
+
 #pragma once
 
 #include <SFML/Graphics.hpp>

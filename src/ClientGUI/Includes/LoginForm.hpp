@@ -1,3 +1,13 @@
+// LoginForm.hpp
+//
+// GUI_Client
+// for 
+// SoftServe ITA
+//
+// Kopelyuk Vitaliy
+// vkopeluk@gmail.com
+//
+
 #pragma once
 
 #include "MeinMenuForm.hpp"
@@ -18,14 +28,14 @@ class LoginForm
     tgui::Gui _gui;
     HttpClient *_http_client;
     std::string _game_session;
+ 
     // UI elements
     tgui::Theme::Ptr   _theme;
     tgui::EditBox::Ptr _username;
     tgui::EditBox::Ptr _password;
     tgui::Button::Ptr  _login_button;
     tgui::Button::Ptr  _register_button;
-    tgui::ListBox::Ptr _terrain_list;
-
+ 
     // avaliable menu options 
     RegisterForm *_registration_window;
     MeinMenuForm *_menu_window;
