@@ -42,9 +42,12 @@ class NPCForm
     tgui::Button::Ptr   _edit_btn;
     tgui::Button::Ptr   _save_chg;
     tgui::Button::Ptr   _delete_btn;
+    tgui::Button::Ptr   _rnd_btn;
     tgui::Picture::Ptr  _back;
     tgui::Picture::Ptr  _npc_img;
     sf::Texture         _npc_picture[8];
+
+    int max_abilities_points=80;
 
     std::string _data_strength;
     std::string _data_dexterity;
