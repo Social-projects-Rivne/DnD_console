@@ -90,7 +90,7 @@ void LoginForm::fLogin(tgui::EditBox::Ptr username, tgui::EditBox::Ptr password)
         validate_username = true;
     }
 
-    if (_password->getText().toAnsiString().size() > 0)
+    if (_password->getText().toAnsiString().size() >= 6)
     {
 
         validate_password = true;
