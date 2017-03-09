@@ -19,6 +19,12 @@ void CharacterForm::fInitUIElements()
     border->setSize(windowWidth, windowHeight);
     _gui.add(border);
 
+    _character_img = std::make_shared<tgui::Picture>();
+    //_character_img->setSize(64, 64);
+    _character_img->setPosition(windowWidth / 2 + 460, 425);
+    _character_img->hide();
+    _gui.add(_character_img);
+
     _character_name = _theme->load("EditBox");
     _character_name->setPosition(windowWidth / 2 + 50, 105);
     _character_name->setSize(180, 40);
@@ -289,7 +295,7 @@ void CharacterForm::fCreateCharacter(tgui::EditBox::Ptr name)
     _http_client->fGetResponse(response);
     std::cout << response << std::endl;
     _combo_box = false;
-    
+
     Logger::fLog("Character: " + name->getText() + "seccessfully created by: " + _game_session, Logger::type::info);
 
     if (response.find("success"))
@@ -444,6 +450,22 @@ CharacterForm::CharacterForm(const sf::Event &event, sf::RenderWindow &window, s
     fInitUIElements();
     this->_event = event;
     _http_thread.launch();
+    fLoadCharacterImages();
+}
+
+void CharacterForm::fLoadCharacterImages()
+{
+    _character_picture[0].loadFromFile("Interface/characters/dragonborn.png");
+    _character_picture[1].loadFromFile("Interface/characters/dwarf.png");
+    _character_picture[2].loadFromFile("Interface/characters/elf.png");
+    _character_picture[3].loadFromFile("Interface/characters/genasi.png");
+    _character_picture[4].loadFromFile("Interface/characters/gnome.png");
+    _character_picture[5].loadFromFile("Interface/characters/goliath.png");
+    _character_picture[6].loadFromFile("Interface/characters/helf.png");
+    _character_picture[7].loadFromFile("Interface/characters/horc.png");
+    _character_picture[8].loadFromFile("Interface/characters/hing.png");
+    _character_picture[9].loadFromFile("Interface/characters/trif.png");
+    _character_picture[10].loadFromFile("Interface/characters/human.png");
 }
 
 void CharacterForm::fUpdate(sf::RenderWindow  &window)
@@ -494,6 +516,70 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
 
         if (_combo_box)
         {
+
+            std::string elem_type = _character_race_cbox->getSelectedItem();
+
+            if (elem_type == "Dragonborn")
+             {
+                _character_img->setTexture(_character_picture[0]);
+                _character_img->setSize(180, 90);
+                _character_img->show();
+             }
+            else if (elem_type == "Elf")
+                 {
+                _character_img->setTexture(_character_picture[2]);
+                _character_img->setSize(180, 155);
+                _character_img->show();
+                }
+           else if (elem_type == "Gnome")
+                 {
+               _character_img->setTexture(_character_picture[4]);
+               _character_img->setSize(180, 90);
+               _character_img->show();
+                }
+           else if (elem_type == "Half-Elf")
+                 {
+               _character_img->setTexture(_character_picture[2]);
+               _character_img->setSize(180, 90);
+               _character_img->show();
+                }
+            else if (elem_type == "Half-Orc")
+                 {
+                _character_img->setTexture(_character_picture[2]);
+                _character_img->setSize(180, 90);
+                _character_img->show();
+                }
+            else if (elem_type == "Halfling")
+                 {
+                _character_img->setTexture(_character_picture[6]);
+                _character_img->setSize(180, 90);
+                _character_img->show();
+                }
+            else if (elem_type == "Human")
+                 {
+                _character_img->setTexture(_character_picture[10]);
+                _character_img->setSize(180, 90);
+                _character_img->show();
+                }
+            else if (elem_type == "Trifling")
+                 {
+                _character_img->setTexture(_character_picture[9]);
+                _character_img->setSize(180, 90);
+                _character_img->show();
+                }
+            else if (elem_type == "Genasi")
+                 {
+                _character_img->setTexture(_character_picture[3]);
+                _character_img->setSize(180, 90);
+                _character_img->show();
+                }
+            else if (elem_type == "Goliath")
+                 {
+                _character_img->setTexture(_character_picture[5]);
+                _character_img->setSize(180, 90);
+                _character_img->show();
+                }
+
             _data_strength = _strength->getSelectedItem();
             _data_dexterity = _dexterity->getSelectedItem();
             _data_constitution = _constitution->getSelectedItem();
@@ -552,6 +638,7 @@ void CharacterForm::fUpdate(sf::RenderWindow  &window)
             _character_race_cbox->deselectItem();
             _character_class_cbox->deselectItem();
             _points_l->setText("");
+            _character_img -> hide();
             _combo_box = true;
         }
 

@@ -51,7 +51,8 @@ class CharacterForm
     tgui::Button::Ptr   _edit_btn;
     tgui::Button::Ptr   _rnd_btn;
     tgui::Picture::Ptr  _back;
-
+    tgui::Picture::Ptr  _character_img;
+    sf::Texture         _character_picture[11];
 
     std::string _data_race;
     std::string _data_class;
@@ -89,6 +90,7 @@ class CharacterForm
     void fLoadCharacterListBox();
     void fLoadClasses();
     void fLoadRaces();
+    void fLoadCharacterImages();
     void fRefresh();
     void fSaveChanges(tgui::ListBox::Ptr character_list);
 public:
