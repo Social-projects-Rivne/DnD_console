@@ -30,7 +30,8 @@ class TerrainForm
     tgui::Button::Ptr   _create_btn;
     tgui::Button::Ptr   _back_btn;
     tgui::Button::Ptr   _refresh_btn;
-    
+    tgui::Button::Ptr   _delete_btn;
+
     tgui::Picture::Ptr _back;
 
     std::string _game_session;
@@ -40,6 +41,7 @@ class TerrainForm
 
     bool _updated;
     bool _combo_box;
+    bool _types_loaded;
 
     void fInitUIElements();
     void fCreateTerrain(tgui::EditBox::Ptr name, tgui::ComboBox::Ptr type, tgui::EditBox::Ptr width, tgui::EditBox::Ptr height, tgui::TextBox::Ptr description);
@@ -48,6 +50,7 @@ class TerrainForm
     void fLoadData();
     void fLoadTerrainImages();
     void fRefresh();
+    void fDeleteTerrain(tgui::ListBox::Ptr terrain_list);
     void fDisable();
 public:
     bool display_window;

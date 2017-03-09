@@ -65,6 +65,7 @@ class NPCForm
 
     bool _updated;
     bool _combo_box;
+    bool _npc_type_loaded;
 
     void fInitUIElements();
     void fCreateNPC(tgui::EditBox::Ptr name, tgui::EditBox::Ptr level, tgui::EditBox::Ptr hitpoints, tgui::ComboBox::Ptr type);
