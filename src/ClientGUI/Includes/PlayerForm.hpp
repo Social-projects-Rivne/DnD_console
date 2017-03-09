@@ -13,7 +13,7 @@
 #include <SFML/Graphics.hpp>
 #include <TGUI/TGUI.hpp>
 #include "CharacterForm.hpp"
-
+#include "PMBoardMenu.hpp"
 
 class PlayerForm
 {
@@ -48,6 +48,7 @@ class PlayerForm
     bool _back_button_click;
 
     CharacterForm *_character_window;
+    PMBoardMenu   *_board_menu;
 
     void fClickedBoard();
     void fClickedCharacter();
