@@ -8,7 +8,7 @@
 // fbt.ksnv@gmail.com, olhalesk@gmail.com
 //
 
-#include "Includes/stdafx.hpp"a
+#include "Includes/stdafx.hpp"
 #include "Includes/HttpServer.hpp"
 #include "Includes/IniParser.hpp"
 #include "Includes/DataBase.hpp"
@@ -136,65 +136,65 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                 {
                     nlohmann::json json_request = json::parse(request_data_content.c_str());
                     
-                    if (path.find("/api/userlogin") != string::npos)
+                    if (path == ("/api/userlogin"))
                         fUserLogIn(response, json_request);
-                    else if (path.find("/api/userregister") != string::npos)
+                    else if (path == ("/api/userregister"))
                         fUserRegistration(response, json_request);
-                    else if (path.find("/api/userlogout") != string::npos)
+                    else if (path == ("/api/userlogout"))
                         fUserLogOut(response, json_request);
-                    else if (path.find("/api/addterrain") != string::npos)
+                    else if (path == ("/api/addterrain"))
                         fSaveTerrain(response, json_request);
-                    else if (path.find("/api/loadterrain") != string::npos)
+                    else if (path == ("/api/loadterrain"))
                         fSendTerrain(response, json_request);
-                    else if (path.find("/api/deleteterrain") != string::npos)
+                    else if (path == ("/api/deleteterrain"))
                         fDeleteTerrain(response, json_request);
-                    else if (path.find("/api/loaddefinedterrains") != string::npos)
+                    else if (path == ("/api/loaddefinedterrains"))
                         fSendDefinedTerrains(response, json_request);
-                    else if (path.find("/api/loadmyterrainslist") != string::npos)
+                    else if (path == ("/api/loadmyterrainslist"))
                         fSendOwnTerrainsList(response, json_request);
-                    else if (path.find("/api/addnpc") != string::npos)
+                    else if (path == ("/api/addnpc"))
                         fSaveNpc(response, json_request);
-                    else if (path.find("/api/loadmynpcslist") != string::npos)
+                    else if (path == ("/api/loadmynpcslist"))
                         fSendOwnNpcsList(response, json_request);
-                    else if (path.find("/api/loadnpc") != string::npos)
+                    else if (path == ("/api/loadnpc"))
                         fSendNpc(response, json_request);
-                    else if (path.find("/api/loadmynpc") != string::npos)
+                    else if (path == ("/api/loadmynpc"))
                         fSendMyNpc(response, json_request);
-                    else if (path.find("/api/editnpc") != string::npos)
+                    else if (path == ("/api/editnpc"))
                         fEditNpc(response, json_request);
-                    else if (path.find("/api/deletenpc") != string::npos)
+                    else if (path == ("/api/deletenpc"))
                         fDeleteNpc(response, json_request);
-                    else if (path.find("/api/addcharacter") != string::npos)
+                    else if (path == ("/api/addcharacter"))
                         fSaveCharacter(response, json_request);
-                    else if (path.find("/api/loadmycharacterslist") != string::npos)
+                    else if (path == ("/api/loadmycharacterslist"))
                         fSendOwnCharacterList(response, json_request);
-                    else if (path.find("/api/loaddefinedcharacter") != string::npos)
+                    else if (path == ("/api/loaddefinedcharacter"))
                         fSendDefinedCharacter(response, json_request);
-                    else if (path.find("/api/deletecharacter") != string::npos)
+                    else if (path == ("/api/deletecharacter"))
                         fDeleteCharacter(response, json_request);
-                    else if (path.find("/api/editcharacter") != string::npos)
+                    else if (path == ("/api/editcharacter"))
                         fEditCharacter(response, json_request);
-                    else if (path.find("/api/addboard") != string::npos)
+                    else if (path == ("/api/addboard"))
                         fSaveBoard(response, json_request);
-                    else if (path.find("/api/addobjectonboard") != string::npos)
+                    else if (path == ("/api/addobjectonboard"))
                         fSaveObjectsOnBoard(response, json_request);
                     else if (path == ("/api/loadmyboard"))
                         fSendOwnBoard(response, json_request);
-                    else if (path.find("/api/loadboard") != string::npos)
+                    else if (path == ("/api/loadboard"))
                         fSendBoard(response, json_request);
-                    else if (path.find("/api/editboard") != string::npos)
+                    else if (path == ("/api/editboard"))
                         fEditBoard(response, json_request);
-                    else if (path.find("/api/loadmyboardslist") != string::npos)
+                    else if (path == ("/api/loadmyboardslist"))
                         fSendOwnBoardsList(response, json_request);
-                    else if (path.find("/api/loadboardslist") != string::npos)
+                    else if (path == ("/api/loadboardslist"))
                         fSendBoardsList(response, json_request);
-                    else if (path.find("/api/loadclasses") != string::npos)
+                    else if (path == ("/api/loadclasses"))
                         fSendClasses(response, json_request);
-                    else if (path.find("/api/loadraces") != string::npos)
+                    else if (path == ("/api/loadraces"))
                         fSendRaces(response, json_request);
-                    else if (path.find("/api/loadtypesnpc") != string::npos)
+                    else if (path == ("/api/loadtypesnpc"))
                         fSendNpcTypes(response, json_request);
-                    else if (path.find("/api/loadtypesterrain") != string::npos)
+                    else if (path == ("/api/loadtypesterrain"))
                         fSendTerrainTypes(response, json_request);
                     else
                         response = "{\"status\": \"fail\",\"message\": \"requested API is not implemented\"}";
@@ -373,8 +373,8 @@ void fSaveTerrain(std::string &json_response, nlohmann::json &json_request)
         
         if (DataValidator::fValidate(name,        DataValidator::SQL_INJECTION) &&
             DataValidator::fValidate(type,        DataValidator::SQL_INJECTION) &&
-            DataValidator::fValidate(width,       DataValidator::LENGTH) &&
-            DataValidator::fValidate(height,      DataValidator::LENGTH) &&
+            DataValidator::fValidate(width,       DataValidator::SQL_INJECTION) &&
+            DataValidator::fValidate(height,      DataValidator::SQL_INJECTION) &&
             DataValidator::fValidate(description, DataValidator::SQL_INJECTION)) // checks data
         {
             string query = "SELECT id, name From TerrainTypes WHERE name = '" + type + "';";
@@ -1734,6 +1734,9 @@ void fSendBoard(std::string &json_response, nlohmann::json &json_request)
                     {
                         if (npc_rows_qtt <= 0)
                             json_response += ", \"data\": [";
+                        else
+                            json_response += ", ";
+                        
                         
                         while (rows_qtt--)
                         {
@@ -1752,6 +1755,7 @@ void fSendBoard(std::string &json_response, nlohmann::json &json_request)
                 int data_count = npc_rows_qtt + terrain_rows_qtt;
                 if (npc_rows_qtt > 0 || terrain_rows_qtt > 0)
                     json_response += "], \"data_count\":\"" + to_string(data_count) + "\"";
+                json_response += "}";
             }
             else
                 json_response = "{\"status\":\"fail\", \"message\": \"no board with the specified id\"}";
@@ -1798,6 +1802,16 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                 {
                     json_response += "{\"status\":\"success\", \"message\": \"board is updated";
                     
+                    query = "DELETE FROM BN_Map WHERE id_board = '" + board_id + "';";
+                    json_result = data_base.fExecuteQuery(query);
+                    cout << query << "\nRESULT:\n" << json_result << endl;
+                    query_result = json_result["result"];
+                    
+                    query = "DELETE FROM BT_Map WHERE id_board = '" + board_id + "';";
+                    json_result = data_base.fExecuteQuery(query);
+                    cout << query << "\nRESULT:\n" << json_result << endl;
+                    query_result = json_result["result"];
+                    
                     string data_count = json_request["data_count"];
                     int data_qtt = stoi(data_count);
                     while (data_qtt--)
@@ -1811,7 +1825,6 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                             if (DataValidator::fValidate(npc_x,    DataValidator::SQL_INJECTION) &&
                                 DataValidator::fValidate(npc_y,    DataValidator::SQL_INJECTION))
                             {
-                                query = "DELETE FROM BN_Map WHERE id_board = '" + board_id + "';";
                                 query = "INSERT INTO BN_Map (id_board, id_npc, npc_x, npc_y) VALUES ('" + board_id + "', '" + id_npc + "', '" + npc_x + "', '" + npc_y + "');";
                                 json_result = data_base.fExecuteQuery(query);
                                 cout << query << "\nRESULT:\n" << json_result << endl;
@@ -1840,7 +1853,6 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                             if (DataValidator::fValidate(terrain_x,    DataValidator::SQL_INJECTION) &&
                                 DataValidator::fValidate(terrain_y,    DataValidator::SQL_INJECTION))
                             {
-                                query = "DELETE FROM BT_Map WHERE id_board = '" + board_id + "';";
                                 query = "INSERT INTO BT_Map (id_board, id_terrain, terrain_x, terrain_y) VALUES ('" + board_id + "', '" + id_terrain + "', '" + terrain_x + "', '" + terrain_y + "');";
                                 json_result = data_base.fExecuteQuery(query);
                                 cout << query << "\nRESULT:\n" << json_result << endl;
@@ -1976,49 +1988,49 @@ void fSendBoardsList(std::string &json_response, nlohmann::json &json_request)
         json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
 }
 
-void fSendBoardsList(std::string &json_response, nlohmann::json &json_request)
-{
-    string session_id = json_request["session_id"];
-    string id_user;
-    
-    if (fRetrieveUserId(id_user, session_id))
-    {
-        string query = "SELECT id, name, width, height, description, id_owner FROM Boards;";
-        nlohmann::json json_result = data_base.fExecuteQuery(query);
-        cout << query << "\nRESULT:\n" << json_result << endl;
-        string query_result = json_result["result"];
-        
-        if (query_result == "success")
-        {
-            string rows = json_result["rows"];
-            int rows_qtt = stoi(rows);
-            if (rows_qtt > 0)
-            {
-                json_response = "{\"status\":\"success\", \"boards_quantity\":\"" + rows + "\", \"list\": [";
-                while (rows_qtt--)
-                {
-                    string board_id    = json_result["data"][rows_qtt]["id"];
-                    string board       = json_result["data"][rows_qtt]["name"];
-                    string width       = json_result["data"][rows_qtt]["width"];
-                    string height      = json_result["data"][rows_qtt]["height"];
-                    string description = json_result["data"][rows_qtt]["description"];
-                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
-                    json_response += "{\"board\": \"" + board + "\", \"id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
-                    
-                    if (rows_qtt)
-                        json_response += ",";
-                }
-                json_response += "]}";
-            }
-            else
-                json_response = "{\"status\":\"warning\", \"message\": \"list of boards is empty\"}";
-        }
-        else
-            json_response = "{\"status\":\"fail\", \"message\": \"list of boards is not loaded, sql query execution failed\"}";
-    }
-    else
-        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
-}
+//void fSendBoardsList(std::string &json_response, nlohmann::json &json_request)
+//{
+//    string session_id = json_request["session_id"];
+//    string id_user;
+//    
+//    if (fRetrieveUserId(id_user, session_id))
+//    {
+//        string query = "SELECT id, name, width, height, description, id_owner FROM Boards;";
+//        nlohmann::json json_result = data_base.fExecuteQuery(query);
+//        cout << query << "\nRESULT:\n" << json_result << endl;
+//        string query_result = json_result["result"];
+//        
+//        if (query_result == "success")
+//        {
+//            string rows = json_result["rows"];
+//            int rows_qtt = stoi(rows);
+//            if (rows_qtt > 0)
+//            {
+//                json_response = "{\"status\":\"success\", \"boards_quantity\":\"" + rows + "\", \"list\": [";
+//                while (rows_qtt--)
+//                {
+//                    string board_id    = json_result["data"][rows_qtt]["id"];
+//                    string board       = json_result["data"][rows_qtt]["name"];
+//                    string width       = json_result["data"][rows_qtt]["width"];
+//                    string height      = json_result["data"][rows_qtt]["height"];
+//                    string description = json_result["data"][rows_qtt]["description"];
+//                    string id_owner    = json_result["data"][rows_qtt]["id_owner"];
+//                    json_response += "{\"board\": \"" + board + "\", \"id\": \"" + board_id + "\", \"width\": \"" + width + "\", \"height\": \"" + height + "\", \"description\": \"" + description + "\", \"id_owner\": \"" + id_owner + "\"}";
+//                    
+//                    if (rows_qtt)
+//                        json_response += ",";
+//                }
+//                json_response += "]}";
+//            }
+//            else
+//                json_response = "{\"status\":\"warning\", \"message\": \"list of boards is empty\"}";
+//        }
+//        else
+//            json_response = "{\"status\":\"fail\", \"message\": \"list of boards is not loaded, sql query execution failed\"}";
+//    }
+//    else
+//        json_response = "{\"status\":\"fail\", \"message\": \"you are not logged in\"}";
+//}
 
 void fSendClasses(std::string &json_response, nlohmann::json &json_request)
 {
