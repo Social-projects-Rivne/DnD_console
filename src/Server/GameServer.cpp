@@ -136,7 +136,7 @@ void fParseRequest(std::string &path, std::map <std::string, std::string> &http_
                 {
                     nlohmann::json json_request = json::parse(request_data_content.c_str());
                     
-                    if (path.find("/api/userlogin"))
+                    if (path == ("/api/userlogin"))
                         fUserLogIn(response, json_request);
                     else if (path == ("/api/userregister"))
                         fUserRegistration(response, json_request);
