@@ -1816,6 +1816,10 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                                 DataValidator::fValidate(npc_y,    DataValidator::SQL_INJECTION))
                             {
                                 query = "DELETE FROM BN_Map WHERE id_board = '" + board_id + "';";
+                                json_result = data_base.fExecuteQuery(query);
+                                cout << query << "\nRESULT:\n" << json_result << endl;
+                                query_result = json_result["result"];
+                                
                                 query = "INSERT INTO BN_Map (id_board, id_npc, npc_x, npc_y) VALUES ('" + board_id + "', '" + id_npc + "', '" + npc_x + "', '" + npc_y + "');";
                                 json_result = data_base.fExecuteQuery(query);
                                 cout << query << "\nRESULT:\n" << json_result << endl;
@@ -1845,6 +1849,10 @@ void fEditBoard(std::string &json_response, nlohmann::json &json_request)
                                 DataValidator::fValidate(terrain_y,    DataValidator::SQL_INJECTION))
                             {
                                 query = "DELETE FROM BT_Map WHERE id_board = '" + board_id + "';";
+                                json_result = data_base.fExecuteQuery(query);
+                                cout << query << "\nRESULT:\n" << json_result << endl;
+                                query_result = json_result["result"];
+                                
                                 query = "INSERT INTO BT_Map (id_board, id_terrain, terrain_x, terrain_y) VALUES ('" + board_id + "', '" + id_terrain + "', '" + terrain_x + "', '" + terrain_y + "');";
                                 json_result = data_base.fExecuteQuery(query);
                                 cout << query << "\nRESULT:\n" << json_result << endl;
