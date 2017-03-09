@@ -1,4 +1,5 @@
 #include "Includes/TerrainForm.hpp"
+#include "Includes/Logger.hpp"
 
 void TerrainForm::fInitUIElements()
 {
@@ -73,6 +74,12 @@ void TerrainForm::fInitUIElements()
     _refresh_btn->setText("Refresh Terrain List");
     _gui.add(_refresh_btn);
 
+    _delete_btn = _theme->load("Button");
+    _delete_btn->setSize(400, 50);
+    _delete_btn->setPosition(50, 445);
+    _delete_btn->setText("Delete Terrain");
+    _gui.add(_delete_btn);
+
     _terrain_list = _theme->load("ListBox");
     _terrain_list->setPosition(50, 85);
     _terrain_list->setSize(400, 240);
@@ -81,7 +88,7 @@ void TerrainForm::fInitUIElements()
     _create_btn->connect("pressed", &TerrainForm::fCreateTerrain, this, _terrain_name, _terrain_type, _terrain_width, _terrain_height, _terrain_description);
     _refresh_btn->connect("pressed", &TerrainForm::fRefresh, this);
     _back_btn->connect("pressed", &TerrainForm::fDisable, this);
-
+    _delete_btn->connect("pressed", &TerrainForm::fDeleteTerrain, this, _terrain_list);
     _combo_box = true;
 }
 
@@ -110,7 +117,9 @@ void TerrainForm::fLoadTerrainListBox()
 
     _http_client->fSendRequest(HttpClient::_POST, "/api/loadmyterrainslist", request);
     _http_client->fGetResponse(response);
-    _terrain_data = json::parse(response);
+    _terrain_data = json::parse(response.c_str());
+
+    Logger::fLog("TerrainList was succssesfully loaded",Logger::type::info);
     std::cout << _terrain_data;
 }
 
@@ -123,6 +132,8 @@ void TerrainForm::fLoadTerrainTypeList()
     _http_client->fGetResponse(response);
     _terrain_types = json::parse(response.c_str());
     std::cout << _terrain_types;
+    Logger::fLog("Terrain type list was succssesfully loaded", Logger::type::info);
+    _types_loaded = true;
 }
 
 void TerrainForm::fLoadData()
@@ -150,6 +161,33 @@ void TerrainForm::fRefresh()
     _load_terrains_data.launch();
 }
 
+void TerrainForm::fDeleteTerrain(tgui::ListBox::Ptr terrain_list)
+{
+    if (terrain_list->getSelectedItemId().isEmpty() || terrain_list->getSelectedItem().isEmpty())
+    {
+        //insert MessageBox
+    }
+    else
+    {
+        json request;
+
+        request["session_id"] = _game_session;
+        request["terrain_id"] = terrain_list->getSelectedItem();
+
+        std::string response;
+        _http_client->fSendRequest(HttpClient::_POST, "/api/deleteterrain", request.dump());
+        _http_client->fGetResponse(response);
+        std::cout << response;
+
+        Logger::fLog("Terrain: " + terrain_list->getSelectedItem() + "seccessfully deleted", Logger::type::info);
+
+        if (response.find("success"))
+        {
+            fRefresh();
+        }
+    }
+}
+
 void TerrainForm::fDisable()
 {
     display_window = false;
@@ -160,6 +198,7 @@ TerrainForm::TerrainForm(const sf::Event &event, sf::RenderWindow &window, std::
 {
 
     display_window = true;
+    _types_loaded = false;
     _game_session = game_session;
     _http_client = http_client;
     _gui.setWindow(window);
@@ -227,11 +266,15 @@ void TerrainForm::fUpdate(sf::RenderWindow  &window)
         {
             if (_terrain_data["status"]=="success" && _terrain_types["status"] == "success" && !_updated)
             {
-                std::string type_quan = _terrain_types["types_quantity"];
-                for (int i = 0; i < std::stoi(type_quan); i++)
+                if (_types_loaded)
                 {
+                    std::string type_quan = _terrain_types["types_quantity"];
+                    for (int i = 0; i < std::stoi(type_quan); i++)
+                    {
 
-                    _terrain_type->addItem(_terrain_types["list"][i]["type"], _terrain_types["list"][i]["type_id"]);
+                        _terrain_type->addItem(_terrain_types["list"][i]["type"], _terrain_types["list"][i]["type_id"]);
+                    }
+                    _types_loaded = false;
                 }
 
                 std::string terrains_quan = _terrain_data["terrains_quantity"];
