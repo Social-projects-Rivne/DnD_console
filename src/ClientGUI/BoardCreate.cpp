@@ -66,10 +66,9 @@ void BoardCreate::fUpdate(sf::RenderWindow & window)
 {
     while (window.pollEvent(_event))
     {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
-            display_window = false;
 
-        if (_event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+
+        if (_event.type == sf::Event::Closed)
             window.close();
 
         gui.handleEvent(_event);

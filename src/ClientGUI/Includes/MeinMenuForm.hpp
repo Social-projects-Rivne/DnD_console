@@ -1,3 +1,13 @@
+// MainMenuForm.hpp
+//
+// GUI_Client
+// for 
+// SoftServe ITA
+//
+// Kopelyuk Vitaliy
+// vkopeluk@gmail.com
+//
+
 #pragma once
 
 #include "DmForm.hpp"

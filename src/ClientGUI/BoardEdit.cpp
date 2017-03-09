@@ -42,7 +42,8 @@ void BoardEdit::fLoadElemsData()
         response = "";
         _client->fSendRequest(HttpClient::_POST, "/api/loadboard", request);
         _client->fGetResponse(response);
-        response += "}";
+        
+        std::cout << response;
         _old_board_data = json::parse(response.c_str());
         _board_name = _old_board_data["board"];
         std::cout << _old_board_data << std::endl;
@@ -117,14 +118,12 @@ void BoardEdit::fNPCTexturesLoader()
         _npc_spr[i] = std::make_shared<sf::Sprite>(s);
     }
 
-    for (int i = 0; i <= 6; i++)
+    for (int i = 0; i <= 5; i++)
     {
         sf::Sprite s;
         s.setTexture(*_terrain_text[i]);
         _terrain_spr[i] = std::make_shared<sf::Sprite>(s);
     }
-
-
 }
 
 void BoardEdit::fLoadTerrPreview()
@@ -264,6 +263,26 @@ void BoardEdit::fUploadData()
 
 void BoardEdit::fLoadOldElems()
 {
+    try
+    {
+        std::string sp_x = _old_board_data["spawn_x"];
+        std::string sp_y = _old_board_data["spawn_y"];
+        int spawn_x = std::stoi(sp_x) - 1;
+        int spawn_y = std::stoi(sp_y) - 1;
+        _spawn_abs_posX = _board_sprite.getPosition().x + _cell_size*spawn_x;
+        _spawn_abs_posY = _board_sprite.getPosition().y + _cell_size*spawn_y;
+
+        _spawn_posX = std::stoi(sp_x) + 1;
+        _spawn_posY = std::stoi(sp_y) + 1;
+        _spawn_point.setPosition(_spawn_abs_posX, _spawn_abs_posY);
+
+        _is_setted_spawn_point = true;
+    }
+    catch (const std::exception&)
+    {
+        _is_setted_spawn_point = false;
+    }
+
     std::string elem_quan = _old_board_data["data_count"];
     for (int i = 0; i < std::stoi(elem_quan); i++)
     {
@@ -337,25 +356,6 @@ void BoardEdit::fLoadOldElems()
 
             _elems_unique_id_on_board++;
         }
-    }
-    try
-    {
-        std::string sp_x = _old_board_data["spawn_x"];
-        std::string sp_y = _old_board_data["spawn_y"];
-        int spawn_x = std::stoi(sp_x) - 1;
-        int spawn_y = std::stoi(sp_y) - 1;
-        _spawn_abs_posX = _board_sprite.getPosition().x + _cell_size*spawn_x;
-        _spawn_abs_posY = _board_sprite.getPosition().y + _cell_size*spawn_y;
-        
-        _spawn_posX = std::stoi(sp_x)+1;
-        _spawn_posY = std::stoi(sp_y)+1;
-        _spawn_point.setPosition(_spawn_abs_posX, _spawn_abs_posY);
-
-        _is_setted_spawn_point = true;
-    }
-    catch (const std::exception&)
-    {
-        _is_setted_spawn_point = false;
     }
 }
 
@@ -439,8 +439,10 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
 {
     try
     {
-        if (_is_loaded && _npc_data["status"] == "success")
+
+        if (_is_loaded && _npc_data["status"] == "success" || _npc_data["status"] == "warning")
         {
+            _board_name_box->setText(_board_name);
             _elems_combo->addItem("NPC", "npc");
             _elems_combo->addItem("Terrain", "terrain");
             _elems_combo->setSelectedItemById("npc");
@@ -450,10 +452,9 @@ void BoardEdit::fUpdate(sf::RenderWindow & window)
             {
                 _elems_list_box->addItem(_npc_data["list"][i]["npc"], std::to_string(i));
             }
-            _is_loaded = false;
             _is_updated_list_box = true;
             _selected_combo_option = _elems_combo->getSelectedItemId();
-            _board_name_box->setText(_board_name);
+            _is_loaded = false;
         }
 
         if (_elems_combo->getSelectedItemId() != _selected_combo_option)

@@ -4,6 +4,7 @@
 BoardMenu::BoardMenu(const sf::Event & event, sf::RenderWindow &window, HttpClient* client, const std::string &ses) :
                                             http_thread(&BoardMenu::fLoadBoardListBox, this)
 {
+    draw_window = true;
     _session_id = ses;
     this->_event = event;
     _gui.setWindow(window);
@@ -50,11 +51,19 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
         }
         while (window.pollEvent(_event))
         {
+
             if (_event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::E))
                 window.close();
 
             if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
             {
+                if (_back_btn_spr.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
+                {
+                    http_thread.terminate();
+                    draw_window = false;
+                }
+
+
                 if (_board_edit_btn_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
                     if (_board_id >= 0)
@@ -78,6 +87,7 @@ void BoardMenu::fUpdate(sf::RenderWindow & window)
                     _menu_option = _selected_menu::CREATE_BOARD;
                     create_board = new BoardCreate(_event, window, _client, _session_id);
                 }
+
 
                 if (_refresh_list_btn_sprite.getGlobalBounds().contains(_event.mouseButton.x, _event.mouseButton.y))
                 {
@@ -138,6 +148,8 @@ void BoardMenu::fDraw(sf::RenderWindow & window)
         window.draw(_refresh_list_txt);
         window.draw(_create_board_btn_sprite);
         window.draw(_create_board_txt);
+        window.draw(_back_btn_spr);
+        window.draw(_back_btn_txt);
         _gui.draw();
     }
     break;
@@ -195,6 +207,11 @@ void BoardMenu::fLoadUiElements(sf::RenderWindow & window)
     _refresh_list_txt.setCharacterSize(20);
     _refresh_list_txt.setFont(font);
 
+    _back_btn_txt.setString("Back");
+    _back_btn_txt.setCharacterSize(20);
+    _back_btn_txt.setFont(font);
+
+
     _board_edit_btn.loadFromFile("sprites/Interface/Button/LongMenuButton.png");
     _board_edit_btn_sprite.setTexture(_board_edit_btn);
 
@@ -203,6 +220,10 @@ void BoardMenu::fLoadUiElements(sf::RenderWindow & window)
 
     _refresh_list_btn.loadFromFile("sprites/Interface/Button/LongMenuButton.png");
     _refresh_list_btn_sprite.setTexture(_refresh_list_btn);
+
+    _back_btn.loadFromFile("sprites/Interface/Button/LongMenuButton.png");
+    _back_btn_spr.setTexture(_back_btn);
+    _back_btn_spr.setScale(0.5, 1);
 
     int wind_center_x = window.getSize().x;
 
@@ -213,6 +234,8 @@ void BoardMenu::fLoadUiElements(sf::RenderWindow & window)
         _board_edit_btn_sprite.getPosition().y + _create_board_btn_sprite.getGlobalBounds().height + 10);
     _refresh_list_btn_sprite.setPosition(0, 425);
     _refresh_list_txt.setPosition(100, 435);
+
+    _back_btn_spr.setPosition(0, window.getSize().y - _back_btn_spr.getGlobalBounds().height);
 
     _board_edit_txt.setPosition(_board_edit_btn_sprite.getPosition().x +
         _board_edit_btn_sprite.getGlobalBounds().width / 2 -
@@ -227,6 +250,13 @@ void BoardMenu::fLoadUiElements(sf::RenderWindow & window)
         _create_board_btn_sprite.getPosition().y +
         _create_board_btn_sprite.getGlobalBounds().height / 2 -
         _create_board_txt.getGlobalBounds().height);
+
+    _back_btn_txt.setPosition(_back_btn_spr.getPosition().x +
+        _back_btn_spr.getGlobalBounds().width / 2 -
+        _back_btn_txt.getGlobalBounds().width / 2,
+        _back_btn_spr.getPosition().y +
+        _back_btn_spr.getGlobalBounds().height / 2 -
+        _back_btn_txt.getGlobalBounds().height);
 
 
     _theme = tgui::Theme::create("sprites/Theme/Black.txt");

@@ -84,17 +84,19 @@ void PlayerForm::fUpdate(sf::RenderWindow  &window)
             {
                 if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
                 {
+                    _board_menu = new PMBoardMenu(_event, window, _http_client, _game_session);
                     _menu_option = PlayerForm::BOARD_MENU;
                 }
             }
 
             if (_btn_character->mouseOnWidget(_event.mouseButton.x, _event.mouseButton.y))
             {
-                if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
-                {
-                    _character_window = new CharacterForm(_event, window, _game_session, _http_client);
-                    _menu_option = PlayerForm::Character_MENU;
-                }
+               
+                    if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
+                    {
+                        _menu_option = PlayerForm::Character_MENU;
+                        _character_window = new CharacterForm(_event, window, _game_session, _http_client);
+                    }
             }
             _gui.handleEvent(_event);
         }
@@ -102,7 +104,8 @@ void PlayerForm::fUpdate(sf::RenderWindow  &window)
     break;
     case PlayerForm::BOARD_MENU:
     {
-
+        if (_board_menu->draw_window)
+            _board_menu->fUpdate(window);
     }
     break;
     case PlayerForm::Character_MENU:
@@ -125,7 +128,13 @@ void PlayerForm::fDraw(sf::RenderWindow & window)
     break;
     case PlayerForm::BOARD_MENU:
     {
-
+        if (_board_menu->draw_window)
+            _board_menu->fDraw(window);
+        else
+        {
+            delete _board_menu;
+            _menu_option = PlayerForm::NONE;
+        }
     }
     break;
     case PlayerForm::Character_MENU:
@@ -136,7 +145,6 @@ void PlayerForm::fDraw(sf::RenderWindow & window)
         {
             delete _character_window;
             _menu_option = PlayerForm::NONE;
-            _character_button_click = false;
         }
     }
     break;

@@ -41,6 +41,7 @@ class CharacterForm
     tgui::Label::Ptr    _hitpoints;
     tgui::Label::Ptr    _level;
     tgui::Label::Ptr    _experience;
+    tgui::Label::Ptr    _points_l;
     tgui::ListBox::Ptr  _character_list;
     tgui::Button::Ptr   _create_btn;
     tgui::Button::Ptr   _back_btn;
@@ -48,7 +49,10 @@ class CharacterForm
     tgui::Button::Ptr   _refresh_btn;
     tgui::Button::Ptr   _delete_btn;
     tgui::Button::Ptr   _edit_btn;
+    tgui::Button::Ptr   _rnd_btn;
     tgui::Picture::Ptr  _back;
+    tgui::Picture::Ptr  _character_img;
+    sf::Texture         _character_picture[11];
 
     std::string _data_race;
     std::string _data_class;
@@ -73,7 +77,10 @@ class CharacterForm
     bool _create_button_click;
     bool _save_changes_click;
     bool _edit_btn_click;
-    bool _is_loaded;
+    bool races_loaded;
+    bool classed_loaded;
+
+    int max_abilitis_points=80;
 
     std::string fSetAbilityMod(std::string ability);
     void fInitUIElements();
@@ -83,8 +90,8 @@ class CharacterForm
     void fLoadCharacterListBox();
     void fLoadClasses();
     void fLoadRaces();
+    void fLoadCharacterImages();
     void fRefresh();
-    void fDisable();
     void fSaveChanges(tgui::ListBox::Ptr character_list);
 public:
     bool display_window;

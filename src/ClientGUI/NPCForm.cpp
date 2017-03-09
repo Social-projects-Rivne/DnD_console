@@ -173,6 +173,12 @@ void NPCForm::fInitUIElements()
     _save_chg->hide();
     _gui.add(_save_chg);
 
+    _rnd_btn = _theme->load("Button");
+    _rnd_btn->setPosition(windowWidth / 2 + 50, _wisdom_l->getSize().y + 585);
+    _rnd_btn->setSize(160, 50);
+    _rnd_btn->setText("Randomize Abilities");
+    _gui.add(_rnd_btn);
+
     _npc_list = _theme->load("ListBox");
     _npc_list->setPosition(50, 85);
     _npc_list->setSize(400, 240);
@@ -218,6 +224,7 @@ void NPCForm::fLoadNPCType()
     _http_client->fGetResponse(response);
     _npc_types = json::parse(response.c_str());
     std::cout << _npc_types;
+    _npc_type_loaded = true;
 }
 
 void NPCForm::fLoadNPCListBox()
@@ -343,6 +350,7 @@ void NPCForm::fDisable()
 NPCForm::NPCForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client):_load_data(&NPCForm::fLoadData,this)
 {
     this->_event = event;
+    _npc_type_loaded = false;
     _gui.setWindow(window);
     display_window = true;
     _http_client = http_client;
@@ -358,6 +366,13 @@ void NPCForm::fUpdate(sf::RenderWindow  &window)
 
     while (window.pollEvent(_event))
     {
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
+        {
+            _load_data.terminate();
+            display_window = false;
+        }
+
         if (_combo_box)
         {
 
@@ -434,20 +449,25 @@ void NPCForm::fUpdate(sf::RenderWindow  &window)
 
         try
         {
-            if (_npc_data["status"] == "success" && _npc_types["status"] == "success" && !_updated)
+            if ((_npc_data["status"] == "success" || _npc_types["status"] == "success" )&& !_updated)
             {
+
+                if (_npc_type_loaded)
+                {
+                    std::string npc_type_quan = _npc_types["types_quantity"];
+                    for (int i = 0; i < std::stoi(npc_type_quan); i++)
+                    {
+
+                        _npc_type->addItem(_npc_types["list"][i]["type"], _npc_types["list"][i]["type_id"]);
+                    }
+                    _npc_type_loaded = false;
+                }
+
                 std::string npc_quan = _npc_data["npcs_quantity"];
                 for (int i = 0; i < std::stoi(npc_quan); i++)
                 {
 
                     _npc_list->addItem(_npc_data["list"][i]["npc"], _npc_data["list"][i]["npc_id"]);
-                }
-
-                std::string npc_type_quan = _npc_types["types_quantity"];
-                for (int i = 0; i < std::stoi(npc_type_quan); i++)
-                {
-
-                    _npc_type->addItem(_npc_types["list"][i]["type"], _npc_types["list"][i]["type_id"]);
                 }
 
                 _updated = true;
@@ -456,6 +476,90 @@ void NPCForm::fUpdate(sf::RenderWindow  &window)
         catch (const std::exception&)
         {
 
+        }
+
+        if (_rnd_btn->mouseOnWidget(_event.mouseButton.x, _event.mouseButton.y))
+        {
+            if (_event.type == sf::Event::MouseButtonReleased && _event.mouseButton.button == sf::Mouse::Left)
+            {
+                int sum;
+
+                do
+                {
+                    sum = 0;
+                    string strength;
+                    do
+                    {
+                        strength = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(strength, DataValidator::ABILITY))
+                        {
+                            _strength->setSelectedItem(strength);
+                        }
+                    } while (!DataValidator::fValidate(strength, DataValidator::ABILITY));
+                    sum += stoi(strength);
+
+                    string dexterity;
+                    do
+                    {
+                        dexterity = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(dexterity, DataValidator::ABILITY))
+                        {
+                            _dexterity->setSelectedItem(dexterity);
+                        }
+                    } while (!DataValidator::fValidate(dexterity, DataValidator::ABILITY));
+                    sum += stoi(dexterity);
+
+                    string constitution;
+                    do
+                    {
+                        constitution = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(constitution, DataValidator::ABILITY))
+                        {
+                            _constitution->setSelectedItem(constitution);
+                        }
+                    } while (!DataValidator::fValidate(constitution, DataValidator::ABILITY));
+                    sum += stoi(constitution);
+
+                    string intelligence;
+                    do
+                    {
+                        intelligence = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(intelligence, DataValidator::ABILITY))
+                        {
+                            _inteligence->setSelectedItem(intelligence);
+                        }
+                    } while (!DataValidator::fValidate(intelligence, DataValidator::ABILITY));
+                    sum += stoi(intelligence);
+
+                    string wisdom;
+                    do
+                    {
+                        wisdom = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(wisdom, DataValidator::ABILITY))
+                        {
+                            _wisdom->setSelectedItem(wisdom);
+                        }
+                    } while (!DataValidator::fValidate(wisdom, DataValidator::ABILITY));
+                    sum += stoi(wisdom);
+
+                    string charisma;
+                    do
+                    {
+                        charisma = to_string(Dice::fMultipleRollSum(Dice::D4, 4, 3));
+
+                        if (DataValidator::fValidate(charisma, DataValidator::ABILITY))
+                        {
+                            _charisma->setSelectedItem(charisma);
+                        }
+                    } while (!DataValidator::fValidate(charisma, DataValidator::ABILITY));
+                    sum += stoi(charisma);
+                } while (sum > max_abilities_points);
+            }
         }
 
         if (_event.type == sf::Event::Closed)

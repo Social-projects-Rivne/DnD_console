@@ -1,10 +1,19 @@
+// RegisterForm.hpp
+//
+// GUI_Client
+// for 
+// SoftServe ITA
+//
+// Kopelyuk Vitaliy
+// vkopeluk@gmail.com
+//
+
 #pragma once
 
 #include <SFML/Graphics.hpp>
 #include <TGUI/TGUI.hpp>
 #include "UserActions.hpp"
 #include "HttpClient.hpp"
-#include <thread>
 
 
 
@@ -24,8 +33,6 @@ private:
     tgui::EditBox::Ptr _editBoxPasswordRe;
     tgui::Button::Ptr  _register_button;
     tgui::Button::Ptr  _back;
-    tgui::Button::Ptr  test;
-    tgui::ChildWindow::Ptr information_window;
     tgui::Picture::Ptr _picture;
 
 
