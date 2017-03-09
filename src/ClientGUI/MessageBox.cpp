@@ -91,8 +91,21 @@ void MessBox::fSetLabel(sf::RenderWindow &_message_box_window, const std::string
 	_label = _theme->load("Label");
 	_label->setTextColor(tgui::Color::Color("red"));
 	_label->setTextSize(20);
-	_label->setText(message);
-	_label->setPosition((_message_box_window.getSize().x - _label->getSize().x) / 2, (_message_box_window.getSize().y - _label->getSize().y) / 2);
+	std::string mess = message;
+	if (mess.length() > 20)
+	{
+		bool find = false;
+		for (std::string::size_type n = 19; (n = mess.find_last_of(" ", n)) != std::string::npos && find == false; n--)
+		{
+			if (n = mess.find_last_of(" ", n))
+			{
+				mess[n] = '\n';
+				find = true;
+			}
+		}
+	}
+	_label->setText(mess);
+	_label->setPosition((_message_box_window.getSize().x - _label->getSize().x) / 2 - 55, (_message_box_window.getSize().y - _label->getSize().y) / 2);
 	_gui.add(_label);
 }
 
