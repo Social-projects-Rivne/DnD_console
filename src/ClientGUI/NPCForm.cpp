@@ -224,6 +224,7 @@ void NPCForm::fLoadNPCType()
     _http_client->fGetResponse(response);
     _npc_types = json::parse(response.c_str());
     std::cout << _npc_types;
+    _npc_type_loaded = true;
 }
 
 void NPCForm::fLoadNPCListBox()
@@ -349,6 +350,7 @@ void NPCForm::fDisable()
 NPCForm::NPCForm(const sf::Event &event, sf::RenderWindow &window, std::string game_session, HttpClient *http_client):_load_data(&NPCForm::fLoadData,this)
 {
     this->_event = event;
+    _npc_type_loaded = false;
     _gui.setWindow(window);
     display_window = true;
     _http_client = http_client;
@@ -447,20 +449,25 @@ void NPCForm::fUpdate(sf::RenderWindow  &window)
 
         try
         {
-            if (_npc_data["status"] == "success" && _npc_types["status"] == "success" && !_updated)
+            if ((_npc_data["status"] == "success" || _npc_types["status"] == "success" )&& !_updated)
             {
+
+                if (_npc_type_loaded)
+                {
+                    std::string npc_type_quan = _npc_types["types_quantity"];
+                    for (int i = 0; i < std::stoi(npc_type_quan); i++)
+                    {
+
+                        _npc_type->addItem(_npc_types["list"][i]["type"], _npc_types["list"][i]["type_id"]);
+                    }
+                    _npc_type_loaded = false;
+                }
+
                 std::string npc_quan = _npc_data["npcs_quantity"];
                 for (int i = 0; i < std::stoi(npc_quan); i++)
                 {
 
                     _npc_list->addItem(_npc_data["list"][i]["npc"], _npc_data["list"][i]["npc_id"]);
-                }
-
-                std::string npc_type_quan = _npc_types["types_quantity"];
-                for (int i = 0; i < std::stoi(npc_type_quan); i++)
-                {
-
-                    _npc_type->addItem(_npc_types["list"][i]["type"], _npc_types["list"][i]["type_id"]);
                 }
 
                 _updated = true;

@@ -264,7 +264,7 @@ void TerrainForm::fUpdate(sf::RenderWindow  &window)
 
         try
         {
-            if (_terrain_data["status"]=="success" && _terrain_types["status"] == "success" && !_updated)
+            if ((_terrain_data["status"]=="success" || _terrain_types["status"] == "success" )&& !_updated)
             {
                 if (_types_loaded)
                 {
